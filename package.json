@@ -1,0 +1,23 @@
+{
+  "name": "padelhub",
+  "version": "0.0.1",
+  "description": "In padel We Hub. Un sofisticato sistema di gestione per giocatori e circoli di padel",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsc && node out/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marco-zan/padelhub.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/marco-zan/padelhub/issues"
+  },
+  "homepage": "https://github.com/marco-zan/padelhub#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
