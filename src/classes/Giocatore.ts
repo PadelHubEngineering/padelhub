@@ -1,10 +1,10 @@
 import { getModelForClass, prop } from "@typegoose/typegoose"
-import { Utente } from "./Utente";
+import { Cliente } from "./Cliente";
 import { Circolo } from "./Circolo";
 
 enum Genere { Maschio, Femmina, Altro}
 
-export class Giocatore extends Utente{
+export class Giocatore extends Cliente{
 
     @prop({ required:true })
     public nickname: string
@@ -21,7 +21,7 @@ export class Giocatore extends Utente{
     @prop()
     public confermato: boolean
 
-    @prop()
+    @prop()n
     public foto?: HTMLImageElement //Controllare
 
     @prop()
@@ -33,11 +33,11 @@ export class Giocatore extends Utente{
     @prop({ type: () => [Giocatore] })
     public preferiti?: Giocatore[];
 
-    @prop({ type: () => [Partita] })
-    public partiteGiocate?: Partita[]; //Non va perchè manca la classe
+    // @prop({ type: () => [Partita] })
+    // public partiteGiocate?: Partita[]; //Non va perchè manca la classe
 
-    @prop({ type: () => [Partita] })
-    public partitePrenotate?: Partita[]; //Non va perchè manca la classe
+    // @prop({ type: () => [Partita] })
+    // public partitePrenotate?: Partita[]; //Non va perchè manca la classe
 
 
     constructor(name:string, email:string, telefono:string, nickname: string, dataDiNascita: Date, genere: Genere, livello: number) {
@@ -48,7 +48,6 @@ export class Giocatore extends Utente{
         this.livello = livello
         this.confermato = false
     }
-
 
 }
 
