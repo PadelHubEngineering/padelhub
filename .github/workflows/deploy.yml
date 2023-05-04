@@ -1,11 +1,8 @@
 name: deploy-test
-run-name: ${{ github.actor }} is testing deploy
-on:
-  push:
-    branches:
-      - main
+run-name: ${{ github.actor }} is testing ci
+on: workflow_dispatch
 jobs:
-  check-bats-version:
+  testing-ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
