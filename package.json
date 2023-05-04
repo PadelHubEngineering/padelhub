@@ -20,6 +20,7 @@
   "homepage": "https://github.com/PadelHubEngineering/padelhub#readme",
   "dependencies": {
     "@typegoose/typegoose": "^11.1.0",
+    "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-winston": "^4.2.0",
     "mongoose": "^7.1.0",

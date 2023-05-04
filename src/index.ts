@@ -2,6 +2,8 @@ import mongoose from "mongoose"
 import config from "./config/general.config"
 import { logger } from "./config/logging";
 
+
+
 async function main() {
     // Inizializzazione database
     try {
@@ -14,7 +16,6 @@ async function main() {
     logger.debug("Connessione a mongodb avvenuta con successo")
 
     // Inizializzazione Express
-
 
 }
 
