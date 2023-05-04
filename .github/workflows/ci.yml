@@ -1,8 +1,10 @@
 name: Node.js CI
 run-name: Node.js testing
-on: 
+on:
+  push: 
+    branches: [ main, develop ]
   workflow_dispatch:
-    branches: [ main ]
+    branches: [ main, develop ]
 jobs:
   test-ci:
     runs-on: ubuntu-latest
