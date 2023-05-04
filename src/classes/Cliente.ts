@@ -1,7 +1,7 @@
 import { getModelForClass } from "@typegoose/typegoose";
 import { Utente } from "./Utente";
 
-class Cliente extends Utente {
+export class Cliente extends Utente {
 
     constructor(name: string, email: string, telefono: string) {
         super(name, email, telefono);
@@ -9,4 +9,4 @@ class Cliente extends Utente {
 }
 
 
-export const UtenteModel = getModelForClass(Cliente)
+export const ClienteModel = getModelForClass(Cliente)

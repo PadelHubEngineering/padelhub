@@ -12,15 +12,18 @@ export class IscrizioneCircolo {
     @prop({ required: true })
     dataIscrizione: Date
 
-    @prop({ required: true })
+    @prop({ ref: () => Giocatore, required: true })
     giocatore: Ref<Giocatore>
 
-    @prop({ required: true })
+    @prop({ ref: () => Circolo, required: true })
     circolo: Ref<Circolo>
 
-    constructor(quotaPagata: number, dataIscrizione: Date) {
+    constructor(quotaPagata: number, dataIscrizione: Date, giocatore: Ref<Giocatore>, circolo: Ref<Circolo>) {
         this.quotaPagata = quotaPagata;
         this.dataIscrizione = dataIscrizione;
+
+        this.giocatore = giocatore;
+        this.circolo = circolo
     }
 }
 
