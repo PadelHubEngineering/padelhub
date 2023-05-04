@@ -1,6 +1,8 @@
-import { getModelForClass, prop } from "@typegoose/typegoose"
+import { Ref, getModelForClass, prop } from "@typegoose/typegoose"
 import { Cliente } from "./Cliente";
 import { Circolo } from "./Circolo";
+
+
 
 enum Genere { Maschio, Femmina, Altro}
 
@@ -21,17 +23,17 @@ export class Giocatore extends Cliente{
     @prop()
     public confermato: boolean
 
-    @prop()n
+    @prop()
     public foto?: HTMLImageElement //Controllare
 
     @prop()
     public tagTelegram?: string //Controllare
 
-    @prop({ type: () => [Circolo] })
-    public circoliAssociati?: Circolo[]; //Non va perchè manca la classe
+    @prop({ ref: () => Circolo })
+    public circoliAssociati?: Ref<Circolo>[]; //Non va perchè manca la classe
 
-    @prop({ type: () => [Giocatore] })
-    public preferiti?: Giocatore[];
+    @prop({ ref: () => Giocatore })
+    public preferiti?: Ref<Giocatore>[];
 
     // @prop({ type: () => [Partita] })
     // public partiteGiocate?: Partita[]; //Non va perchè manca la classe
