@@ -8,20 +8,24 @@ const default_format = winston.format.combine(
     winston.format.colorize()
 )
 
+const default_transports = [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'combined.log' }),
+]
+
 export const logger = winston.createLogger({
-    level: config.env === 'development' ? 'debug' : 'info',
+    level: process.env.RUN_MODE === 'development' ? 'debug' : 'info',
     format: default_format,
     defaultMeta: { service: 'padelHub' },
-    transports: [
-        new winston.transports.Console(),
-        new winston.transports.File({ filename: 'error.log', level: 'error' }),
-        new winston.transports.File({ filename: 'combined.log' }),
-    ],
+    transports: default_transports,
 });
 
 export const expressLogger = expressWinston.logger({
     transports: [
-        new winston.transports.Console()
+        new winston.transports.Console(),
+        new winston.transports.File({ filename: 'error.log', level: 'error' }),
+        new winston.transports.File({ filename: 'combined.log' }),
     ],
     format: default_format,
     meta: true,

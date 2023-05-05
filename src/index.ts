@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import config from "./config/general.config";
 import { logger } from "./config/logging";
 import { app } from "./routes/routes";
 import * as dotenv from "dotenv";
@@ -20,7 +19,7 @@ async function main() {
     logger.debug("Connessione a mongodb avvenuta con successo")
 
     // Inizializzazione Express
-    app.listen(port, () => console.log(`App listening on port ${port}!`));
+    app.listen(port, () => logger.debug(`App listening on port ${port}!`));
 
 }
 
