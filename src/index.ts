@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { logger } from "./utils/logging";
 import { app } from "./routes/routes";
 import * as dotenv from "dotenv";
+import { preliminary_check } from "./utils/general.utils";
 
 dotenv.config();
 
@@ -23,5 +24,5 @@ async function main() {
 
 }
 
-if (require.main === module)
+if (require.main === module && preliminary_check())
     main();
