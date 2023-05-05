@@ -1,7 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 import auth from './autenticazione/auth';
 import bodyParser from 'body-parser';
-import { expressLogger } from '../config/logging';
+import { expressLogger } from '../utils/logging';
 
 export const app: Express = express();
 
