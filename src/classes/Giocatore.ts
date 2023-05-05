@@ -1,12 +1,10 @@
 import { Ref, getModelForClass, prop } from "@typegoose/typegoose"
-import { Cliente } from "./Cliente";
 import { Circolo } from "./Circolo";
-
-
+import { Utente } from "./Utente";
 
 enum Genere { Maschio, Femmina, Altro}
 
-export class Giocatore extends Cliente{
+export class Giocatore extends Utente {
 
     @prop({ required:true })
     public nickname: string

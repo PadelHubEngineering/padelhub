@@ -1,7 +1,7 @@
 import { getModelForClass, prop } from "@typegoose/typegoose"
-import { Cliente } from "./Cliente";
+import { Utente } from "./Utente"
 
-export class Circolo extends Cliente{
+export class Circolo extends Utente{
 
     @prop({ required:true })
     public partitaIVA: string

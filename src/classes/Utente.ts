@@ -2,16 +2,16 @@ import { getModelForClass, prop } from "@typegoose/typegoose"
 
 export class Utente {
     @prop({ required: true })
-    public name: string
+    public nome: string
 
-    @prop({ required: true })
+    @prop({ required: true, index: true })
     public email: string
 
     @prop({ required: true })
     public telefono: string
 
-    constructor( name: string, email: string, telefono: string ) {
-        this.name = name;
+    constructor( nome: string, email: string, telefono: string ) {
+        this.nome = nome;
         this.email = email;
         this.telefono = telefono;
     }
