@@ -4,9 +4,10 @@ on:
   push: 
     branches: [ main, develop ]
   workflow_dispatch:
-    branches: [ main, develop ]
 jobs:
   test-ci:
+    env:
+      MONGO_URL: ${{ secrets.MONGO_URL }} # Must be set as a GitHub secret
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
