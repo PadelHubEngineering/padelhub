@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from 'express';
+import express, { Express, Request, Response, Router } from 'express';
 import auth from './autenticazione/auth';
 import bodyParser from 'body-parser';
 import { expressLogger } from '../utils/logging';
@@ -9,9 +9,21 @@ app.use(expressLogger);
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
+// Route di default
+
+const default_router = Router()
+
 // respond with "hello world" when a GET request is made to the homepage
-app.get('/', function(_req: Request, res: Response) {
-  res.send('hello world');
+default_router.get('/', function(_req: Request, res: Response) {
+  res.json({
+    success: true,
+    message: "hello world"
+  });
 });
 
-app.use('/authentication', auth)
+default_router.use('/authentication', auth)
+
+
+
+
+app.use("/api/v1", default_router)

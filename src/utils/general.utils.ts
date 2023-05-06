@@ -20,3 +20,5 @@ export enum TipoAccount {
     OperatoreCustomerService,
     Amministratore,
 }
+
+export enum Genere { Maschio, Femmina, Altro}

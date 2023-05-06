@@ -1,10 +1,8 @@
 import mongoose from "mongoose";
-import { logger } from "./utils/logging";
 import { app } from "./routes/routes";
-import * as dotenv from "dotenv";
 import { preliminary_check } from "./utils/general.utils";
 
-dotenv.config();
+import { logger } from "./utils/logging";
 
 const port = process.env.PORT || 8080;
 

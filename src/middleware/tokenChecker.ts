@@ -3,11 +3,19 @@ import jwt from "jsonwebtoken"
 import { TipoAccount } from "../utils/general.utils"
 import { Request, Response, NextFunction } from "express";
 
-type TokenAutenticazione = {
-    tokenEffettivo: string
+export type TokenAutenticazione = {
+    // tokenEffettivo: string
     tipoAccount: TipoAccount
     nome: string
     email: string
+}
+
+declare global {
+     namespace Express {
+         interface Request {
+             utenteAttuale?: TokenAutenticazione;
+         }
+     }
 }
 
 function checkJWT(token: string): null | TokenAutenticazione {
@@ -62,6 +70,17 @@ function checkToken(req: Request, res: Response, next: NextFunction, account_ric
     next();
 };
 
-function checkTokenGiocatore(req: Request, res: Response, next: NextFunction) {
+export function checkTokenGiocatore(req: Request, res: Response, next: NextFunction) {
     checkToken(req, res, next, TipoAccount.Giocatore)
+}
+
+export function checkTokenCircolo(req: Request, res: Response, next: NextFunction) {
+    checkToken(req, res, next, TipoAccount.Giocatore)
+}
+
+export function checkTokenCustomerS(req: Request, res: Response, next: NextFunction) {
+    checkToken(req, res, next, TipoAccount.OperatoreCustomerService)
+}
+export function checkTokenAmministratore(req: Request, res: Response, next: NextFunction) {
+    checkToken(req, res, next, TipoAccount.Amministratore)
 }

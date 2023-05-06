@@ -1,6 +1,10 @@
 import { getModelForClass, prop } from "@typegoose/typegoose"
 import { Utente } from "./Utente"
 
+type DocumentoSocietario = { //TODO: meglio di così
+    documento: string
+}
+
 export class Circolo extends Utente{
 
     @prop({ required:true })
@@ -12,8 +16,8 @@ export class Circolo extends Utente{
     @prop({ required:true })
     public prezzoSlotOrarioAffiliato: number
 
-    @prop({ required:true })
-    public documentoSocietario: Document
+    @prop()
+    public documentoSocietario?: DocumentoSocietario
 
     @prop({ required:true })
     public paymentOnboarding: boolean
@@ -30,11 +34,10 @@ export class Circolo extends Utente{
     // @prop({ type: () => [IscrizioneCircolo] })
     // public affiliati?: IscrizioneCircolo[] 
 
-    constructor(name:string, email:string, telefono:string, partitaIVA: string, prezzoSlotOrario: number, documentoSocietario: Document, paymentOnboarding: boolean, quotaAffiliazione: number ,scontoAffiliazione: number ) {
-        super(name, email, telefono)
+    constructor(name:string, email:string, telefono:string, password: string, partitaIVA: string, prezzoSlotOrario: number, paymentOnboarding: boolean, quotaAffiliazione: number ,scontoAffiliazione: number ) {
+        super(name, email, telefono, password)
         this.partitaIVA = partitaIVA
         this.prezzoSlotOrario = prezzoSlotOrario
-        this.documentoSocietario = documentoSocietario
         this.paymentOnboarding = paymentOnboarding
         this.validato = false 
         this.quotaAffiliazione = quotaAffiliazione
