@@ -1,7 +1,7 @@
-import { Ref, getModelForClass, prop } from "@typegoose/typegoose"
+import { Ref, getDiscriminatorModelForClass, getModelForClass, prop } from "@typegoose/typegoose"
 import { Circolo } from "./Circolo";
-import { Utente } from "./Utente";
-
+import { Utente, UtenteModel } from "./Utente";
+import { TipoAccount } from "../utils/general.utils";
 import { Genere } from "../utils/general.utils";
 
 export class Giocatore extends Utente {
@@ -51,4 +51,4 @@ export class Giocatore extends Utente {
 
 }
 
-export const GiocatoreModel = getModelForClass(Giocatore)
+export const GiocatoreModel = getDiscriminatorModelForClass(UtenteModel, Giocatore, TipoAccount.Giocatore);

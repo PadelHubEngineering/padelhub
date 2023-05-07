@@ -1,14 +1,18 @@
-import { getModelForClass, pre, prop } from "@typegoose/typegoose"
+import { getModelForClass, pre, prop, modelOptions } from "@typegoose/typegoose"
 import * as argon2 from "argon2";
 import { logger } from "../utils/logging"
 
+// export enum UtenteType {
+//     Circolo = "Circolo",
+//     Giocatore = "Giocatore"
+// }
 // Eseguito prima del salvataggio sul database dell'utente:
 // sovrascrive la password attuale, se è stata modificata, con il suo hash.
 // In questo modo alla creazione dell'utente possiamo usare una password
 // come stringa, ma sarà salvata in modo sicuro
 @pre<Utente>('save', async function (next) {
 
-    if( !this.isModified() ) return next();
+    if (!this.isModified()) return next();
 
     let hash: string;
 
@@ -22,6 +26,7 @@ import { logger } from "../utils/logging"
     this.password = hash;
     next()
 })
+@modelOptions({ schemaOptions: { collection: 'Utenti', discriminatorKey: "utenteType" } })
 export class Utente {
     @prop({ required: true })
     public nome: string
@@ -32,10 +37,14 @@ export class Utente {
     @prop({ required: true })
     public telefono: string
 
-    @prop({ required:true })
+    @prop({ required: true })
     public password: string
 
-    constructor( nome: string, email: string, telefono: string, password: string) {
+    //Discriminator
+    @prop({ required: true })
+    public utenteType!: string;
+
+    constructor(nome: string, email: string, telefono: string, password: string) {
         this.nome = nome;
         this.email = email;
         this.telefono = telefono;
@@ -60,6 +69,5 @@ export class Utente {
 }
 
 
-// Non creiamo il model per la classe utente: non aggiungeremo mai gli utenti direttamente,
-// ma solo circoli e giocatori
-// export const UtenteModel = getModelForClass(Utente)
+//tocca esportare anche questo per il discriminator, da verificare
+export const UtenteModel = getModelForClass(Utente)

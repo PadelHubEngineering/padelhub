@@ -15,10 +15,10 @@ export function preliminary_check() {
 }
 
 export enum TipoAccount {
-    Giocatore,
-    Circolo,
-    OperatoreCustomerService,
-    Amministratore,
+    Giocatore = "Giocatore",
+    Circolo = "Circolo",
+    OperatoreCustomerService = "OperatoreCustomerService",
+    Amministratore = "Amministratore",
 }
 
 export enum Genere { Maschio, Femmina, Altro}

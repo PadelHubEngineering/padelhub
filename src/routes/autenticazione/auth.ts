@@ -1,38 +1,45 @@
 import { Router, Request, Response } from 'express';
-import { Utente } from '../../classes/Utente';
+import { Utente, UtenteModel } from '../../classes/Utente';
 import jwt from "jsonwebtoken"
 import { TokenAutenticazione } from '../../middleware/tokenChecker';
 
 import { logger } from '../../utils/logging';
-import { TipoAccount } from '../../utils/general.utils';
-import { GiocatoreModel } from '../../classes/Giocatore';
+import { Genere, TipoAccount } from '../../utils/general.utils';
+import { Giocatore, GiocatoreModel } from '../../classes/Giocatore';
 import { CircoloModel } from '../../classes/Circolo';
 
 const router: Router = Router();
 
 async function cercaUtente(email: string): Promise<null | { utente: Utente, tipo_utente: TipoAccount }> {
 
-    let searched;
     let tipo_utente = TipoAccount.Giocatore;
 
-    searched = await GiocatoreModel.findOne({ email }).exec();
+    const searched = await UtenteModel.findOne({ email }).exec();
 
-    if ( searched ){
+    if (searched) {
         return {
             utente: searched,
-            tipo_utente
+            tipo_utente: searched.utenteType as TipoAccount
         }
     }
+    // searched = await GiocatoreModel.findOne({ email }).exec();
 
-    searched = await CircoloModel.findOne({ email }).exec();
+    // if ( searched ){
+    //     return {
+    //         utente: searched,
+    //         tipo_utente
+    //     }
+    // }
 
-    if ( searched ){
-        tipo_utente = TipoAccount.Circolo
-        return {
-            utente: searched,
-            tipo_utente
-        }
-    }
+    // searched = await CircoloModel.findOne({ email }).exec();
+
+    // if ( searched ){
+    //     tipo_utente = TipoAccount.Circolo
+    //     return {
+    //         utente: searched,
+    //         tipo_utente
+    //     }
+    // }
 
     // Il processo dovrebbe continuare con l'autenticazione di Amministatore e CS
 
@@ -46,7 +53,8 @@ router.post('', async function (req: Request, res: Response) {
 
     let token;
 
-    if ( !searched ){
+    //await GiocatoreModel.create(new Giocatore("a", "b", "1", "aa", new Date(), Genere.Maschio, 1, "aaa"));
+    if (!searched) {
         res.json({
             success: false,
             message: "Utente non trovato o password errata"
@@ -55,10 +63,10 @@ router.post('', async function (req: Request, res: Response) {
     } else {
         // Controllo correttezza della password
         let { utente, tipo_utente } = searched;
-
+        console.log(searched.tipo_utente)
         const esito_autenticazione = await utente.checkPassword(password);
 
-        if( ! esito_autenticazione ) {
+        if (!esito_autenticazione) {
             logger.debug(`Autenticazione con password errata utente: ${utente.email}`)
 
             // Cattiva pratica far capire all'utente nello specifico quale
