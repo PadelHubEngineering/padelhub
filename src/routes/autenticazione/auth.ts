@@ -47,7 +47,7 @@ router.post('', async function (req: Request, res: Response) {
     let token;
 
     if ( !searched ){
-        res.json({
+        res.status(401).json({
             success: false,
             message: "Utente non trovato o password errata"
         })
@@ -63,7 +63,7 @@ router.post('', async function (req: Request, res: Response) {
 
             // Cattiva pratica far capire all'utente nello specifico quale
             // problema non ha permesso di concludere l'autenticazione
-            res.json({
+            res.status(401).json({
                 success: false,
                 messagge: "Utente non trovato o password errata"
             })
