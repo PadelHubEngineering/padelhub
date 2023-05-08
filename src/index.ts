@@ -1,14 +1,13 @@
 import mongoose from "mongoose";
-import { logger } from "./config/logging";
 import { app } from "./routes/routes";
-import * as dotenv from "dotenv";
+import { preliminary_check } from "./utils/general.utils";
 
-dotenv.config();
-
+import { logger } from "./utils/logging";
 
 const port = process.env.PORT || 8080;
 
 async function main() {
+    logger.info("Application started")
     // Inizializzazione database
     try {
         await mongoose.connect(process.env.MONGO_URL!);
@@ -23,5 +22,5 @@ async function main() {
 
 }
 
-if (require.main === module)
+if (require.main === module && preliminary_check())
     main();
