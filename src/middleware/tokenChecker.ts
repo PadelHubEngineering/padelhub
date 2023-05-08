@@ -1,6 +1,6 @@
 
 import jwt from "jsonwebtoken"
-import { TipoAccount } from "../utils/general.utils"
+import { TipoAccount } from "../classes/Utente";
 import { Request, Response, NextFunction } from "express";
 
 export type TokenAutenticazione = {

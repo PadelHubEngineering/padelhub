@@ -2,10 +2,13 @@ import { getModelForClass, pre, prop, modelOptions } from "@typegoose/typegoose"
 import * as argon2 from "argon2";
 import { logger } from "../utils/logging"
 
-// export enum UtenteType {
-//     Circolo = "Circolo",
-//     Giocatore = "Giocatore"
-// }
+export enum TipoAccount {
+    Giocatore = "Giocatore",
+    Circolo = "Circolo",
+    OperatoreCustomerService = "OperatoreCustomerService",
+    Amministratore = "Amministratore",
+}
+
 // Eseguito prima del salvataggio sul database dell'utente:
 // sovrascrive la password attuale, se è stata modificata, con il suo hash.
 // In questo modo alla creazione dell'utente possiamo usare una password

@@ -1,6 +1,6 @@
 import { getDiscriminatorModelForClass, getModelForClass, prop } from "@typegoose/typegoose"
 import { Utente, UtenteModel } from "./Utente"
-import { TipoAccount } from "../utils/general.utils"
+import { TipoAccount } from "./Utente"
 type DocumentoSocietario = { //TODO: meglio di così
     documento: string
 }

@@ -2,7 +2,6 @@ import { Circolo } from "../classes/Circolo";
 import { Giocatore } from "../classes/Giocatore";
 import { logger } from "./logging";
 
-export type Cliente = Giocatore | Circolo;
 
 export function preliminary_check() {
 
@@ -13,12 +12,3 @@ export function preliminary_check() {
 
     return true
 }
-
-export enum TipoAccount {
-    Giocatore = "Giocatore",
-    Circolo = "Circolo",
-    OperatoreCustomerService = "OperatoreCustomerService",
-    Amministratore = "Amministratore",
-}
-
-export enum Genere { Maschio, Femmina, Altro}

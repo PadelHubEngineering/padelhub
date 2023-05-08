@@ -1,8 +1,9 @@
 import { Ref, getDiscriminatorModelForClass, getModelForClass, prop } from "@typegoose/typegoose"
 import { Circolo } from "./Circolo";
 import { Utente, UtenteModel } from "./Utente";
-import { TipoAccount } from "../utils/general.utils";
-import { Genere } from "../utils/general.utils";
+import { TipoAccount } from "./Utente";
+
+export enum Genere { Maschio, Femmina, Altro}
 
 export class Giocatore extends Utente {
 

@@ -1,18 +1,15 @@
 import { Router, Request, Response } from 'express';
-import { Utente, UtenteModel } from '../../classes/Utente';
+import { Utente, UtenteModel, TipoAccount } from '../../classes/Utente';
 import jwt from "jsonwebtoken"
 import { TokenAutenticazione } from '../../middleware/tokenChecker';
 
 import { logger } from '../../utils/logging';
-import { Genere, TipoAccount } from '../../utils/general.utils';
-import { Giocatore, GiocatoreModel } from '../../classes/Giocatore';
+import { Giocatore, GiocatoreModel, Genere } from '../../classes/Giocatore';
 import { CircoloModel } from '../../classes/Circolo';
 
 const router: Router = Router();
 
 async function cercaUtente(email: string): Promise<null | { utente: Utente, tipo_utente: TipoAccount }> {
-
-    let tipo_utente = TipoAccount.Giocatore;
 
     const searched = await UtenteModel.findOne({ email }).exec();
 
@@ -22,26 +19,6 @@ async function cercaUtente(email: string): Promise<null | { utente: Utente, tipo
             tipo_utente: searched.utenteType as TipoAccount
         }
     }
-    // searched = await GiocatoreModel.findOne({ email }).exec();
-
-    // if ( searched ){
-    //     return {
-    //         utente: searched,
-    //         tipo_utente
-    //     }
-    // }
-
-    // searched = await CircoloModel.findOne({ email }).exec();
-
-    // if ( searched ){
-    //     tipo_utente = TipoAccount.Circolo
-    //     return {
-    //         utente: searched,
-    //         tipo_utente
-    //     }
-    // }
-
-    // Il processo dovrebbe continuare con l'autenticazione di Amministatore e CS
 
     return null;
 }
@@ -55,7 +32,7 @@ router.post('', async function (req: Request, res: Response) {
 
     //await GiocatoreModel.create(new Giocatore("a", "b", "1", "aa", new Date(), Genere.Maschio, 1, "aaa"));
     if (!searched) {
-        res.json({
+        res.status(401).json({
             success: false,
             message: "Utente non trovato o password errata"
         })
@@ -71,7 +48,7 @@ router.post('', async function (req: Request, res: Response) {
 
             // Cattiva pratica far capire all'utente nello specifico quale
             // problema non ha permesso di concludere l'autenticazione
-            res.json({
+            res.status(401).json({
                 success: false,
                 messagge: "Utente non trovato o password errata"
             })
