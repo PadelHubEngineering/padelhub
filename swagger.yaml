@@ -2,12 +2,9 @@ swagger: '2.0'
 info:
   version: '1.0'
   title: "PadelHub"
-  description: Polls is a simple API allowing consumers to view polls and vote in them.
-  license:
-    name: MIT
-    url: https://github.com/apiaryio/polls-api/blob/master/LICENSE
-host: polls.apiblueprint.org
-basePath: /
+  description: API per gestire un sistema di prenotazioni di partite di padel.
+host: padelhub-back.onrender.com
+basePath: /api/v1
 schemes:
 - https
 consumes:
@@ -15,106 +12,42 @@ consumes:
 produces:
 - application/json
 paths:
-  /questions:
-    x-summary: Questions Collection
-    get:
-      summary: List All Questions
-      responses:
-        200:
-          description: Successful Response
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Question'
-          examples:
-            application/json:
-              - question: Favourite programming language?
-                published_at: '2015-08-05T08:40:51.620Z'
-                choices:
-                  - choice: Swift
-                    votes: 2048
-                  - choice: Python
-                    votes: 1024
-                  - choice: Objective-C
-                    votes: 512
-                  - choice: Ruby
-                    votes: 256
-    post:
-      description: >-
-        You may create your own question using this action. It takes a JSON
-        object containing a question and a collection of answers in the
-        form of choices.
-      summary: Create a New Question
+  /authentication:
+    x-summary: Autenticazione
+    post: 
+      summary: Fornisce l'autenticazione alla piattaforma
       parameters:
         - name: body
           in: body
           required: true
           schema:
-            $ref: '#/definitions/QuestionRequest'
+            $ref: '#/definitions/LoginRequest'
       responses:
-        201:
-          description: ''
+        200:
+          description: Dati inseriti validi, risposta valida
           schema:
-            $ref: '#/definitions/Question'
-          examples:
-            application/json:
-                question: Favourite programming language?
-                published_at: '2015-08-05T08:40:51.620Z'
-                choices:
-                  - choice: Swift
-                    votes: 0
-                  - choice: Python
-                    votes: 0
-                  - choice: Objective-C
-                    votes: 0
-                  - choice: Ruby
-                    votes: 0
+            $ref: '#/definitions/LoginApproved'
 definitions:
-  Question:
-    title: Question
+  LoginRequest:
+    title: Login Request
     type: object
     properties:
-      question:
+      email:
         type: string
-      published_at:
-        type: string
-      choices:
-        type: array
-        items:
-          $ref: '#/definitions/Choice'
-    required:
-      - question
-      - published_at
-      - choices
-  Choice:
-    title: Choice
-    type: object
-    properties:
-      votes:
-        type: integer
-        format: int32
-      choice:
+      password:
         type: string
     required:
-      - votes
-      - choice
-  QuestionRequest:
-    title: Question Request
-    type: object
-    properties:
-      question:
-        type: string
-      choices:
-        type: array
-        items:
-          type: string
-    required:
-      - question
-      - choices
+      - email
+      - password
     example:
-      question: Favourite programming language?
-      choices:
-        - Swift
-        - Python
-        - Objective-C
-        - Ruby
+      email: matteo@email.com
+      password: password
+  LoginApproved:
+    example: 
+      success: true
+      message: Autenticazione completata con successo
+      token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aXBvQWNjb3VudCI6Ikdpb2NhdG9yZSIsImVtYWlsIjoibWF0dGVvQGVtYWlsLmNvbSIsIm5vbWUiOiJNYXR0ZW8iLCJpYXQiOjE2ODM2NTAwMTIsImV4cCI6MTY4MzgyMjgxMn0.rzU6tIfELQbQlRmoDWJj1i5VMurGIr0r8IMiz-0Yuo4
+      dati:
+        tipoAccount: Giocatore
+        email: email@email.com
+        nome: Matteo
