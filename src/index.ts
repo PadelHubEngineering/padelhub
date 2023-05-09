@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { app } from "./routes/routes";
 import { preliminary_check } from "./utils/general.utils";
+import {Partita, PartitaModel} from "./classes/Partita"
 
 import { logger } from "./utils/logging";
 
@@ -19,8 +20,13 @@ async function main() {
 
     // Inizializzazione Express
     app.listen(port, () => logger.debug(`App listening on port ${port}!`));
+    console.log("ciao")
+   
+
 
 }
 
 if (require.main === module && preliminary_check())
     main();
+
+    
