@@ -43,6 +43,24 @@ definitions:
       email: matteo@email.com
       password: password
   LoginApproved:
+    title: Login Approved
+    type: object
+    properties:
+      success:
+        type: boolean
+      message: 
+        type: string
+      token: 
+        type: string
+      dati:
+        type: object
+        properties:
+          tipoAccount:
+            type: string
+          email:
+            type: string
+          nome:
+            type: string
     example: 
       success: true
       message: Autenticazione completata con successo
