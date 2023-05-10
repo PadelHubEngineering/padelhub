@@ -63,10 +63,6 @@ export class Partita{
             this.isChiusa=false;
             //rimozione giocatore da database
             //cancellazione prenotazione da database
-
-            
-
-            
         }
         
 

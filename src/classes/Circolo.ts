@@ -1,49 +1,66 @@
-import { getDiscriminatorModelForClass, getModelForClass, prop } from "@typegoose/typegoose"
+import { getDiscriminatorModelForClass, getModelForClass, mongoose, prop } from "@typegoose/typegoose"
 import { Utente, UtenteModel } from "./Utente"
 import { TipoAccount } from "./Utente"
 type DocumentoSocietario = { //TODO: meglio di così
     documento: string
 }
 
+export enum TipoCampo{
+    INTERNO = "INTERNO",
+    ESTERNO = "ESTERNO"
+}
+
+export class Campo {
+    public id: number
+    public tipologia: TipoCampo
+}
+
 export class Circolo extends Utente {
 
-    @prop({ required: true })
-    public partitaIVA: string
+    @prop()
+    public indirizzo?: string
 
-    @prop({ required: true })
-    public prezzoSlotOrario: number
+    @prop()
+    public partitaIVA?: string
 
-    @prop({ required: true })
-    public prezzoSlotOrarioAffiliato: number
+    @prop()
+    public prezzoSlotOrario?: number
 
     @prop()
     public documentoSocietario?: DocumentoSocietario
 
-    @prop({ required: true })
-    public paymentOnboarding: boolean
+    @prop()
+    public paymentOnboarding?: boolean
 
-    @prop({ required: true })
-    public validato: boolean
+    @prop({required: true})
+    public validato: boolean = false
 
-    @prop({ required: true })
-    public quotaAffiliazione: number
+    @prop()
+    public quotaAffiliazione?: number
 
-    @prop({ required: true })
+    @prop()
     public scontoAffiliazione: number
 
+    @prop()
+    public campi?: mongoose.Types.Array<Campo>;
     // @prop({ type: () => [IscrizioneCircolo] })
     // public affiliati?: IscrizioneCircolo[] 
 
-    constructor(name: string, email: string, telefono: string, password: string, partitaIVA: string, prezzoSlotOrario: number, paymentOnboarding: boolean, quotaAffiliazione: number, scontoAffiliazione: number) {
-        super(name, email, telefono, password)
+    constructor(name: string, email: string, password: string, telefono?: string, partitaIVA?: string, prezzoSlotOrario?: number, paymentOnboarding?: boolean, quotaAffiliazione?: number, scontoAffiliazione?: number) {
+        super(name, email, password, telefono)
         this.partitaIVA = partitaIVA
         this.prezzoSlotOrario = prezzoSlotOrario
         this.paymentOnboarding = paymentOnboarding
         this.validato = false
         this.quotaAffiliazione = quotaAffiliazione
-        this.scontoAffiliazione = scontoAffiliazione
-        this.prezzoSlotOrarioAffiliato = ((100 - this.scontoAffiliazione) * prezzoSlotOrario) / 100
+        this.scontoAffiliazione = scontoAffiliazione ? scontoAffiliazione : 0;
+    }
 
+    getPrezzoSlotOrarioAffiliato(): number | undefined {
+        if(this.prezzoSlotOrario){
+            return ((100 - this.scontoAffiliazione) * this.prezzoSlotOrario) / 100
+        }
+        return
     }
 
 

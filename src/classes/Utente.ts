@@ -38,7 +38,7 @@ export class Utente {
     public email: string
 
     @prop({ required: true })
-    public telefono: string
+    public telefono?: string
 
     @prop({ required: true })
     public password: string
@@ -47,7 +47,7 @@ export class Utente {
     @prop({ required: true })
     public utenteType!: string;
 
-    constructor(nome: string, email: string, telefono: string, password: string) {
+    constructor(nome: string, email: string, password: string, telefono?: string) {
         this.nome = nome;
         this.email = email;
         this.telefono = telefono;
