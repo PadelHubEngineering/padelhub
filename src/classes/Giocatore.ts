@@ -55,5 +55,7 @@ export class Giocatore extends Utente {
     }
 
 }
-
 export const GiocatoreModel = getDiscriminatorModelForClass(UtenteModel, Giocatore, TipoAccount.Giocatore);
+
+
+
