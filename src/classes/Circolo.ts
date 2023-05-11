@@ -1,4 +1,4 @@
-import { getDiscriminatorModelForClass, getModelForClass, mongoose, prop } from "@typegoose/typegoose"
+import { getDiscriminatorModelForClass, getModelForClass, mongoose, prop, DocumentType } from "@typegoose/typegoose"
 import { Utente, UtenteModel } from "./Utente"
 import { TipoAccount } from "./Utente"
 type DocumentoSocietario = { //TODO: meglio di così
@@ -33,33 +33,32 @@ export class OrarioGiornaliero {
 
     @prop({ required: true })
     public isAperto: boolean
-    //ho dei dubbi
-    @prop({ 
-        required: true, 
-        set: (hour: number, minutes: number) => {
-            var data = new Date();
-            data.setHours(hour);
-            data.setMinutes(minutes);
-            return data;
-        },
-        get: (apertura: Date) => apertura.toLocaleTimeString()
-    })
-    private orarioApertura: Date
 
-    @prop({ 
-        required: true, 
-        set: (hour: number, minutes: number) => {
-            var data = new Date();
-            data.setHours(hour);
-            data.setMinutes(minutes);
-            return data;
-        },
-        get: (apertura: Date) => apertura.toLocaleTimeString()
-    })
-    @prop({ required: true })
-    private orarioChiusura: Date
+    @prop({ required: true})
+    public orarioApertura: Date
 
+
+
+    @prop({ required: true})
+    public orarioChiusura: Date
+
+    constructor(giorno: GiornoSettimana){
+        this.giorno = giorno;
+    }
 }
+
+export class ServizioAggiuntivo{
+    @prop()
+    public nomeServizio: string
+
+    @prop()
+    public descrizioneServizio: string
+
+    constructor(nomeServizio: string, descrizioneServizio: string){
+        this.nomeServizio = nomeServizio;
+        this.descrizioneServizio = descrizioneServizio;
+    }
+}  
 
 export class Circolo extends Utente {
 
@@ -73,10 +72,10 @@ export class Circolo extends Utente {
     public prezzoSlotOrario?: number
 
     @prop()
-    public documentoSocietario?: DocumentoSocietario
+    public documentoSocietario: DocumentoSocietario
 
     @prop()
-    public paymentOnboarding?: boolean
+    public paymentOnboarding?: boolean = false
 
     @prop({ required: true })
     public validato: boolean = false
@@ -87,10 +86,33 @@ export class Circolo extends Utente {
     @prop()
     public scontoAffiliazione: number
 
+    @prop({default: []})
+    public campi: Campo[] = [];
+
     @prop()
-    public campi?: mongoose.Types.Array<Campo>;
+    public durataSlot: number
+
+    @prop({default: []})
+    public orarioSettimanale: OrarioGiornaliero[];
+
+    @prop({default: []})
+    public serviziAggiuntivi: ServizioAggiuntivo[] = [];
     // @prop({ type: () => [IscrizioneCircolo] })
     // public affiliati?: IscrizioneCircolo[] 
+
+    public async setOrarioAperturaGiorno(this: DocumentType<Circolo>, giorno: GiornoSettimana, date: Date){
+        this.orarioSettimanale[giorno].orarioApertura = date
+        this.markModified('orarioSettimanale')
+        await this.save()
+    }
+
+    
+    public populateOrarioSettimanale(){
+        this.orarioSettimanale = []
+        Object.values(GiornoSettimana).filter((v) => !isNaN(Number(v))).forEach((val) => {
+            this.orarioSettimanale.push(new OrarioGiornaliero(val as number))
+        });
+    }
 
     constructor(name: string, email: string, password: string, telefono?: string, partitaIVA?: string, prezzoSlotOrario?: number, paymentOnboarding?: boolean, quotaAffiliazione?: number, scontoAffiliazione?: number) {
         super(name, email, password, telefono)
@@ -100,6 +122,7 @@ export class Circolo extends Utente {
         this.validato = false
         this.quotaAffiliazione = quotaAffiliazione
         this.scontoAffiliazione = scontoAffiliazione ? scontoAffiliazione : 0;
+        this.populateOrarioSettimanale()
     }
 
     getPrezzoSlotOrarioAffiliato(): number | undefined {

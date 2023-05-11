@@ -11,7 +11,7 @@ export class Giocatore extends Utente {
     @prop({ required: true })
     public cognome: string
 
-    @prop({ required: true })
+    @prop({ unique: true, required: true })
     public nickname: string
 
     @prop()
@@ -27,16 +27,16 @@ export class Giocatore extends Utente {
     public confermato: boolean = false;
 
     @prop()
-    public foto?: string // È una stringa in base64
+    public foto: string // È una stringa in base64
 
     @prop()
-    public tagTelegram?: string
+    public tagTelegram: string
 
     @prop({ ref: () => Circolo })
-    public circoliAssociati?: mongoose.Types.Array<Ref<Circolo>>; //Non va perchè manca la classe
+    public circoliAssociati: Ref<Circolo>[] = []; //Non va perchè manca la classe
 
     @prop({ ref: () => Giocatore })
-    public preferiti?: mongoose.Types.Array<Ref<Giocatore>>;
+    public preferiti: Ref<Giocatore>[] = [];
 
     // @prop({ type: () => [Partita] })
     // public partiteGiocate?: Partita[]; //Non va perchè manca la classe

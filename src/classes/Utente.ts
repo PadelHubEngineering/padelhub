@@ -34,10 +34,10 @@ export class Utente {
     @prop({ required: true })
     public nome: string
 
-    @prop({ required: true, index: true })
+    @prop({ unique: true ,required: true, index: true })
     public email: string
 
-    @prop({ required: true })
+    @prop()
     public telefono?: string
 
     @prop({ required: true })
