@@ -24,7 +24,7 @@ export class Campo {
     @prop({ required: true })
     public id: number
 
-    @prop({required: true})
+    @prop({ required: true })
     public tipologia: TipoCampo
 }
 export class OrarioGiornaliero {
@@ -34,31 +34,31 @@ export class OrarioGiornaliero {
     @prop({ required: true })
     public isAperto: boolean
 
-    @prop({ required: true})
+    @prop({ required: true })
     public orarioApertura: Date
 
 
 
-    @prop({ required: true})
+    @prop({ required: true })
     public orarioChiusura: Date
 
-    constructor(giorno: GiornoSettimana){
+    constructor(giorno: GiornoSettimana) {
         this.giorno = giorno;
     }
 }
 
-export class ServizioAggiuntivo{
+export class ServizioAggiuntivo {
     @prop()
     public nomeServizio: string
 
     @prop()
     public descrizioneServizio: string
 
-    constructor(nomeServizio: string, descrizioneServizio: string){
+    constructor(nomeServizio: string, descrizioneServizio: string) {
         this.nomeServizio = nomeServizio;
         this.descrizioneServizio = descrizioneServizio;
     }
-}  
+}
 
 export class Circolo extends Utente {
 
@@ -86,28 +86,28 @@ export class Circolo extends Utente {
     @prop()
     public scontoAffiliazione: number
 
-    @prop({default: []})
+    @prop({ default: [] })
     public campi: Campo[] = [];
 
     @prop()
     public durataSlot: number
 
-    @prop({default: []})
+    @prop({ default: [] })
     public orarioSettimanale: OrarioGiornaliero[];
 
-    @prop({default: []})
+    @prop({ default: [] })
     public serviziAggiuntivi: ServizioAggiuntivo[] = [];
     // @prop({ type: () => [IscrizioneCircolo] })
     // public affiliati?: IscrizioneCircolo[] 
 
-    public async setOrarioAperturaGiorno(this: DocumentType<Circolo>, giorno: GiornoSettimana, date: Date){
+    public async setOrarioAperturaGiorno(this: DocumentType<Circolo>, giorno: GiornoSettimana, date: Date) {
         this.orarioSettimanale[giorno].orarioApertura = date
         this.markModified('orarioSettimanale')
         await this.save()
     }
 
 
-    public populateOrarioSettimanale(){
+    public populateOrarioSettimanale() {
         this.orarioSettimanale = []
         Object.values(GiornoSettimana).filter((v) => !isNaN(Number(v))).forEach((val) => {
             this.orarioSettimanale.push(new OrarioGiornaliero(val as number))

@@ -1,16 +1,15 @@
-import { prop, mongoose, Ref } from "@typegoose/typegoose"
+import { prop, mongoose, Ref, modelOptions, DocumentType, getModelForClass } from "@typegoose/typegoose"
 import { TipoAccount } from "./Utente"
-import { Circolo , CircoloModel} from "./Circolo"
+import { Campo, Circolo , CircoloModel} from "./Circolo"
 
+@modelOptions({ schemaOptions: { collection: 'PrenotazioneCampi' } })
 export class PrenotazioneCampo {
-    @prop({ required: true, unique: true })
-    public idPrenotazioneCampo: string
 
     @prop({ required: true })
     public numeroSlot: number //Mi convince poco
 
     @prop({ required: true })
-    public idCampo: number
+    public idCampo: number 
 
     @prop({ required: true, ref: () => Circolo })
     public circolo: Ref<Circolo>
@@ -25,6 +24,17 @@ export class PrenotazioneCampo {
         this.numeroSlot = numeroSlot;
         this.idCampo = idCampo;
         this.circolo = circolo;
+    }
 
+    public async prenotazioneSlot(this: DocumentType<PrenotazioneCampo>, numeroSlot: number, idCampo: number, circolo: Ref<Circolo>, tipoUtente: TipoAccount) {
+        this.numeroSlot = numeroSlot;
+        this.idCampo = idCampo;
+        this.circolo = circolo;
+        this.dataPrenotazione = new Date();
+        this.tipoUtente = tipoUtente
+
+        await this.save()
     }
 }
+
+export const PrenotazioneCampoModel = getModelForClass(PrenotazioneCampo);
