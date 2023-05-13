@@ -54,7 +54,7 @@ function checkToken(req: Request, res: Response, next: NextFunction, account_ric
         })
         return
     }
-
+    console.log(account_richiesto)
     if(
         account_richiesto !== null &&
         decoded.tipoAccount !== account_richiesto
@@ -65,7 +65,6 @@ function checkToken(req: Request, res: Response, next: NextFunction, account_ric
         })
         return;
     }
-
     req.utenteAttuale = decoded;
     next();
 };
@@ -75,7 +74,7 @@ export function checkTokenGiocatore(req: Request, res: Response, next: NextFunct
 }
 
 export function checkTokenCircolo(req: Request, res: Response, next: NextFunction) {
-    checkToken(req, res, next, TipoAccount.Giocatore)
+    checkToken(req, res, next, TipoAccount.Circolo)
 }
 
 export function checkTokenCustomerS(req: Request, res: Response, next: NextFunction) {

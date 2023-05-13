@@ -28,8 +28,7 @@ default_router.get('/', function(_req: Request, res: Response) {
 });
 
 default_router.use('/authentication', auth)
-default_router.use('/circolo', circoloRouter, checkTokenCircolo)
-
+default_router.use('/circolo', checkTokenCircolo, circoloRouter)
 
 
 app.use("/api/v1", default_router)
