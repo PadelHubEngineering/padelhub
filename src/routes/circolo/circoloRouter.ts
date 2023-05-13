@@ -14,9 +14,9 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
         res.status(401)
         return
     }
+    
     await prenotazione.prenotazioneSlot(1, 0, mioCircolo, TipoAccount.Circolo)
 });
-
 
 
 export default router;

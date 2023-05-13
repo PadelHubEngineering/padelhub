@@ -45,7 +45,7 @@ export class Utente {
 
     //Discriminator
     @prop({ required: true })
-    public utenteType!: string;
+    public utenteType!: string | TipoAccount;
 
     constructor(nome: string, email: string, password: string, telefono?: string) {
         this.nome = nome;

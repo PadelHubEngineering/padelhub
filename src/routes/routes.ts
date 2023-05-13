@@ -1,9 +1,11 @@
 import express, { Express, Request, Response, Router } from 'express';
 import auth from './autenticazione/auth';
+import circoloRouter from './circolo/circoloRouter';
 import bodyParser from 'body-parser';
 import { expressLogger } from '../utils/logging';
 
 import cors from "cors"
+import { checkTokenCircolo } from '../middleware/tokenChecker';
 
 export const app: Express = express();
 
@@ -26,7 +28,7 @@ default_router.get('/', function(_req: Request, res: Response) {
 });
 
 default_router.use('/authentication', auth)
-
+default_router.use('/circolo', circoloRouter, checkTokenCircolo)
 
 
 

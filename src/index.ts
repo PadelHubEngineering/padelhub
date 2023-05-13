@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
 import { app } from "./routes/routes";
 import { preliminary_check } from "./utils/general.utils";
-import {Partita, PartitaModel} from "./classes/Partita"
+import { Partita, PartitaModel } from "./classes/Partita"
 //import { populate } from "./utils/populate";
 import { logger } from "./utils/logging";
-import { Giocatore , GiocatoreModel} from "./classes/Giocatore";
+import { Giocatore, GiocatoreModel } from "./classes/Giocatore";
 import { TipoAccount, UtenteModel } from "./classes/Utente";
+import { populate } from "./utils/populate";
 //import { createUnparsedSourceFile, servicesVersion, textSpanIntersectsWith } from "typescript";
 //import { Circolo, CircoloModel, GiornoSettimana, OrarioGiornaliero } from "./classes/Circolo";
 
@@ -17,21 +18,20 @@ async function main() {
     // Inizializzazione database
     try {
         await mongoose.connect(process.env.MONGO_URL!);
-    } catch( e ) {
+    } catch (e) {
         logger.error("Connessione fallita a mongodb")
         return
     }
     logger.debug("Connessione a mongodb avvenuta con successo")
-
-  
+    populate()
     
-
-    
+    // Inizializzazione Express
+    app.listen(port, () => logger.debug(`App listening on port ${port}!`));
 }
 
 if (require.main === module && preliminary_check())
-    
-    main();
-    
 
-    
+    main();
+
+
+

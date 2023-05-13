@@ -1,4 +1,4 @@
-import { getDiscriminatorModelForClass, getModelForClass, mongoose, prop, DocumentType } from "@typegoose/typegoose"
+import { getDiscriminatorModelForClass, getModelForClass, mongoose, prop, DocumentType, modelOptions } from "@typegoose/typegoose"
 import { Utente, UtenteModel } from "./Utente"
 import { TipoAccount } from "./Utente"
 type DocumentoSocietario = { //TODO: meglio di così
@@ -60,6 +60,7 @@ export class ServizioAggiuntivo {
     }
 }
 
+@modelOptions({ options: { allowMixed: 0 } })
 export class Circolo extends Utente {
 
     @prop()
