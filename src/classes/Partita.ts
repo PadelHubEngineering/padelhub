@@ -6,11 +6,12 @@ import {prop, getModelForClass, Ref, DocumentType , modelOptions} from "@typegoo
 
 @modelOptions({
     schemaOptions : {
-        timestamps : true 
+        timestamps : true,
+        collection : 'Partita'
     }
 })
 export class Partita{
-    id_parita!: mongoose.Types.ObjectId;
+    id_parita: mongoose.Types.ObjectId;
 
     @prop({type : Boolean, default : false})
     isChiusa : boolean;
@@ -18,7 +19,7 @@ export class Partita{
     @prop({type : Number , min : 0 , max : 24})
     n_slot : number
 
-    @prop({type : Number , default : 0, max : 5})
+    @prop({type : Number , default : 5, max : 5})
     categoria_max : number
 
     @prop({type : Number , default : 0 , min : 0})
@@ -40,19 +41,30 @@ export class Partita{
 
     //rivedere per salvataggio db
 
-    public async aggiungi_player(this: DocumentType<Partita>, gioc : Ref<Giocatore>){
+    public async aggiungi_player(this : DocumentType<Partita>,gioc : Ref<Giocatore>){
+        
         if(!this.isChiusa){
             this.giocatori.push(gioc);
             //creazione di prenotazione per giocatore()
-
             await this.save()
+            console.log("new Giocatore Aggiunto")
             if(this.giocatori.length==4){
                 this.isChiusa = true;
             }
         }
+
+        
+       
+       
         
 
     }
+
+    public async snapshot(){
+        console.log(this.isChiusa +","+ this.id_parita, this.categoria_min);
+
+    }
+    
 
     //rivedere per eliminazione from db
 
