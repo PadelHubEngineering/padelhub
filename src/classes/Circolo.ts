@@ -1,6 +1,7 @@
 import { getDiscriminatorModelForClass, getModelForClass, mongoose, prop, DocumentType, modelOptions } from "@typegoose/typegoose"
 import { Utente, UtenteModel } from "./Utente"
 import { TipoAccount } from "./Utente"
+import { startSession } from "mongoose"
 type DocumentoSocietario = { //TODO: meglio di così
     documento: string
 }
@@ -35,12 +36,18 @@ export class OrarioGiornaliero {
     public isAperto: boolean
 
     @prop({ required: true })
-    public orarioApertura: Date
+    public orarioApertura: Date = new Date(0, 0)
 
+    @prop({ required: true }) 
+    public orarioChiusura: Date = new Date(0, 0)
 
+    public getOrarioApertura() {
+        return `${this.orarioApertura.getHours()}:${this.orarioApertura.getMinutes()}:00`
+    }
 
-    @prop({ required: true })
-    public orarioChiusura: Date
+    public getOrarioChiusura() {
+        return `${this.orarioChiusura.getHours()}:${this.orarioChiusura.getMinutes()}:00`
+    }
 
     constructor(giorno: GiornoSettimana) {
         this.giorno = giorno;
@@ -91,7 +98,7 @@ export class Circolo extends Utente {
     public campi: Campo[] = [];
 
     @prop()
-    public durataSlot: number
+    public durataSlot: number //in minuti
 
     @prop({ default: [] })
     public orarioSettimanale: OrarioGiornaliero[];
@@ -107,12 +114,23 @@ export class Circolo extends Utente {
         await this.save()
     }
 
-
     public populateOrarioSettimanale() {
         this.orarioSettimanale = []
         Object.values(GiornoSettimana).filter((v) => !isNaN(Number(v))).forEach((val) => {
             this.orarioSettimanale.push(new OrarioGiornaliero(val as number))
         });
+    }
+
+    public getRangeByTimeSlot(slotId: number, giorno: GiornoSettimana): { inizioSlot: Date, fineSlot: Date } {
+        var endTime = this.orarioSettimanale[giorno].orarioChiusura.getTime()
+        var startTime = this.orarioSettimanale[giorno].orarioApertura.getTime()
+
+        var inizioSlotMill = startTime + (slotId * this.durataSlot) * 60 * 1000;
+        var fineSlotMill = inizioSlotMill + this.durataSlot * 60 * 1000;
+
+        if(inizioSlotMill > endTime || fineSlotMill > endTime) throw Error("Indice fuori range orario apertura/chiusura");
+
+        return { inizioSlot: new Date(inizioSlotMill), fineSlot: new Date(fineSlotMill) }
     }
 
     constructor(name: string, email: string, password: string, telefono?: string, partitaIVA?: string, prezzoSlotOrario?: number, paymentOnboarding?: boolean, quotaAffiliazione?: number, scontoAffiliazione?: number) {
