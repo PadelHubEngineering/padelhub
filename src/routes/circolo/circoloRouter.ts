@@ -45,8 +45,8 @@ router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
         res.status(401)
         return
     }
-
-    const searched = await PrenotazioneCampoModel.find({ circolo: mioCircolo._id, tipoUtente: TipoAccount.Circolo }).exec()
+    
+    const searched = await PrenotazioneCampoModel.find({ circolo: mioCircolo._id}).exec()
     res.status(200).json(
         searched
     )
