@@ -1,6 +1,7 @@
 import express, { Express, Request, Response, Router } from 'express';
 import auth from './autenticazione/auth';
 import circoloRouter from './circolo/circoloRouter';
+import partiteRouter from './partite/partiteRouter'
 import bodyParser from 'body-parser';
 import { expressLogger } from '../utils/logging';
 
@@ -29,6 +30,8 @@ default_router.get('/', function(_req: Request, res: Response) {
 
 default_router.use('/authentication', auth)
 default_router.use('/circolo', checkTokenCircolo, circoloRouter)
+default_router.use('/partite',partiteRouter)
+
 
 
 app.use("/api/v1", default_router)
