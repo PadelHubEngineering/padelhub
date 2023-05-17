@@ -1,7 +1,7 @@
-import { prop, mongoose, Ref, modelOptions, DocumentType, getModelForClass } from "@typegoose/typegoose"
-import { TipoAccount } from "./Utente"
-import { Campo, Circolo , CircoloModel} from "./Circolo"
+import { prop, Ref, modelOptions, DocumentType, getModelForClass } from "@typegoose/typegoose"
+import { Circolo } from "./Circolo"
 import { Partita } from "./Partita"
+
 @modelOptions({ schemaOptions: { collection: 'PrenotazioneCampi' } })
 export class PrenotazioneCampo {
 
@@ -14,24 +14,14 @@ export class PrenotazioneCampo {
     @prop({ required: true })
     public dataPrenotazione: Date
 
-    @prop({ required: true, ref: () => Partita})
-    public partita: Ref<Partita>
+    @prop({ ref: () => Partita})
+    public partita?: Ref<Partita>
 
     @prop({ required: true })
-    public dataSlot: Date //data in cui lo slot è riservato
+    public inizioSlot: Date //data e ora in cui lo slot è riservato
 
-    //da salvare nel caso il circolo cambi orario, per il calcolo del range con numeroSlot
     @prop({ required: true })
-    public orarioApertura: Date 
-
-    //da salvare nel caso il circolo cambi orario, per il calcolo del range con numeroSlot
-    @prop({ required: true })
-    public orarioChiusura: Date
-
-    //da salvare nel caso il circolo cambi orario, per il calcolo del range con numeroSlot
-    @prop({ required: true })
-    public durataSlot: number //in minuti
-
+    public fineSlot: Date //data e ora finale della prenotazione
 
 
     constructor(numeroSlot: number, idCampo: number, circolo: Ref<Circolo>){
@@ -39,10 +29,17 @@ export class PrenotazioneCampo {
         this.circolo = circolo;
     }
 
-    public async prenotazioneSlot(this: DocumentType<PrenotazioneCampo>, dataSlot: Date ,idCampo: number, circolo: Ref<Circolo>) {
+    public async prenotazioneCircolo(
+        this: DocumentType<PrenotazioneCampo>,
+        inizioSlot: Date,
+        fineSlot: Date,
+        idCampo: number,
+        circolo: Ref<Circolo>
+    ) {
         this.idCampo = idCampo;
         this.circolo = circolo;
-        this.dataSlot = dataSlot;
+        this.inizioSlot = inizioSlot;
+        this.fineSlot = fineSlot;
         this.dataPrenotazione = new Date();
         
         await this.save()
