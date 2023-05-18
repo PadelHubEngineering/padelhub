@@ -4,6 +4,8 @@ import { Partita } from "./Partita"
 
 @modelOptions({ schemaOptions: { collection: 'PrenotazioneCampi' } })
 export class PrenotazioneCampo {
+    @prop({ required: true })
+    public _id!: string;
 
     @prop({ required: true })
     public idCampo: number
@@ -14,7 +16,7 @@ export class PrenotazioneCampo {
     @prop({ required: true })
     public dataPrenotazione: Date
 
-    @prop({ ref: () => Partita})
+    @prop({ ref: () => Partita })
     public partita?: Ref<Partita>
 
     @prop({ required: true })
@@ -24,7 +26,7 @@ export class PrenotazioneCampo {
     public fineSlot: Date //data e ora finale della prenotazione
 
 
-    constructor(numeroSlot: number, idCampo: number, circolo: Ref<Circolo>){
+    constructor(numeroSlot: number, idCampo: number, circolo: Ref<Circolo>) {
         this.idCampo = idCampo;
         this.circolo = circolo;
     }
@@ -41,7 +43,7 @@ export class PrenotazioneCampo {
         this.inizioSlot = inizioSlot;
         this.fineSlot = fineSlot;
         this.dataPrenotazione = new Date();
-        
+
         await this.save()
     }
 }
