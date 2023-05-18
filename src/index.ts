@@ -6,7 +6,7 @@ import { Partita, PartitaModel } from "./classes/Partita"
 import { logger } from "./utils/logging";
 import { Giocatore, GiocatoreModel } from "./classes/Giocatore";
 import { TipoAccount, UtenteModel } from "./classes/Utente";
-import { populate, testCircolo } from "./utils/populate";
+import { deleteBefore, populate } from "./utils/populate";
 //import { createUnparsedSourceFile, servicesVersion, textSpanIntersectsWith } from "typescript";
 //import { Circolo, CircoloModel, GiornoSettimana, OrarioGiornaliero } from "./classes/Circolo";
 
@@ -23,8 +23,8 @@ async function main() {
         return
     }
     logger.debug("Connessione a mongodb avvenuta con successo")
-    //populate()
-    testCircolo()
+    //await deleteBefore()
+    //await populate()
     // Inizializzazione Express
     app.listen(port, () => logger.debug(`App listening on port ${port}!`));
 }

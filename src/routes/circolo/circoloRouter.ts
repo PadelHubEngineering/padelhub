@@ -7,6 +7,7 @@ import { logger } from "../../utils/logging";
 import { Error } from "mongoose";
 import { isNumericLiteral } from "typescript";
 import { error } from "winston";
+import { Partita } from "../../classes/Partita";
 
 const router: Router = Router();
 
@@ -30,8 +31,11 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
         return
     }
 
+    var inizioSlot = new Date(2023,5,18, 8, 0)
+    var fineSlot = new Date(2023,5,18, 9, 0)
 
-    await prenotazione.prenotazioneSlot(numeroSlot, idCampo, mioCircolo, TipoAccount.Circolo)
+
+    await prenotazione.prenotazioneCircolo(inizioSlot, fineSlot, 1, mioCircolo)
 
     res.status(200).json({
         operation: "Prenotazione Slot Circolo",
@@ -41,8 +45,9 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
 
 router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
     const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email })
-    var dateReq = req.headers["dataAttuale"] as string
+    var dateReq = req.headers["data-attuale"] as string
 
+    //console.log(req.headers)
     if (!dateReq) {
         res.status(401).json({
             success: false,
@@ -65,23 +70,25 @@ router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
         logger.error(err)
     }
 
-    const prenotazioniSlot = await PrenotazioneCampoModel.find({
+    const prenotazioniSlot: PrenotazioneCampo[] = await PrenotazioneCampoModel.find({
         circolo: mioCircolo._id,
         inizioSlot: {
             $gte: new Date(giorno.getFullYear(), giorno.getMonth(), giorno.getDay()),
             $lt: new Date(giorno.getFullYear(), giorno.getMonth(), giorno.getDay() + 1)
         }
     }).exec()
-    console.log(prenotazioniSlot);
 
     var retObj = {
         orarioApertura: mioCircolo.orarioSettimanale[giorno.getDay()].orarioApertura,
         orarioChiusura: mioCircolo.orarioSettimanale[giorno.getDay()].orarioChiusura,
         durataSlot: mioCircolo.durataSlot,
-        campiInterni: [] as any[],
+        campiInterni: [] as any[], // { idCampo: number, prenotazioni: [{ nSlot: 2,color: Color.Red }] }
         campiEsterni: [] as any[]
     }
 
+    var campiInterniMap = new Map<number,any[]>();
+
+    console.log(prenotazioniSlot)
     prenotazioniSlot.forEach((prenotazioneCampo) => {
         var campoPrenotato: Campo | undefined = mioCircolo.campi.find((campo) => campo.id == prenotazioneCampo.idCampo)
         if (!campoPrenotato) {
@@ -89,17 +96,27 @@ router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
             return;
         }
 
+        var prenotazione = {  
+            inizioSlot: prenotazioneCampo.inizioSlot,
+            fineSlot: prenotazioneCampo.fineSlot,
+            tipoUtente: prenotazioneCampo.partita == undefined ? TipoAccount.Circolo : TipoAccount.Giocatore
+        }
         if (campoPrenotato.tipologia == TipoCampo.Esterno) {
-            var tmp = retObj.campiInterni.find((campo) => campo.idCampo == prenotazioneCampo.idCampo)
+            console.log("campo esterno")
+            var ind = retObj.campiEsterni.findIndex((campo) => campo.idCampo == prenotazioneCampo.idCampo)
+            retObj.campiEsterni[ind].prenotazioni.push(prenotazione)
         }
         else if (campoPrenotato.tipologia == TipoCampo.Interno) {
-
+            console.log("campo interno")
+            retObj.campiInterni.find((campo) => campo.idCampo == prenotazioneCampo.idCampo).prenotazioni.push(prenotazione)
         }
         else {
             logger.error("Tipo campo non definito");
             return
         }
     })
+
+    console.log(retObj)
 
 
 
