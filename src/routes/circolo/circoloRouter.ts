@@ -8,7 +8,7 @@ import { Error } from "mongoose";
 import { convertToObject, isNumericLiteral } from "typescript";
 import { error } from "winston";
 import { Partita } from "../../classes/Partita";
-
+import { HTTPResponse, sendHTTPResponse } from "../../utils/general.utils";
 const router: Router = Router();
 
 
@@ -18,16 +18,15 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
     const prenotazione = new PrenotazioneCampoModel();
     const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email }).exec()
 
+
+    
     if (!mioCircolo) {
-        res.status(401)
+        sendHTTPResponse(res, 401, false, "Impossibile ritrovare il circolo. Token non valido");
         return
     }
     const searched = await PrenotazioneCampoModel.findOne({ circolo: mioCircolo._id, idCampo: idCampo, numeroSlot: numeroSlot, tipoUtente: TipoAccount.Circolo }).exec()
     if (searched) {
-        res.status(500).json({
-            operation: "Prenotazione Slot Circolo",
-            status: "Fallita, prenotazione già inserita dal circolo per lo slot"
-        });
+        sendHTTPResponse(res, 500, false, "Prenotazione già inserita dal circolo per lo slot")
         return
     }
 
@@ -37,26 +36,19 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
 
     await prenotazione.prenotazioneCircolo(inizioSlot, fineSlot, 1, mioCircolo)
 
-    res.status(200).json({
-        operation: "Prenotazione Slot Circolo",
-        status: "Successo"
-    });
+    sendHTTPResponse(res, 200, true,  "Prenotazione Slot Circolo")
 });
 
 router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
     const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email })
     var dateReq = req.headers["data-attuale"] as string
 
-    //console.log(req.headers)
     if (!dateReq) {
-        res.status(401).json({
-            success: false,
-            message: "Date not passed to request"
-        });
+        sendHTTPResponse(res, 401, false, "Data non passata in headers (data-attuale) alla richiesta")
         return
     }
     if (!mioCircolo) {
-        res.status(401)
+        sendHTTPResponse(res, 401, false, "Impossibile ritrovare il circolo. Token non valido");
         return
     }
 
@@ -149,13 +141,12 @@ router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
         }
     })
 
-    console.log(retObj)
 
-
-
-    res.status(200).json(
-        retObj
-    )
+    sendHTTPResponse(res, 200, true, retObj)
+    return
+    // res.status(200).json(
+    //     retObj
+    // )
 })
 
 
