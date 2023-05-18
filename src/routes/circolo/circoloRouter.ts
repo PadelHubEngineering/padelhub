@@ -69,8 +69,6 @@ router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
     catch (err) {
         logger.error(err)
     }
-
-
     
     var dataInizioGiorno = new Date(giorno.getFullYear(), giorno.getMonth(), giorno.getDate() + 1)
     dataInizioGiorno.setUTCHours(0)
@@ -113,6 +111,15 @@ router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
         campiEsterni: []
     }
 
+    mioCircolo.campi.forEach((campo) => {
+        if(campo.tipologia == TipoCampo.Esterno){
+            retObj.campiEsterni.push({ idCampo: campo.id, prenotazioni: [] })
+        }
+        else if(campo.tipologia == TipoCampo.Interno){
+            retObj.campiInterni.push({ idCampo: campo.id, prenotazioni: [] })
+        }
+    });
+
     prenotazioniSlot.forEach((prenotazioneCampo) => {
         var campoPrenotato: Campo | undefined = mioCircolo.campi.find((campo) => campo.id == prenotazioneCampo.idCampo)
         if (!campoPrenotato) {
@@ -129,17 +136,11 @@ router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
         if (campoPrenotato.tipologia == TipoCampo.Esterno) {
             console.log("campo esterno")
             var ind = retObj.campiEsterni.findIndex((campo) => campo.idCampo == prenotazioneCampo.idCampo)
-            if(ind == -1){
-                retObj.campiEsterni.push({ idCampo: prenotazioneCampo.idCampo, prenotazioni: [] })
-                ind = retObj.campiEsterni.findIndex((campo) => campo.idCampo == prenotazioneCampo.idCampo)
-            }
             retObj.campiEsterni[ind].prenotazioni.push(prenotazione)
         }
         else if (campoPrenotato.tipologia == TipoCampo.Interno) {
             console.log("campo interno")
             var ind = retObj.campiInterni.findIndex((campo) => campo.idCampo == prenotazioneCampo.idCampo)
-            if(retObj.campiInterni[ind].prenotazioni == undefined)
-                retObj.campiInterni[ind].prenotazioni = []
             retObj.campiInterni[ind].prenotazioni.push(prenotazione)
         }
         else {
