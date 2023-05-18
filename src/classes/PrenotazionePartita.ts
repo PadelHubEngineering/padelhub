@@ -7,7 +7,8 @@ import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses"
 
 @modelOptions({
     schemaOptions : {
-        timestamps : true 
+        timestamps : true,
+        collection : "Prenotazioni Partite"
     }
 })
 export class Prenotazione{

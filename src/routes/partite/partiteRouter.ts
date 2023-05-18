@@ -46,13 +46,20 @@ router.get("/:id",async (req : Request , res : Response) =>{
 
 //add partita
 router.post("/",async (req : Request, res : Response)=>{
-    console.log(req.body)
+    try{
+
+        var partita = await new PartitaModel(req.body).save()
+        res.status(200).json(partita)
+        
+
+    }catch(err){
+        res.status(404).json()
+    }
 })
 //delete partita
 router.delete("/:id", async (req: Request, res : Response) =>{
     try{
-        const partita= await PartitaModel.findById(req.params.id)
-        await partita?.deleteOne()
+        const partita= await PartitaModel.findByIdAndDelete(req.params.id)
         res.status(200).json(partita)
 
         console.log(partita)
@@ -63,6 +70,9 @@ router.delete("/:id", async (req: Request, res : Response) =>{
 
     }
 })
+
+
+
 
 
 
