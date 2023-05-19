@@ -102,7 +102,14 @@ router.delete('/prenotazioneSlot/:id_prenotazione', async (req: Request, res: Re
 
 })
 
-router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
+router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', async (req: Request, res: Response) => {
+    
+    const giorno = new Date(
+        +req.params.year,
+        +req.params.month - 1,
+        +req.params.day
+      );
+
     const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email })
     var dateReq = req.headers["data-attuale"] as string
 
@@ -114,17 +121,6 @@ router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
         sendHTTPResponse(res, 401, false, "Impossibile ritrovare il circolo. Token non valido");
         return
     }
-
-    var giorno: Date = new Date();
-
-    try {
-        giorno = new Date(dateReq)
-
-    }
-    catch (err) {
-        logger.error(err)
-    }
-    
     var dataInizioGiorno = new Date(giorno.getFullYear(), giorno.getMonth(), giorno.getDate() + 1)
     dataInizioGiorno.setUTCHours(0)
     var dataFineGiorno = new Date(giorno.getFullYear(), giorno.getMonth(), giorno.getDate() + 2)

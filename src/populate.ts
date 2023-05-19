@@ -4,11 +4,13 @@ import { UtenteModel } from "./classes/Utente";
 import { PartitaModel } from "./classes/Partita";
 import { Genere, Giocatore, GiocatoreModel } from "./classes/Giocatore";
 import { Circolo, CircoloModel, TipoCampo } from "./classes/Circolo";
+import { PrenotazioneCampoModel } from "./classes/PrenotazioneCampo";
 
 mongoose.connect(process.env.MONGO_URL!).then(async e => {
 
     logger.debug("Connessione a mongodb avvenuta con successo")
 
+    await PrenotazioneCampoModel.deleteMany({})
     await UtenteModel.deleteMany({})
 
     logger.info("DB pulito")
@@ -27,9 +29,9 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
 
     giovanni.confermato = true;
 
-    GiocatoreModel.create(giovanni).then( e => {
+    GiocatoreModel.create(giovanni).then(e => {
         console.log("creato giovanni")
-    } )
+    })
 
     let giovanna = new Giocatore(
         "Giovanna",
@@ -45,9 +47,9 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
 
     giovanna.confermato = true;
 
-    GiocatoreModel.create(giovanna).then( e => {
+    await GiocatoreModel.create(giovanna).then(e => {
         console.log("creata giovanna")
-    } )
+    })
 
 
     let circolone = new Circolo(
@@ -65,13 +67,21 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
 
     console.log("creato il circolone")
 
-    console.log( "creato " + await circoloDoc.addCampo(TipoCampo.Esterno) )
-    console.log( "creato " + await circoloDoc.addCampo(TipoCampo.Esterno) )
-    console.log( "creato " + await circoloDoc.addCampo(TipoCampo.Esterno) )
-    console.log( "creato " + await circoloDoc.addCampo(TipoCampo.Interno) )
-    console.log( "creato " + await circoloDoc.addCampo(TipoCampo.Interno) )
-    console.log( "creato " + await circoloDoc.addCampo(TipoCampo.Interno) )
+    console.log("creato " + await circoloDoc.addCampo(TipoCampo.Esterno))
+    console.log("creato " + await circoloDoc.addCampo(TipoCampo.Esterno))
+    console.log("creato " + await circoloDoc.addCampo(TipoCampo.Esterno))
+    console.log("creato " + await circoloDoc.addCampo(TipoCampo.Interno))
+    console.log("creato " + await circoloDoc.addCampo(TipoCampo.Interno))
+    console.log("creato " + await circoloDoc.addCampo(TipoCampo.Interno))
 
-} ).catch( e => {
+    let prenotazioneCampoCircolo = new PrenotazioneCampoModel();
+    await prenotazioneCampoCircolo.prenotazioneCircolo(
+        new Date(2022, 4, 12, 10, 0),
+        new Date(2022, 4, 12, 11, 0),
+        1,
+        circoloDoc,
+    )
+
+}).catch(e => {
     logger.error("Enniente sei un deficente")
-} )
+})
