@@ -20,12 +20,11 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
 
     const _dataOraPrenotazione = req.body.dataOraPrenotazione
 
+    logger.debug(`Tentativo di prenotazione slot: ${_dataOraPrenotazione}, campo: ${ idCampo }`)
+
     // @ts-expect-error
     if( !_dataOraPrenotazione || typeof(_dataOraPrenotazione) !== "string" || Date.parse(_dataOraPrenotazione) === NaN){
-        res.status(400).json({
-            operation: "Prenotazione Slot circolo",
-            status: "Fallita, la data inserita non è corretta"
-        })
+        sendHTTPResponse(res, 400, false, "Fallita, la data inserita non è corretta" )
         return
     }
 
@@ -35,20 +34,14 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
     const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email }).exec()
 
     if (!mioCircolo) {
-        res.status(401).json({
-            operation: "Prenotazione Slot circolo",
-            status: "Fallita, impossibile scaricare i dati del circolo"
-        })
+        sendHTTPResponse(res, 401, false, "Fallita, impossibile scaricare i dati del circolo")
         return
     }
 
     // Constrollo che il campo selezionato esista
     const campiTrovati = mioCircolo.campi.filter(e => e.id === parseInt(idCampo))
     if ( campiTrovati.length === 0 ) {
-        res.status(500).json({
-            operation: "Prenotazione slot circolo",
-            status: "Campo non trovato"
-        })
+        sendHTTPResponse(res, 500, false, "Campo non trovato")
         return
     }
 
@@ -77,8 +70,37 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
         mioCircolo,
     )
 
-    sendHTTPResponse(res, 200, true,  "Prenotazione Slot Circolo")
+    sendHTTPResponse(res, 200, true, {
+        message: "Prenotazione creata con successo",
+        prenotazione: prenotazione
+    })
 });
+
+router.delete('/prenotazioneSlot/:id_prenotazione', async (req: Request, res: Response) => {
+
+    const id_prenotazione = req.params.id_prenotazione
+
+    // Controllo che la prenotazione esista nel db
+
+    const prenotazione = await PrenotazioneCampoModel.findOne({ _id: id_prenotazione }).exec();
+
+    if( !prenotazione ){
+        sendHTTPResponse(res, 401, false, "Impossibile trovare la prenotazione richiesta");
+        return
+    }
+
+    const deleted = await PrenotazioneCampoModel.deleteOne({
+        _id: id_prenotazione
+    }).exec();
+
+    if ( deleted.deletedCount == 0 ) {
+        sendHTTPResponse(res, 401, false, "Impossibile eliminare la prenotazione");
+        return
+    }
+
+    sendHTTPResponse(res, 200, true, "Prenotazione eliminata con successo")
+
+})
 
 router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
     const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email })
