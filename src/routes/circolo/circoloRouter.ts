@@ -9,32 +9,73 @@ import { convertToObject, isNumericLiteral } from "typescript";
 import { error } from "winston";
 import { Partita } from "../../classes/Partita";
 import { HTTPResponse, sendHTTPResponse } from "../../utils/general.utils";
+
+import { DateTime } from  "luxon"
+
 const router: Router = Router();
 
 
 router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
-    const { numeroSlot, idCampo } = req.body;
+    const { idCampo } = req.body;
 
-    const prenotazione = new PrenotazioneCampoModel();
-    const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email }).exec()
+    const _dataOraPrenotazione = req.body.dataOraPrenotazione
 
-
-    
-    if (!mioCircolo) {
-        sendHTTPResponse(res, 401, false, "Impossibile ritrovare il circolo. Token non valido");
+    // @ts-expect-error
+    if( !_dataOraPrenotazione || typeof(_dataOraPrenotazione) !== "string" || Date.parse(_dataOraPrenotazione) === NaN){
+        res.status(400).json({
+            operation: "Prenotazione Slot circolo",
+            status: "Fallita, la data inserita non è corretta"
+        })
         return
     }
-    const searched = await PrenotazioneCampoModel.findOne({ circolo: mioCircolo._id, idCampo: idCampo, numeroSlot: numeroSlot, tipoUtente: TipoAccount.Circolo }).exec()
+
+    const dataOraPrenotazione = new Date(_dataOraPrenotazione);
+
+    // Scarico i dati del mio circolo
+    const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email }).exec()
+
+    if (!mioCircolo) {
+        res.status(401).json({
+            operation: "Prenotazione Slot circolo",
+            status: "Fallita, impossibile scaricare i dati del circolo"
+        })
+        return
+    }
+
+    // Constrollo che il campo selezionato esista
+    const campiTrovati = mioCircolo.campi.filter(e => e.id === parseInt(idCampo))
+    if ( campiTrovati.length === 0 ) {
+        res.status(500).json({
+            operation: "Prenotazione slot circolo",
+            status: "Campo non trovato"
+        })
+        return
+    }
+
+    // Controllo che non ci siano altre prenotazioni per la stessa fascia oraria
+    // per lo stesso circolo
+    const searched = await PrenotazioneCampoModel.findOne({
+        dataSlot: dataOraPrenotazione,
+        circolo: mioCircolo._id,
+        idCampo: idCampo,
+    }).exec()
+
     if (searched) {
         sendHTTPResponse(res, 500, false, "Prenotazione già inserita dal circolo per lo slot")
         return
     }
 
-    var inizioSlot = new Date(2023,5,18, 8, 0)
-    var fineSlot = new Date(2023,5,18, 9, 0)
+    let dataOraFinale: DateTime = DateTime.fromJSDate(dataOraPrenotazione);
+    dataOraFinale = dataOraFinale.plus({ minutes: mioCircolo.durataSlot })
 
-
-    await prenotazione.prenotazioneCircolo(inizioSlot, fineSlot, 1, mioCircolo)
+    // Nessun problema, procedo alla creazione della prenotazione
+    let prenotazione = new PrenotazioneCampoModel();
+    await prenotazione.prenotazioneCircolo(
+        dataOraPrenotazione,
+        dataOraFinale.toJSDate(),
+        idCampo,
+        mioCircolo,
+    )
 
     sendHTTPResponse(res, 200, true,  "Prenotazione Slot Circolo")
 });
