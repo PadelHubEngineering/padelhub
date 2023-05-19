@@ -22,10 +22,7 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
 
     // @ts-expect-error
     if( !_dataOraPrenotazione || typeof(_dataOraPrenotazione) !== "string" || Date.parse(_dataOraPrenotazione) === NaN){
-        res.status(400).json({
-            operation: "Prenotazione Slot circolo",
-            status: "Fallita, la data inserita non è corretta"
-        })
+        sendHTTPResponse(res, 400, false, "La data inserita non è corretta")
         return
     }
 
@@ -35,20 +32,14 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
     const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email }).exec()
 
     if (!mioCircolo) {
-        res.status(401).json({
-            operation: "Prenotazione Slot circolo",
-            status: "Fallita, impossibile scaricare i dati del circolo"
-        })
+        sendHTTPResponse(res, 401, false, "Impossibile scaricare i dati del circolo")
         return
     }
 
     // Constrollo che il campo selezionato esista
     const campiTrovati = mioCircolo.campi.filter(e => e.id === parseInt(idCampo))
     if ( campiTrovati.length === 0 ) {
-        res.status(500).json({
-            operation: "Prenotazione slot circolo",
-            status: "Campo non trovato"
-        })
+        sendHTTPResponse(res, 500, false, "Campo non trovato")
         return
     }
 
@@ -85,7 +76,7 @@ router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
     var dateReq = req.headers["data-attuale"] as string
 
     if (!dateReq) {
-        sendHTTPResponse(res, 401, false, "Data non passata in headers (data-attuale) alla richiesta")
+        sendHTTPResponse(res, 400, false, "Data non passata in headers (data-attuale) alla richiesta")
         return
     }
     if (!mioCircolo) {
@@ -107,8 +98,6 @@ router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
     dataInizioGiorno.setUTCHours(0)
     var dataFineGiorno = new Date(giorno.getFullYear(), giorno.getMonth(), giorno.getDate() + 2)
     dataFineGiorno.setUTCHours(0)
-    console.log(dataInizioGiorno)
-    console.log(dataFineGiorno)
 
     const prenotazioniSlot: PrenotazioneCampo[] = await PrenotazioneCampoModel.find({
         circolo: mioCircolo._id,
@@ -185,9 +174,6 @@ router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
 
     sendHTTPResponse(res, 200, true, retObj)
     return
-    // res.status(200).json(
-    //     retObj
-    // )
 })
 
 
