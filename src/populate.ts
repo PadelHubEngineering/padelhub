@@ -72,11 +72,6 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
     console.log( "creato " + await circoloDoc.addCampo(TipoCampo.Interno) )
     console.log( "creato " + await circoloDoc.addCampo(TipoCampo.Interno) )
 
-
-
-
-
-
 } ).catch( e => {
     logger.error("Enniente sei un deficente")
 } )

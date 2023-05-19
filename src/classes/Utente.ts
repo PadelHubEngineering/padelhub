@@ -15,7 +15,7 @@ export enum TipoAccount {
 // come stringa, ma sarà salvata in modo sicuro
 @pre<Utente>('save', async function (next) {
 
-    if (!this.isModified()) return next();
+    if (!this.isModified("password")) return next();
 
     let hash: string;
 
