@@ -6,6 +6,7 @@ import { TokenAutenticazione } from '../../middleware/tokenChecker';
 import { logger } from '../../utils/logging';
 import { Giocatore, GiocatoreModel, Genere } from '../../classes/Giocatore';
 import { CircoloModel } from '../../classes/Circolo';
+import { sendHTTPResponse } from '../../utils/general.utils';
 
 const router: Router = Router();
 
@@ -41,10 +42,7 @@ router.post('', async function (req: Request, res: Response) {
     let token;
 
     if ( !searched ){
-        res.status(401).json({
-            success: false,
-            message: "Utente non trovato o password errata"
-        })
+        sendHTTPResponse(res, 401, false, "Utente non trovato o password errata")
         return
     } else {
         // Controllo correttezza della password
@@ -57,10 +55,7 @@ router.post('', async function (req: Request, res: Response) {
 
             // Cattiva pratica far capire all'utente nello specifico quale
             // problema non ha permesso di concludere l'autenticazione
-            res.status(401).json({
-                success: false,
-                messagge: "Utente non trovato o password errata"
-            })
+            sendHTTPResponse(res, 401, false, "Utente non trovato o password errata")
             return
         }
 
@@ -80,8 +75,7 @@ router.post('', async function (req: Request, res: Response) {
 
         // Invio i dati già destrutturati così che il frontend non debba
         // eseguire nulla
-        res.json({
-            success: true,
+        sendHTTPResponse(res, 200, true, {
             message: 'Autenticazione completata con successo',
             token: token,
             dati: {

@@ -24,7 +24,7 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
 
     // @ts-expect-error
     if( !_dataOraPrenotazione || typeof(_dataOraPrenotazione) !== "string" || Date.parse(_dataOraPrenotazione) === NaN){
-        sendHTTPResponse(res, 400, false, "Fallita, la data inserita non è corretta" )
+        sendHTTPResponse(res, 400, false, "La data inserita non è corretta")
         return
     }
 
@@ -34,7 +34,7 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
     const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email }).exec()
 
     if (!mioCircolo) {
-        sendHTTPResponse(res, 401, false, "Fallita, impossibile scaricare i dati del circolo")
+        sendHTTPResponse(res, 401, false, "Impossibile scaricare i dati del circolo")
         return
     }
 
@@ -129,8 +129,6 @@ router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
     dataInizioGiorno.setUTCHours(0)
     var dataFineGiorno = new Date(giorno.getFullYear(), giorno.getMonth(), giorno.getDate() + 2)
     dataFineGiorno.setUTCHours(0)
-    console.log(dataInizioGiorno)
-    console.log(dataFineGiorno)
 
     const prenotazioniSlot: PrenotazioneCampo[] = await PrenotazioneCampoModel.find({
         circolo: mioCircolo._id,
@@ -207,9 +205,6 @@ router.get('/prenotazioniSlot', async (req: Request, res: Response) => {
 
     sendHTTPResponse(res, 200, true, retObj)
     return
-    // res.status(200).json(
-    //     retObj
-    // )
 })
 
 
