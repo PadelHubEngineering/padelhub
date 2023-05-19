@@ -114,10 +114,14 @@ export class Circolo extends Utente {
         await this.save()
     }
 
-    public async addCampo(this: DocumentType<Circolo>, idCampo: number, tipoCampo: TipoCampo) {
-        this.campi.push({ id: idCampo, tipologia: tipoCampo })
+    public async addCampo(this: DocumentType<Circolo>, tipoCampo: TipoCampo) {
+        const id_campo = this.campi.length
+
+        this.campi.push({ id: id_campo, tipologia: tipoCampo })
         this.markModified('campi')
         await this.save()
+
+        return id_campo
     }
 
     public populateOrarioSettimanale() {

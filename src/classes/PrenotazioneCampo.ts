@@ -1,11 +1,12 @@
 import { prop, Ref, modelOptions, DocumentType, getModelForClass } from "@typegoose/typegoose"
 import { Circolo } from "./Circolo"
 import { Partita } from "./Partita"
+import mongoose from "mongoose"
 
 @modelOptions({ schemaOptions: { collection: 'PrenotazioneCampi' } })
 export class PrenotazioneCampo {
-    @prop({ required: true })
-    public _id!: string;
+
+    public _id!: mongoose.Types.ObjectId;
 
     @prop({ required: true })
     public idCampo: number
