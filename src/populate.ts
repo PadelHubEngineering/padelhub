@@ -61,16 +61,16 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
         99,
     )
 
-    CircoloModel.create(circolone).then( circolone => {
-        console.log("creato il circolone")
+    let circoloDoc = await CircoloModel.create(circolone)
 
-        console.log( "creato circolo" + circolone.addCampo(TipoCampo.Esterno) )
-        console.log( "creato circolo" + circolone.addCampo(TipoCampo.Esterno) )
-        console.log( "creato circolo" + circolone.addCampo(TipoCampo.Esterno) )
-        console.log( "creato circolo" + circolone.addCampo(TipoCampo.Esterno) )
-        console.log( "creato circolo" + circolone.addCampo(TipoCampo.Interno) )
-        console.log( "creato circolo" + circolone.addCampo(TipoCampo.Interno) )
-    } )
+    console.log("creato il circolone")
+
+    console.log( "creato " + await circoloDoc.addCampo(TipoCampo.Esterno) )
+    console.log( "creato " + await circoloDoc.addCampo(TipoCampo.Esterno) )
+    console.log( "creato " + await circoloDoc.addCampo(TipoCampo.Esterno) )
+    console.log( "creato " + await circoloDoc.addCampo(TipoCampo.Interno) )
+    console.log( "creato " + await circoloDoc.addCampo(TipoCampo.Interno) )
+    console.log( "creato " + await circoloDoc.addCampo(TipoCampo.Interno) )
 
 
 
