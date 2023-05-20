@@ -2,6 +2,7 @@ import { NextFunction , Request ,Response} from "express"
 import { PartitaModel, Partita } from "../classes/Partita"
 import 'mongoose'
 import { isValidObjectId } from "mongoose"
+import { sendHTTPResponse, HTTPResponse } from "../utils/general.utils"
 
 
 //creazione di una partita
@@ -17,30 +18,30 @@ const createPartita = async (req: Request, res: Response, next : NextFunction) =
     })
 
     return await partita.save()
-    .then((partita) => {res.status(201).json(partita)})
-    .catch((error)=> {res.status(500).json(error)});
+    .then((partita) => {sendHTTPResponse(res, 200, true, partita)})
+    .catch((error)=> {sendHTTPResponse(res, 500 , false, "[server] Errore interno")});
 }
 
-//lettura di tutte le partite
+//lettura di una singola partita
 const readPartita = async (req : Request, res : Response, next : NextFunction) =>{
 
     const id = req.params.PartitaId
     if(!isValidObjectId(id)){
-        return res.status(401).json({message: "ID partita invalido"})
+        return sendHTTPResponse(res, 401 , false,"ID partita invalido")
     }
 
-    return await PartitaModel.findById(id)
-    .then(partita => partita ? res.status(200).json({partita}) : res.status(404).json({message: "Partita non trovata"}))
-    .catch((err) => {res.status(500).json({err})})
+    return await PartitaModel.findById(id).populate("giocatori")
+    .then(partita => partita ? sendHTTPResponse(res, 200, true, partita) : sendHTTPResponse(res, 404 , true, "Partita non inesistente"))
+    .catch((error) => {sendHTTPResponse(res, 500 , false, "[server] Errore interno")})
 
 
 }
 
-//lettura di una singola partita
+//lettura di tutte le partite
 const readAllPartite = async (req : Request, res : Response, next : NextFunction)=>{
-    return await PartitaModel.find()
-    .then(partite => res.status(200).json({partite}))
-    .catch((error) => res.status(500).json({error})) 
+    return await PartitaModel.find().populate("giocatori")
+    .then(partite =>  sendHTTPResponse(res, 200, true, partite))
+    .catch((error) => sendHTTPResponse(res, 500 , false, "[server] Errore interno")) 
 }
 
 
@@ -49,12 +50,12 @@ const deletePartita = async (req :Request, res : Response, next : NextFunction) 
     const id = req.params.PartitaId;
     console.log(id)
     if(!isValidObjectId(id)){
-        return res.status(401).json({message: "ID partita invalido"})
+        return sendHTTPResponse(res, 401 , false,"ID partita invalido")
     }
 
     return await PartitaModel.findByIdAndDelete(id)
-    .then((partita) => partita ? res.status(201).json({partita}) : res.status(404).json({message: "Nessuna partita trovata"}) )
-    .catch((error) => res.status(500).json({error})) 
+    .then((partita) => partita ? sendHTTPResponse(res, 201, true, partita) : sendHTTPResponse(res, 404 , true, "Nessuna partita trovata") )
+    .catch((error) => sendHTTPResponse(res, 500 , false,"[server] Errore interno")) 
     
     //.then((partita) => partita ? res.status(201).json({partita}) : res.json(404).json({message: "Partita non trovata"}))
     //.catch((error) => res.status(500).json({error}))
@@ -69,7 +70,8 @@ const updatePartita = async (req : Request , res : Response, next : NextFunction
     const giocatore = req.body.giocatore
     console.log(giocatore)
     if(!isValidObjectId(id)){
-        return res.status(401).json({message: "ID partita invalido"})
+       
+        return sendHTTPResponse(res, 401 , false,"ID partita invalido")
     }
 
     //check level
@@ -78,26 +80,26 @@ const updatePartita = async (req : Request , res : Response, next : NextFunction
         if(partita){
             if(partita?.isChiusa ){
                 console.log("Piena")
-                res.status(200).json({message: "Partita piena"})
+                sendHTTPResponse(res, 201, false, "Partita già al completo")
             }else{
                 console.log("C'è posto")
                 
 
-                const p=await PartitaModel.findById(id)
+                const p =await PartitaModel.findById(id)
                 p?.giocatori.push(giocatore)
                 if(p?.giocatori.length==4){
                     p.isChiusa = true
                 }
                 await p?.save()
                 //create prenotazione res.post. prenotazione
-                res.status(201).json({p})
+                sendHTTPResponse(res, 201, true, p as Partita)
             }
         }else{
-            res.status(404).json({message: "ID partita invalido"})
+            sendHTTPResponse(res, 404 , false,"ID partita invalido")
             
 
     } })
-    .catch((error) => res.status(500).json({error}))
+    .catch((error) => sendHTTPResponse(res, 500 , false, "[server] Errore interno"))
     
 
 }

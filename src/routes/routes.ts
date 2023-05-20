@@ -7,7 +7,7 @@ import { expressLogger } from '../utils/logging';
 import prenotazionePartiteRouter from './prenotazionePartite/prenotazionePartiteRoute'
 
 import cors from "cors"
-import { checkTokenCircolo } from '../middleware/tokenChecker';
+import { checkTokenCircolo, checkTokenGiocatoreOCircolo } from '../middleware/tokenChecker';
 
 export const app: Express = express();
 
@@ -31,7 +31,8 @@ default_router.get('/', function(_req: Request, res: Response) {
 
 default_router.use('/authentication', auth)
 default_router.use('/circolo', checkTokenCircolo, circoloRouter)
-default_router.use('/partite',partiteRouter)
+//default_router.use('/partite',checkTokenGiocatoreOCircolo, partiteRouter)
+default_router.use('/partite', partiteRouter)
 default_router.use('/prenotazionePartita',prenotazionePartiteRouter)
 
 
