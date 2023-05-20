@@ -49,7 +49,7 @@ function checkToken(req: Request, res: Response, next: NextFunction, account_ric
     const decoded = checkJWT(token)
 
     if( decoded === null ){
-        res.status(403).json({
+        res.status(401).json({
             success: false,
             message: 'Il token fornito non è valido'
         })
