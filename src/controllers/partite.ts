@@ -3,19 +3,25 @@ import { PartitaModel, Partita } from "../classes/Partita"
 import 'mongoose'
 import { isValidObjectId } from "mongoose"
 import { sendHTTPResponse, HTTPResponse } from "../utils/general.utils"
-
+import { logger } from "../utils/logging"
 
 //creazione di una partita
 const createPartita = async (req: Request, res: Response, next : NextFunction) =>{
-    const {giocatori, circolo , categoria_min , categoria_max} = req.body
+    const {giocatori, circolo , categoria_min , categoria_max, orario} = req.body
     
     const partita = new PartitaModel({
         giocatori : giocatori,
         circolo : circolo,
         categoria_min : categoria_min,
-        categoria_max : categoria_max
+        categoria_max : categoria_max,
+        orario : orario
 
     })
+
+    /*if( !_dataOraPrenotazione || typeof(_dataOraPrenotazione) !== "string" || Date.parse(_dataOraPrenotazione) === NaN){
+    sendHTTPResponse(res, 400, false, "La data inserita non è corretta")
+        return
+    }*/
 
     return await partita.save()
     .then((partita) => {sendHTTPResponse(res, 200, true, partita)})
@@ -78,28 +84,33 @@ const updatePartita = async (req : Request , res : Response, next : NextFunction
     return await PartitaModel.findById(id)
     .then(async (partita) => {
         if(partita){
-            if(partita?.isChiusa ){
-                console.log("Piena")
-                sendHTTPResponse(res, 201, false, "Partita già al completo")
-            }else{
-                console.log("C'è posto")
-                
 
-                const p =await PartitaModel.findById(id)
+            if(partita?.checkChiusa() ){
+                console.log("Piena")
+                sendHTTPResponse(res, 401, false, "Partita già al completo")
+            }else{
+                if(await partita.checkLevel(giocatore)==false){
+                    sendHTTPResponse(res, 401, false, "Non puoi partecipare a questa partita : Livello invalido")
+                    return
+                    
+                }
+                console.log("C'è posto")
+                const p =await PartitaModel.findById(id).then((p) => p?.aggiungi_player(giocatore))
+                /*
                 p?.giocatori.push(giocatore)
                 if(p?.giocatori.length==4){
                     p.isChiusa = true
                 }
-                await p?.save()
+                await p?.save()*/
                 //create prenotazione res.post. prenotazione
-                sendHTTPResponse(res, 201, true, p as Partita)
+                sendHTTPResponse(res, 201, true, p as Partita)  
             }
         }else{
             sendHTTPResponse(res, 404 , false,"ID partita invalido")
             
 
     } })
-    .catch((error) => sendHTTPResponse(res, 500 , false, "[server] Errore interno"))
+    .catch((error) => { sendHTTPResponse(res, 500 , false, "[server] Errore interno"); console.log(error)}) 
     
 
 }

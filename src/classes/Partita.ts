@@ -14,10 +14,7 @@ import { sendHTTPResponse, HTTPResponse } from "../utils/general.utils"
     }
 })
 @pre<Partita>("save",function(){
-    console.log(this.giocatori.length==1)
-    if(this.giocatori.length==4){
-        this.isChiusa=true
-    }
+    this.checkChiusa()
 })
 export class Partita{
     id_parita: mongoose.Types.ObjectId;
@@ -36,6 +33,9 @@ export class Partita{
 
     @prop({required : true , ref : () => Circolo})
     circolo : Ref<Circolo>;
+
+    @prop({ required: false })
+    public orario: Date = new Date(0, 0)
    
     constructor(giocatore : Ref<Giocatore> , categoria_max : number , categoria_min : number , circolo : Ref<Circolo> ){
         this.giocatori.push(giocatore);
@@ -48,19 +48,38 @@ export class Partita{
 
 
     public async aggiungi_player(this : DocumentType<Partita>,gioc : Ref<Giocatore>){
-        
-        if(!this.isChiusa){
-            this.giocatori.push(gioc);
 
-            console.log("new Giocatore Aggiunto")
-            if(this.giocatori.length==4){
-                this.isChiusa = true;
+        if(!this.checkChiusa()){
+            this.giocatori.push(gioc);
+            console.log("new Giocatore Aggiunto da metodo")
+            return await this.save()
+        }else{
+            return this
+        }
+        
+    }
+
+    public checkChiusa(){
+        if(this.giocatori.length==4){
+            this.isChiusa =true
+        }else{
+            this.isChiusa=false
+        }
+        return this.isChiusa
+    }
+
+
+    public async checkLevel(this : DocumentType<Partita>,gioc : Ref<Giocatore>){
+        const g_level = await GiocatoreModel.findById(gioc,"livello").catch((err)=> console.log(err))
+        if(!g_level?.livello){return false}
+        if(g_level?.utenteType == "Giocatore"){
+            var test = 3
+            if(g_level.livello <= this.categoria_max && g_level?.livello >= this.categoria_min){
+                return true
             }
         }
-
-
-        await this.save()
-
+        return false
+        
     }
     
 
