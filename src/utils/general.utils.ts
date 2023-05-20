@@ -38,20 +38,6 @@ export function sendHTTPResponse(res: Response, code: number, esito: any, payl: 
     }
     return true
 }
-// export function sendHTTPResponse(res: Response, code: number, esito: boolean, payload: object) : HTTPResponseMessage {
-//     res.status(code).json({
-//         HTTPcode: code,
-//         success: esito,
-//         message: msg
-//     } as HTTPResponseMessage);
-// }
-// export function sendHTTPResponse(res: Response, code: number, esito: boolean, msg: string) : HTTPResponsePayload {
-//     res.status(code).json({
-//         HTTPcode: code,
-//         success: esito,
-//         message: msg
-//     } as HTTPResponse);
-// }
 
 export function preliminary_check() {
 

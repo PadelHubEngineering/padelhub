@@ -2,7 +2,10 @@ import mongoose from "mongoose"
 import {Circolo, CircoloModel} from "./Circolo"
 import {Giocatore,GiocatoreModel} from "./Giocatore"
 import {Prenotazione} from "./PrenotazionePartita"
-import {prop, getModelForClass, Ref, DocumentType , modelOptions} from "@typegoose/typegoose"
+import {prop, getModelForClass, Ref, DocumentType , modelOptions, post,pre} from "@typegoose/typegoose"
+import { NamedExportBindings } from "typescript"
+import { NextFunction , Request ,Response } from "express"
+import { sendHTTPResponse, HTTPResponse } from "../utils/general.utils"
 
 @modelOptions({
     schemaOptions : {
@@ -10,14 +13,17 @@ import {prop, getModelForClass, Ref, DocumentType , modelOptions} from "@typegoo
         collection : 'Partita'
     }
 })
+@pre<Partita>("save",function(){
+    console.log(this.giocatori.length==1)
+    if(this.giocatori.length==4){
+        this.isChiusa=true
+    }
+})
 export class Partita{
     id_parita: mongoose.Types.ObjectId;
 
     @prop({type : Boolean, default : false})
-    isChiusa : boolean;
-
-    @prop({type : Number , min : 0 , max : 24})
-    n_slot : number
+    isChiusa: boolean;
 
     @prop({type : Number , default : 5, max : 5})
     categoria_max : number
@@ -31,9 +37,8 @@ export class Partita{
     @prop({required : true , ref : () => Circolo})
     circolo : Ref<Circolo>;
    
-    constructor(giocatore : Ref<Giocatore> , n_slot : number , categoria_max : number , categoria_min : number , circolo : Ref<Circolo> ){
+    constructor(giocatore : Ref<Giocatore> , categoria_max : number , categoria_min : number , circolo : Ref<Circolo> ){
         this.giocatori.push(giocatore);
-        this.n_slot = n_slot;
         this.categoria_max = categoria_max;
         this.categoria_min = categoria_min;
         this.circolo = circolo;
@@ -41,32 +46,23 @@ export class Partita{
 
     //rivedere per salvataggio db
 
+
     public async aggiungi_player(this : DocumentType<Partita>,gioc : Ref<Giocatore>){
         
         if(!this.isChiusa){
             this.giocatori.push(gioc);
-            //creazione di prenotazione per giocatore()
-            await this.save()
+
             console.log("new Giocatore Aggiunto")
             if(this.giocatori.length==4){
                 this.isChiusa = true;
             }
         }
 
-        
-       
-       
-        
 
-    }
-
-    public async snapshot(){
-        console.log(this.isChiusa +","+ this.id_parita, this.categoria_min);
+        await this.save()
 
     }
     
-
-    //rivedere per eliminazione from db
 
     public async rimuovi_player(this: DocumentType<Partita>,gioc : Ref<Giocatore>){
         if(this.giocatori.includes(gioc)){
@@ -76,14 +72,8 @@ export class Partita{
             await this.deleteOne()
 
         }
-        
-
+     
     }
-
-    
-
-
-
 }
 
 

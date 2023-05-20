@@ -61,6 +61,7 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
     let dataOraFinale: DateTime = DateTime.fromJSDate(dataOraPrenotazione);
     dataOraFinale = dataOraFinale.plus({ minutes: mioCircolo.durataSlot })
 
+    
     // Nessun problema, procedo alla creazione della prenotazione
     let prenotazione = new PrenotazioneCampoModel();
     await prenotazione.prenotazioneCircolo(
@@ -70,7 +71,7 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
         mioCircolo,
     )
 
-    sendHTTPResponse(res, 200, true, {
+    sendHTTPResponse(res, 201, true, {
         message: "Prenotazione creata con successo",
         prenotazione: prenotazione
     })
@@ -111,14 +112,9 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', async 
       );
 
     const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email })
-    var dateReq = req.headers["data-attuale"] as string
 
-    if (!dateReq) {
-        sendHTTPResponse(res, 401, false, "Data non passata in headers (data-attuale) alla richiesta")
-        return
-    }
     if (!mioCircolo) {
-        sendHTTPResponse(res, 401, false, "Impossibile ritrovare il circolo. Token non valido");
+        sendHTTPResponse(res, 403, false, "Impossibile scaricare i dati del circolo");
         return
     }
     var dataInizioGiorno = new Date(giorno.getFullYear(), giorno.getMonth(), giorno.getDate() + 1)
