@@ -55,10 +55,10 @@ function checkToken(req: Request, res: Response, next: NextFunction, account_ric
         })
         return
     }
-    console.log(account_richiesto)
+
     if(
         account_richiesto !== null &&
-        !(decoded.tipoAccount in account_richiesto)
+        !(account_richiesto.includes( decoded.tipoAccount ))
     ) {
         res.status(403).json({
             success: false,
