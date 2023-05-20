@@ -111,12 +111,7 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', async 
       );
 
     const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email })
-    var dateReq = req.headers["data-attuale"] as string
-
-    if (!dateReq) {
-        sendHTTPResponse(res, 401, false, "Data non passata in headers (data-attuale) alla richiesta")
-        return
-    }
+    
     if (!mioCircolo) {
         sendHTTPResponse(res, 401, false, "Impossibile ritrovare il circolo. Token non valido");
         return
