@@ -1,13 +1,17 @@
 import { NextFunction , Request ,Response} from "express"
-import { PartitaModel, Partita } from "../classes/Partita"
+import { Partita, PartitaModel } from "../../classes/Partita"
 import 'mongoose'
 import { isValidObjectId } from "mongoose"
-import { sendHTTPResponse, HTTPResponse } from "../utils/general.utils"
-import { logger } from "../utils/logging"
+import { sendHTTPResponse } from "../../utils/general.utils"
+import { logger } from "../../utils/logging" 
+import { CircoloModel } from "../../classes/Circolo"
 
 //creazione di una partita
 const createPartita = async (req: Request, res: Response, next : NextFunction) =>{
+
+    
     const {giocatori, circolo , categoria_min , categoria_max, orario} = req.body
+
     
     const partita = new PartitaModel({
         giocatori : giocatori,
@@ -30,7 +34,7 @@ const createPartita = async (req: Request, res: Response, next : NextFunction) =
 
 //lettura di una singola partita
 const readPartita = async (req : Request, res : Response, next : NextFunction) =>{
-
+    
     const id = req.params.PartitaId
     if(!isValidObjectId(id)){
         return sendHTTPResponse(res, 401 , false,"ID partita invalido")
@@ -45,9 +49,12 @@ const readPartita = async (req : Request, res : Response, next : NextFunction) =
 
 //lettura di tutte le partite
 const readAllPartite = async (req : Request, res : Response, next : NextFunction)=>{
+ 
+
     return await PartitaModel.find().populate("giocatori")
     .then(partite =>  sendHTTPResponse(res, 200, true, partite))
     .catch((error) => sendHTTPResponse(res, 500 , false, "[server] Errore interno")) 
+
 }
 
 

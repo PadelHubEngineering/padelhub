@@ -6,7 +6,7 @@ import { Giocatore,GiocatoreModel } from '../../classes/Giocatore'
 import { Partita, PartitaModel } from '../../classes/Partita'
 import { checkTokenCircolo } from "../../middleware/tokenChecker";
 import { logger } from "../../utils/logging";
-import {createPartita, readPartita , readAllPartite, deletePartita, updatePartita} from '../../controllers/partite'
+import {createPartita, readPartita , readAllPartite, deletePartita, updatePartita} from './crud_function_partite'
 
 
 const router = Router();
