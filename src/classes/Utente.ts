@@ -15,7 +15,7 @@ export enum TipoAccount {
 // come stringa, ma sarà salvata in modo sicuro
 @pre<Utente>('save', async function (next) {
 
-    if (!this.isModified()) return next();
+    if (!this.isModified("password")) return next();
 
     let hash: string;
 
@@ -34,20 +34,20 @@ export class Utente {
     @prop({ required: true })
     public nome: string
 
-    @prop({ required: true, index: true })
+    @prop({ unique: true ,required: true, index: true })
     public email: string
 
-    @prop({ required: true })
-    public telefono: string
+    @prop()
+    public telefono?: string
 
     @prop({ required: true })
     public password: string
 
     //Discriminator
     @prop({ required: true })
-    public utenteType!: string;
+    public utenteType!: string | TipoAccount;
 
-    constructor(nome: string, email: string, telefono: string, password: string) {
+    constructor(nome: string, email: string, password: string, telefono?: string) {
         this.nome = nome;
         this.email = email;
         this.telefono = telefono;

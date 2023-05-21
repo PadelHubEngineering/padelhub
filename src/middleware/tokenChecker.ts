@@ -2,6 +2,7 @@
 import jwt from "jsonwebtoken"
 import { TipoAccount } from "../classes/Utente";
 import { Request, Response, NextFunction } from "express";
+import { sendHTTPResponse } from "../utils/general.utils";
 
 export type TokenAutenticazione = {
     // tokenEffettivo: string
@@ -32,7 +33,7 @@ function checkJWT(token: string): null | TokenAutenticazione {
     }
 }
 
-function checkToken(req: Request, res: Response, next: NextFunction, account_richiesto: TipoAccount | null) {
+function checkToken(req: Request, res: Response, next: NextFunction, account_richiesto: TipoAccount[] | null) {
     // header or url parameters or post parameters
     var token = req.body.token || req.query.token || req.headers['x-access-token'];
 
@@ -48,7 +49,7 @@ function checkToken(req: Request, res: Response, next: NextFunction, account_ric
     const decoded = checkJWT(token)
 
     if( decoded === null ){
-        res.status(403).json({
+        res.status(401).json({
             success: false,
             message: 'Il token fornito non è valido'
         })
@@ -57,7 +58,7 @@ function checkToken(req: Request, res: Response, next: NextFunction, account_ric
 
     if(
         account_richiesto !== null &&
-        decoded.tipoAccount !== account_richiesto
+        !(account_richiesto.includes( decoded.tipoAccount ))
     ) {
         res.status(403).json({
             success: false,
@@ -65,22 +66,25 @@ function checkToken(req: Request, res: Response, next: NextFunction, account_ric
         })
         return;
     }
-
     req.utenteAttuale = decoded;
     next();
 };
 
 export function checkTokenGiocatore(req: Request, res: Response, next: NextFunction) {
-    checkToken(req, res, next, TipoAccount.Giocatore)
+    checkToken(req, res, next, [ TipoAccount.Giocatore ])
 }
 
 export function checkTokenCircolo(req: Request, res: Response, next: NextFunction) {
-    checkToken(req, res, next, TipoAccount.Giocatore)
+    checkToken(req, res, next, [ TipoAccount.Circolo ])
 }
 
 export function checkTokenCustomerS(req: Request, res: Response, next: NextFunction) {
-    checkToken(req, res, next, TipoAccount.OperatoreCustomerService)
+    checkToken(req, res, next, [ TipoAccount.OperatoreCustomerService ])
 }
 export function checkTokenAmministratore(req: Request, res: Response, next: NextFunction) {
-    checkToken(req, res, next, TipoAccount.Amministratore)
+    checkToken(req, res, next, [ TipoAccount.Amministratore ])
+}
+
+export function checkTokenGiocatoreOCircolo(req: Request, res: Response, next: NextFunction) {
+    checkToken(req, res, next, [ TipoAccount.Giocatore, TipoAccount.Circolo ])
 }

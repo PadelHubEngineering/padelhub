@@ -132,4 +132,6 @@ dist
 
 error.log
 combined.log
-populate.ts
+
+# rest test
+*.rest
