@@ -4,7 +4,8 @@ import 'mongoose'
 import { isValidObjectId } from "mongoose"
 import { sendHTTPResponse } from "../../utils/general.utils"
 import { logger } from "../../utils/logging" 
-import { CircoloModel } from "../../classes/Circolo"
+import { Circolo, CircoloModel } from "../../classes/Circolo"
+import { TipoAccount } from "../../classes/Utente"
 
 //creazione di una partita
 const createPartita = async (req: Request, res: Response, next : NextFunction) =>{
@@ -12,7 +13,6 @@ const createPartita = async (req: Request, res: Response, next : NextFunction) =
     
     const {giocatori, circolo , categoria_min , categoria_max, orario} = req.body
 
-    
     const partita = new PartitaModel({
         giocatori : giocatori,
         circolo : circolo,
@@ -21,6 +21,9 @@ const createPartita = async (req: Request, res: Response, next : NextFunction) =
         orario : orario
 
     })
+    
+
+
 
     /*if( !_dataOraPrenotazione || typeof(_dataOraPrenotazione) !== "string" || Date.parse(_dataOraPrenotazione) === NaN){
     sendHTTPResponse(res, 400, false, "La data inserita non è corretta")
@@ -49,12 +52,25 @@ const readPartita = async (req : Request, res : Response, next : NextFunction) =
 
 //lettura di tutte le partite
 const readAllPartite = async (req : Request, res : Response, next : NextFunction)=>{
- 
+    const tipoAccount = req.utenteAttuale?.tipoAccount;
+    const email = req.utenteAttuale?.email
+   
+    if(tipoAccount == TipoAccount.Giocatore){
+        console.log("giocatore")
+        return await PartitaModel.find().populate("giocatori")
+        .then(partite =>  sendHTTPResponse(res, 200, true, partite))
+        .catch((error) => sendHTTPResponse(res, 500 , false, "[server] Errore interno")) 
 
-    return await PartitaModel.find().populate("giocatori")
-    .then(partite =>  sendHTTPResponse(res, 200, true, partite))
-    .catch((error) => sendHTTPResponse(res, 500 , false, "[server] Errore interno")) 
-
+    }else if(tipoAccount == TipoAccount.Circolo){
+        const c_id= await CircoloModel.findOne({email:email})
+        if(c_id==null){
+            sendHTTPResponse(res, 500 , false, "[server] Errore interno")
+        }
+        
+        return await PartitaModel.find({circolo: c_id?.id}).populate("giocatori")
+        .then(partite =>  sendHTTPResponse(res, 200, true, partite))
+        .catch((error) => sendHTTPResponse(res, 500 , false, "[server] Errore interno")) 
+    }
 }
 
 
@@ -103,13 +119,7 @@ const updatePartita = async (req : Request , res : Response, next : NextFunction
                 }
                 console.log("C'è posto")
                 const p =await PartitaModel.findById(id).then((p) => p?.aggiungi_player(giocatore))
-                /*
-                p?.giocatori.push(giocatore)
-                if(p?.giocatori.length==4){
-                    p.isChiusa = true
-                }
-                await p?.save()*/
-                //create prenotazione res.post. prenotazione
+
                 sendHTTPResponse(res, 201, true, p as Partita)  
             }
         }else{
