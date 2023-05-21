@@ -8,12 +8,15 @@ import prenotazionePartiteRouter from './prenotazionePartite/prenotazionePartite
 
 import cors from "cors"
 import { checkTokenCircolo, checkTokenGiocatoreOCircolo } from '../middleware/tokenChecker';
+import { errorJsonHandler, notFoundErrorHandler } from "../middleware/errorHandler"
 
 export const app: Express = express();
 
 app.use(expressLogger);
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+
+app.use(errorJsonHandler)
 
 app.use(cors())
 
@@ -38,3 +41,5 @@ default_router.use('/prenotazionePartita',prenotazionePartiteRouter)
 
 
 app.use("/api/v1", default_router)
+
+app.use(notFoundErrorHandler)
