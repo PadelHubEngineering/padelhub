@@ -25,7 +25,7 @@ const createPartita = async (req: Request, res: Response, next : NextFunction) =
         return
     }
 
-    if(categoria_max>categoria_min ||( categoria_min> 0 || categoria_min >5) || ( categoria_max> 0 || categoria_max >5)  ){
+    if(categoria_max<categoria_min ||( categoria_min< 1 || categoria_min >5) || ( categoria_max< 1 || categoria_max >5)  ){
         sendHTTPResponse(res, 400, false, "Array di giocatori fornito non valido")
     }
     

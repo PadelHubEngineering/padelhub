@@ -26,7 +26,7 @@ export class Partita{
     @prop({type : Number , default : 5, max : 5})
     categoria_max : number
 
-    @prop({type : Number , default : 0 , min : 0})
+    @prop({type : Number , default : 1 , min : 1})
     categoria_min : number
 
     @prop({required : true , ref : () => Giocatore})
