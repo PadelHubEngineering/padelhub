@@ -135,6 +135,7 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', async 
         inizioSlot: Date
         fineSlot: Date
         tipoUtente: TipoAccount
+        idPartita?: string
     }
     interface IOccupazioneCampi{
         idCampo: number, 
@@ -176,7 +177,8 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', async 
             id: prenotazioneCampo._id,
             inizioSlot: prenotazioneCampo.inizioSlot,
             fineSlot: prenotazioneCampo.fineSlot,
-            tipoUtente: prenotazioneCampo.partita == undefined ? TipoAccount.Circolo : TipoAccount.Giocatore
+            tipoUtente: prenotazioneCampo.partita == undefined ? TipoAccount.Circolo : TipoAccount.Giocatore,
+            partita: prenotazioneCampo.partita
         }
         if (campoPrenotato.tipologia == TipoCampo.Esterno) {
             console.log("campo esterno")

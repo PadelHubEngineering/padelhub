@@ -63,6 +63,9 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
         99,
     )
 
+    //TODO: Manca durata slot
+    //TODO: mancano degli orari di apertura decenti
+
     let circoloDoc = await CircoloModel.create(circolone)
 
     console.log("creato il circolone")
