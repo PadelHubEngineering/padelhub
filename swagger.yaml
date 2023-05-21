@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
   version: '1.0'
-  title: "PadelHub"
+  title: "PadelHub API"
   description: API per gestire un sistema di prenotazioni di partite di padel.
 host: padelhub-back.onrender.com
 basePath: /api/v1
@@ -27,6 +27,214 @@ paths:
           description: Dati inseriti validi, risposta valida
           schema:
             $ref: '#/definitions/LoginApproved'
+        401:
+          description: Dati inseriti non validi, errore
+          schema:
+            type: object
+            properties:
+              success: 
+                type: boolean
+              message:
+                type: string
+  /circolo/prenotazioniSlot/{year}-{month}-{day}:
+    x-summary: Richiesta lista prenotazioni Slot Circolo
+    get: 
+      summary: Fornisce prenotazioni giorno impostato
+      parameters:
+        - name: year
+          in: path
+          required: true
+          type: integer
+        - name: month
+          in: path
+          required: true
+          type: integer
+        - name: day
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Fornisce un payload con le prenotazioni per il giorno passato come parametro
+        404:
+          description: Pagina non trovata, formato data errata o non specificata
+          schema:
+           $ref: '#/definitions/Errore'
+        401:
+          description: Il token fornito non è valido
+          schema:
+           $ref: '#/definitions/Errore'
+        403:
+          description: Non sei autorizzato ad accedere alla risorsa. Token non valido
+          schema:
+           $ref: '#/definitions/Errore'
+  /circolo/prenotazioneSlot/:
+    x-summary: Richiesta Prenotazione Slot Circolo
+    post:
+      summary: Endpoint circolo prenotazione slot
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PrenotazioneCircolo'
+      responses:
+        201:
+          description: Prenotazione creata con successo
+        400:
+          description: La data inserita non è corretta
+          schema:
+           $ref: '#/definitions/Errore'
+        401:
+          description: Impossibile scaricare i dati del circolo
+          schema:
+           $ref: '#/definitions/Errore'
+        500:
+          description: Campo non trovato o prenotazione già inserita dal circolo per lo slot
+          schema:
+           $ref: '#/definitions/Errore'
+           
+  /prenotazioneSlot/{id_prenotazione}:
+    x-summary: Cancellazione Prenotazione Slot Circolo
+    delete:
+      summary: Endpoint di cancellazione slot circolo
+      parameters:
+        - name: id_prenotazione
+          in: path
+          type: string
+          required: true
+      responses:
+        200:
+          description: Prenotazione eliminata con successo
+        401:
+          description: Impossibile eliminare la prenotazione o impossibile trovare la prenotazione richiesta
+          schema:
+           $ref: '#/definitions/Errore'
+           
+  /partite/:
+    x-summary: Inserimento nuova partita
+    post:
+      summary: Inserimento di una nuova partita da parte di un giocatore
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            title: Schema inserimento partita
+            type: object
+            properties:
+              giocatori:
+                type: array
+                items:
+                  type: string
+              circolo: 
+                type: string
+              categoria_min:
+                type: integer
+              categoria_max:
+                type: integer
+              orario:
+                type: string
+      responses:
+        200:
+          description: Partita inserito correttamente
+        500:
+          description: Errore interno
+          schema:
+            $ref: '#/definitions/Errore'
+            
+    get:
+      summary: Ottiene tutte le partite
+      responses:
+        200:
+          description: Ritorna la lista di partite presenti a database
+          schema:
+            title: Schema Partite
+            type: array
+            items:
+              $ref: '#/definitions/Partita'
+        500:
+          description: Errore Interno
+          schema: 
+            $ref: '#/definitions/Errore'
+
+  /partite/{PartitaId}:
+    x-summary: Ritrova partita specifica
+    get:
+      summary: Ritorna i dati della partita specificata nei parametri
+      parameters:
+        - name: PartitaId
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: Ritorna i dati della partita specificata nei parametri
+          schema:
+            allOf:
+              - $ref: '#/definitions/RispostaBasic'
+              - type: object
+                properties:
+                  payload:
+                    $ref: '#/definitions/Partita'
+        500:
+          description: Errore interno
+          schema:
+            $ref: '#/definitions/Errore'
+        404:
+          description: Partita inesistente
+          schema:
+            $ref: '#/definitions/Errore'
+    delete:
+      summary: Elimino la partita specificata
+      parameters:
+        - name: PartitaId
+          in: path
+          required: true
+          type: string
+      responses:
+        201:
+          description: Ritorna i dati della partita specificata nei parametri
+          schema:
+            allOf:
+              - $ref: '#/definitions/RispostaBasic'
+              - type: object
+                properties:
+                  payload:
+                    $ref: '#/definitions/Partita'
+        500:
+          description: Errore interno
+          schema:
+            $ref: '#/definitions/Errore'
+        404:
+          description: Partita inesistente
+          schema:
+            $ref: '#/definitions/Errore'
+    patch:
+      summary: Update della partita specificata
+      parameters:
+        - name: PartitaId
+          in: path
+          required: true
+          type: string
+      responses:
+        201:
+          description: Ritorna i dati della partita specificata nei parametri
+          schema:
+            allOf:
+              - $ref: '#/definitions/RispostaBasic'
+              - type: object
+                properties:
+                  payload:
+                    $ref: '#/definitions/Partita'
+        401: 
+          description: id partita invalido, partita al completo o giocatore non autorizzato ad iscriversi alla partita
+          schema:
+            $ref: '#/definitions/Errore'
+        404:
+          description: id partita invalido
+          schema:
+            $ref: '#/definitions/Errore'
 definitions:
   LoginRequest:
     title: Login Request
@@ -69,3 +277,62 @@ definitions:
         tipoAccount: Giocatore
         email: email@email.com
         nome: Matteo
+  PrenotazioneCircolo:
+    title: Oggetto prenotazione slot circolo
+    type: object
+    properties:
+      idCampo:
+        type: integer
+      dataOraPrenotazione:
+        type: string
+    required:
+      - idCampo
+      - dataOraPrenotazione
+    example:
+      idCampo: 1
+      dataOraPrenotazione: "2015-03-25T12:00:00Z"
+  Partita:
+    title: Partita
+    type: object
+    properties:
+      id_partita: 
+        type: string
+      isChiusa: 
+        type: boolean
+      categoria_max:
+        type: integer
+      categoria_min:
+        type: integer
+      giocatori:
+        type: array
+        items:
+          type: string
+      circolo:
+        type: string
+      orario:
+        type: string
+  Errore:
+    type: object
+    properties:
+      HTTPCode:
+        type: integer
+        description: Il codice HTTP di errore.
+      success:
+        type: boolean
+        description: Lo stato della risposta.
+      message:
+        type: string
+        description: Messaggio di errore
+    example: 
+      HTTPCode: -9999
+      success: false
+      message: Messaggio esplicativo di errore
+  RispostaBasic:
+    type: object
+    properties:
+      HTTPCode:
+        type: integer
+        description: Il codice HTTP di errore.
+      success:
+        type: boolean
+        description: Lo stato della risposta.
