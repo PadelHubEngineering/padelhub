@@ -26,7 +26,8 @@ const createPartita = async (req: Request, res: Response, next : NextFunction) =
     }
 
     if(categoria_max<categoria_min ||( categoria_min< 1 || categoria_min >5) || ( categoria_max< 1 || categoria_max >5)  ){
-        sendHTTPResponse(res, 400, false, "categorian invalida")
+        sendHTTPResponse(res, 400, false, "Categoria invalida")
+        return
     }
     
 
@@ -69,7 +70,8 @@ const readPartita = async (req : Request, res : Response, next : NextFunction) =
     
     const id = req.params.PartitaId
     if(!isValidObjectId(id)){
-        return sendHTTPResponse(res, 401 , false,"ID partita invalido")
+        sendHTTPResponse(res, 401 , false,"ID partita invalido")
+        return
     }
 
     return await PartitaModel.findById(id).populate("giocatori")
@@ -94,6 +96,7 @@ const readAllPartite = async (req : Request, res : Response, next : NextFunction
         const c_id= await CircoloModel.findOne({email:email})
         if(c_id==null){
             sendHTTPResponse(res, 500 , false, "[server] Errore interno")
+            return
         }
         
         return await PartitaModel.find({circolo: c_id?.id}).populate("giocatori")
@@ -108,7 +111,8 @@ const deletePartita = async (req :Request, res : Response, next : NextFunction) 
     const id = req.params.PartitaId;
     console.log(id)
     if(!isValidObjectId(id)){
-        return sendHTTPResponse(res, 401 , false,"ID partita invalido")
+        sendHTTPResponse(res, 401 , false,"ID partita invalido")
+        return
     }
 
     return await PartitaModel.findByIdAndDelete(id)
@@ -140,6 +144,7 @@ const updatePartita = async (req : Request , res : Response, next : NextFunction
             if(partita?.checkChiusa() ){
                 console.log("Piena")
                 sendHTTPResponse(res, 401, false, "Partita già al completo")
+                return
             }else{
                 if(await partita.checkLevel(giocatore)==false){
                     sendHTTPResponse(res, 401, false, "Non puoi partecipare a questa partita : Livello invalido")
@@ -149,11 +154,12 @@ const updatePartita = async (req : Request , res : Response, next : NextFunction
                 console.log("C'è posto")
                 const p =await PartitaModel.findById(id).then((p) => p?.aggiungi_player(giocatore))
 
-                sendHTTPResponse(res, 201, true, p as Partita)  
+                sendHTTPResponse(res, 201, true, p as Partita)
+                return
             }
         }else{
             sendHTTPResponse(res, 404 , false,"ID partita invalido")
-            
+            return
 
     } })
     .catch((error) => { sendHTTPResponse(res, 500 , false, "[server] Errore interno"); console.log(error)}) 
