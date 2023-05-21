@@ -6,12 +6,36 @@ import { sendHTTPResponse } from "../../utils/general.utils"
 import { logger } from "../../utils/logging" 
 import { Circolo, CircoloModel } from "../../classes/Circolo"
 import { TipoAccount } from "../../classes/Utente"
+import { GiocatoreModel } from "../../classes/Giocatore"
 
 //creazione di una partita
 const createPartita = async (req: Request, res: Response, next : NextFunction) =>{
 
     
     const {giocatori, circolo , categoria_min , categoria_max, orario} = req.body
+
+
+    if(!isValidObjectId(circolo)){
+        sendHTTPResponse(res, 400, false, "Id circolo formalmente errato")
+        return
+    }
+
+    if( !( giocatori instanceof Array ) ) {
+        sendHTTPResponse(res, 400, false, "Array di giocatori fornito non valido")
+        return
+    }
+
+    for( let id_giocatore of giocatori ) {
+        if ( !isValidObjectId( id_giocatore ) ) {
+            sendHTTPResponse(res, 400, false, "Trovati giocatori non validi tra quelli forniti")
+            return
+        }
+        const gioc_db = await GiocatoreModel.exists({ id: id_giocatore }).exec();
+        if ( gioc_db === null ){
+            sendHTTPResponse(res, 400, false, "Trovati giocatori non esistenti tra quelli forniti")
+            return
+        }
+    }
 
     const partita = new PartitaModel({
         giocatori : giocatori,
@@ -44,7 +68,7 @@ const readPartita = async (req : Request, res : Response, next : NextFunction) =
     }
 
     return await PartitaModel.findById(id).populate("giocatori")
-    .then(partita => partita ? sendHTTPResponse(res, 200, true, partita) : sendHTTPResponse(res, 404 , true, "Partita non inesistente"))
+    .then(partita => partita ? sendHTTPResponse(res, 200, true, partita) : sendHTTPResponse(res, 404 , false, "Partita inesistente"))
     .catch((error) => {sendHTTPResponse(res, 500 , false, "[server] Errore interno")})
 
 

@@ -17,7 +17,8 @@ import { sendHTTPResponse, HTTPResponse } from "../utils/general.utils"
     this.checkChiusa()
 })
 export class Partita{
-    id_parita: mongoose.Types.ObjectId;
+
+    id_partita: mongoose.Types.ObjectId;
 
     @prop({type : Boolean, default : false})
     isChiusa: boolean;
