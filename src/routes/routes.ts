@@ -9,6 +9,7 @@ import prenotazionePartiteRouter from './prenotazionePartite/prenotazionePartite
 import cors from "cors"
 import { checkTokenCircolo, checkTokenGiocatoreOCircolo } from '../middleware/tokenChecker';
 import { errorJsonHandler, notFoundErrorHandler } from "../middleware/errorHandler"
+import giocatoreRouter from './giocatore/giocatoreRouter';
 
 export const app: Express = express();
 
@@ -37,6 +38,8 @@ default_router.use('/circolo', checkTokenCircolo, circoloRouter)
 default_router.use('/partite', partiteRouter)
 //default_router.use('/partite', partiteRouter)
 default_router.use('/prenotazionePartita',prenotazionePartiteRouter)
+
+default_router.use('/giocatore', giocatoreRouter)
 
 
 

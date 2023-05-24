@@ -4,7 +4,11 @@ import { Utente, UtenteModel } from "./Utente";
 import { TipoAccount } from "./Utente";
 import { mongo } from "mongoose";
 
-export enum Genere { Maschio, Femmina, Altro }
+export enum Genere {
+    Maschio = "maschio",
+    Femmina = "femmina",
+    Altro = "altro"
+}
 
 export class Giocatore extends Utente {
 
