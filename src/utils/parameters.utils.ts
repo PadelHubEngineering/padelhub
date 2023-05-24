@@ -102,27 +102,28 @@ export function controlloData(res: Response, value: any, error_message: string, 
 
 export function controlloInt(res: Response, value: any, minVal: number, maxVal: number, ok_borders: boolean, error_message: string, value_name?: string) {
 
+    const intVal = parseInt(value)
+
     if (
-        !value ||
-        typeof value !== "number" ||
-        ( ok_borders == false && minVal === value ) ||
-        ( ok_borders == false && maxVal === value ) ||
-        value < minVal ||
-        value > maxVal
+        isNaN(intVal) ||
+        ( ok_borders == false && minVal === intVal ) ||
+        ( ok_borders == false && maxVal === intVal ) ||
+        intVal < minVal ||
+        intVal > maxVal
     ){
         let msg = `${error_message}: ${ value_name || "Un numero / valore inserito" } invalido`;
 
         sendHTTPResponse(res, 400, false, msg)
         return null
     }
-    return value
+    return intVal
 }
 
 export function controlloStrEnum(res: Response, value: any, enum_to_check: { [_: string]: string }, error_message: string, value_name?: string) {
 
     if ( !controlloStringa(res, value, false, error_message) ) return null;
 
-    if ( ( value as string ) in enum_to_check ) {
+    if ( !( ( value as string ) in enum_to_check ) ) {
         let msg = `${error_message}: ${ value_name || "Un numero / valore inserito" } invalido`;
 
         sendHTTPResponse(res, 400, false, msg)

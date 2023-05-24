@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { Genere, GiocatoreModel } from "../../classes/Giocatore";
 import { sendHTTPResponse } from "../../utils/general.utils";
-import { controlloData, controlloEmail, controlloInt, controlloNickname, controlloNomeCognome, controlloRegExp, controlloStrEnum, controlloTelefono } from "../../utils/parameters.utils";
+import { controlloData, controlloEmail, controlloInt, controlloNickname, controlloNomeCognome, controlloPassword, controlloRegExp, controlloStrEnum, controlloTelefono } from "../../utils/parameters.utils";
 import { logger } from "../../utils/logging";
 
 
@@ -13,6 +13,7 @@ router.post("/", async ( req: Request, res: Response ) => {
         nome,
         cognome,
         email,
+        password,
         telefono,
         nickname,
         dataDiNascita,
@@ -32,17 +33,15 @@ router.post("/", async ( req: Request, res: Response ) => {
 
     if ( !controlloNickname(res, nickname, false, "Iscrizione fallita") ) return;
 
-    console.log("predata")
     if ( !controlloData(res, dataDiNascita, "Iscrizione fallita", "Data di nascita") ) return;
-    console.log("postdata")
 
     if ( !controlloStrEnum(res, genere, Genere, "Iscrizione fallita", "Genere") ) return;
 
-    if( !controlloInt(res, livello, 5000, 0, false, "Iscrizione fallita", "Livello") ) return;
+    if( !controlloInt(res, livello, 0, 5000, false, "Iscrizione fallita", "Livello") ) return;
 
-    if ( !controlloRegExp(res, tagTelegram, false, /.*\B@(?=\w{5,32}\b)[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+)*.*/, "Iscrizione fallita")) return;
+    if ( !controlloRegExp(res, tagTelegram, false, /.*\B@(?=\w{5,32}\b)[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+)*.*/, "Iscrizione fallita", "Tag Telegram")) return;
 
-
+    if( !controlloPassword(res, password, "Iscrizione fallita", "password") ) return;
 
     let giocatore_db;
 
