@@ -2,7 +2,7 @@ import { Ref, getDiscriminatorModelForClass, getModelForClass, prop, mongoose } 
 import { Circolo } from "./Circolo";
 import { Utente, UtenteModel } from "./Utente";
 import { TipoAccount } from "./Utente";
-import { mongo } from "mongoose";
+import { ObjectId } from "mongoose";
 
 export enum Genere {
     Maschio = "maschio",
@@ -11,6 +11,8 @@ export enum Genere {
 }
 
 export class Giocatore extends Utente {
+
+    _id: ObjectId;
 
     @prop({ required: true })
     public cognome: string

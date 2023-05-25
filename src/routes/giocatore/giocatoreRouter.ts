@@ -1,10 +1,13 @@
 import { Router, Request, Response } from "express";
-import { Genere, GiocatoreModel } from "../../classes/Giocatore";
+import { Genere, Giocatore, GiocatoreModel } from "../../classes/Giocatore";
 import { sendHTTPResponse } from "../../utils/general.utils";
 import { controlloData, controlloEmail, controlloInt, controlloNickname, controlloNomeCognome, controlloPassword, controlloRegExp, controlloStrEnum, controlloTelefono } from "../../utils/parameters.utils";
 import { logger } from "../../utils/logging";
 import base64 from "@hexagon/base64";
 import { MongoServerError } from "mongodb";
+import { inviaEmailConferma } from "../../utils/email.utils";
+import { Ref } from "@typegoose/typegoose";
+import { Utente } from "../../classes/Utente";
 
 
 const router = Router();
@@ -55,7 +58,7 @@ router.post("/", async ( req: Request, res: Response ) => {
         return
     }
 
-    let giocatore_db;
+    let giocatore_db!: Ref<Giocatore>;
 
     try{
         giocatore_db = await GiocatoreModel.create({
@@ -100,7 +103,11 @@ router.post("/", async ( req: Request, res: Response ) => {
     }
 
     logger.info(`Creato nuovo giocatore: ${email}, ${nickname}`)
-    sendHTTPResponse(res, 201, true, "Giocatore creato con successo")
+
+    const invio = inviaEmailConferma("abcabc", giocatore_db._id )
+
+    sendHTTPResponse(res, 201, true, "Email di conferma inviata")
+
 
 } )
 

@@ -1,4 +1,4 @@
-import { getModelForClass, pre, prop, modelOptions } from "@typegoose/typegoose"
+import { getModelForClass, pre, prop, modelOptions, Ref } from "@typegoose/typegoose"
 import * as argon2 from "argon2";
 import { logger } from "../utils/logging"
 

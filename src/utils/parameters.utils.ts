@@ -175,11 +175,11 @@ export function controlloPassword(res:Response, value: any, error_message: strin
     if( !controlloStringa(res, value, false, error_message, value_name)) return null
 
     //Controllo se rispetta il regex
-    if( !(/^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[@$!%?&])[A-Za-z\d@$!%?&]{8,}$/).test(value)){
+    if( !(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value))){
         let msg = `${error_message}: ${ value_name || "La password inserita" } non valida`;
 
         sendHTTPResponse(res, 400, false, msg)
-        return null  
+        return null
     }
 
     return value as string;

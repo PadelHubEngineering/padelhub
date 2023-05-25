@@ -1,6 +1,3 @@
-import { exitOnError } from "winston";
-import { Circolo } from "../classes/Circolo";
-import { Giocatore } from "../classes/Giocatore";
 import { logger } from "./logging";
 import { Response } from "express";
 
@@ -43,6 +40,22 @@ export function preliminary_check() {
 
     if ( process.env.SUPER_SECRET === undefined ) {
         logger.error("Impossibile caricare chiave privata, esco")
+        return false
+    }
+
+    if ( process.env.MJ_APIKEY_PUBLIC === undefined ){
+        logger.error("Impossibile caricare chiave pubblica di MailJet, esco")
+        return false
+    }
+
+    if ( process.env.MJ_APIKEY_PRIVATE === undefined ){
+        logger.error("Impossibile caricare chiave privata di MailJet, esco")
+        return false
+    }
+
+
+    if ( process.env.CONFIRMATION_EMAIL_URL === undefined ){
+        logger.error("Impossibile caricare url di base per l'email di conferma, esco")
         return false
     }
 
