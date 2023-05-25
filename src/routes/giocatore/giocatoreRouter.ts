@@ -3,6 +3,7 @@ import { Genere, GiocatoreModel } from "../../classes/Giocatore";
 import { sendHTTPResponse } from "../../utils/general.utils";
 import { controlloData, controlloEmail, controlloInt, controlloNickname, controlloNomeCognome, controlloPassword, controlloRegExp, controlloStrEnum, controlloTelefono } from "../../utils/parameters.utils";
 import { logger } from "../../utils/logging";
+import base64 from "@hexagon/base64";
 
 
 const router = Router();
@@ -43,6 +44,14 @@ router.post("/", async ( req: Request, res: Response ) => {
 
     if( !controlloPassword(res, password, "Iscrizione fallita", "password") ) return;
 
+    // Controllo immagine base64
+    // Non controllo il campo: era una stringa e rimarra` una stringa
+
+    if ( !base64.validate(foto) ) {
+        sendHTTPResponse(res, 400, false, "La foto caricata non e` base64 valido")
+        return
+    }
+
     let giocatore_db;
 
     try{
@@ -50,6 +59,7 @@ router.post("/", async ( req: Request, res: Response ) => {
             nome,
             email,
             telefono,
+            password,
 
             cognome,
             nickname,
