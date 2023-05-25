@@ -8,6 +8,6 @@ test('app module should be defined', () => {
 
 test('GET / should return 200', () => {
     return request(app)
-        .get('/')
+        .get('/api/v1')
         .expect(200);
 });
