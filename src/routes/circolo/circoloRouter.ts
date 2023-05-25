@@ -11,11 +11,12 @@ import { Partita } from "../../classes/Partita";
 import { HTTPResponse, sendHTTPResponse } from "../../utils/general.utils";
 
 import { DateTime } from  "luxon"
+import { registrazioneCircolo } from "./registrazioneCircolo";
 
 const router: Router = Router();
 
 
-router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
+router.post('/prenotazioneSlot', checkTokenCircolo, async (req: Request, res: Response) => {
     const { idCampo } = req.body;
 
     const _dataOraPrenotazione = req.body.dataOraPrenotazione
@@ -77,7 +78,7 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
     })
 });
 
-router.delete('/prenotazioneSlot/:id_prenotazione', async (req: Request, res: Response) => {
+router.delete('/prenotazioneSlot/:id_prenotazione', checkTokenCircolo, async (req: Request, res: Response) => {
 
     const id_prenotazione = req.params.id_prenotazione
 
@@ -103,7 +104,7 @@ router.delete('/prenotazioneSlot/:id_prenotazione', async (req: Request, res: Re
 
 })
 
-router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', async (req: Request, res: Response) => {
+router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', checkTokenCircolo, async (req: Request, res: Response) => {
     
     const giorno = new Date(
         +req.params.year,
@@ -200,6 +201,11 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', async 
     sendHTTPResponse(res, 200, true, retObj)
     return
 })
+
+
+
+//API per prenotazione circolo
+router.post("/registrazioneCircolo", async (req:Request, res:Response) => { registrazioneCircolo(req, res) })
 
 
 export default router;

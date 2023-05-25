@@ -109,7 +109,7 @@ export function controlloEmail(res:Response, value: any, error_message: string, 
 
     //Se l'email non rispetta il regex
     if(!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(value))){
-        let msg = `${error_message}: ${ value_name || "L'email inserita" } non e' valida`;
+        let msg = `${error_message}: ${ value_name || "email inserita" } non valida`;
 
         sendHTTPResponse(res, 400, false, msg)
         return null
@@ -145,8 +145,8 @@ export function controlloPassword(res:Response, value: any, error_message: strin
     if( !controlloStringa(res, value, false, error_message, value_name)) return null
 
     //Controllo se rispetta il regex
-    if( !(/^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[@$!%?&])[A-Za-z\d@$!%?&]{8,}$/).test(value)){
-        let msg = `${error_message}: ${ value_name || "La password inserita" } non valida`;
+    if( !(/^[A-Za-z\d@$!%?&]{8,}$/).test(value)){
+        let msg = `${error_message}: ${ value_name || "password inserita" } non valida`;
 
         sendHTTPResponse(res, 400, false, msg)
         return null  
