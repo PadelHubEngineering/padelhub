@@ -14,14 +14,7 @@ async function cercaUtente(email: string): Promise<null | { utente: Utente, tipo
 
     const searched = await UtenteModel.findOne({
         email,
-        $or: [{
-            tipoAccount: {
-                $not: { $in: [ TipoAccount.Giocatore, TipoAccount.OperatoreCustomerService ] }
-            },
-        },{
-            tipoAccount: { $in: [ TipoAccount.Giocatore, TipoAccount.OperatoreCustomerService ] },
-            confermato: true
-        }]
+        confermato: true
     }).exec();
 
     if (searched) {

@@ -43,15 +43,20 @@ export class Utente {
     @prop({ required: true })
     public password: string
 
+
+    @prop({ required: true })
+    public confermato: boolean = false;
+
     //Discriminator
     @prop({ required: true })
     public utenteType!: string | TipoAccount;
 
-    constructor(nome: string, email: string, password: string, telefono?: string) {
+    constructor(nome: string, email: string, password: string, confermato: boolean, telefono?: string) {
         this.nome = nome;
         this.email = email;
         this.telefono = telefono;
         this.password = password;
+        this.confermato = confermato;
     }
 
     async checkPassword(plain_password: string) {

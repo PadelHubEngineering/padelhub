@@ -29,9 +29,6 @@ export class Giocatore extends Utente {
     @prop()
     public livello?: number
 
-    @prop({ required: true })
-    public confermato: boolean = false;
-
     @prop()
     public foto: string // È una stringa in base64
 
@@ -51,13 +48,12 @@ export class Giocatore extends Utente {
     // public partitePrenotate?: Partita[]; //Non va perchè manca la classe
 
     constructor(name: string, cognome: string, email: string, nickname: string, password: string, telefono?: string,  dataDiNascita?: Date, genere?: Genere, livello?: number) {
-        super(name, email, password, telefono)
+        super(name, email, password, false, telefono)
         this.nickname = nickname
         this.cognome = cognome
         this.dataDiNascita = dataDiNascita
         this.genere = genere
         this.livello = livello
-        this.confermato = false
     }
 
 }
