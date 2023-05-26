@@ -132,7 +132,7 @@ export class Circolo extends Utente {
     }
 
     constructor(name: string, email: string, password: string, telefono?: string, partitaIVA?: string, prezzoSlotOrario?: number, paymentOnboarding?: boolean, quotaAffiliazione?: number, scontoAffiliazione?: number) {
-        super(name, email, password, telefono)
+        super(name, email, password, false, telefono)
         this.partitaIVA = partitaIVA
         this.prezzoSlotOrario = prezzoSlotOrario
         this.paymentOnboarding = paymentOnboarding

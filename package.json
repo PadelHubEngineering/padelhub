@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/PadelHubEngineering/padelhub#readme",
   "dependencies": {
+    "@hexagon/base64": "^1.1.26",
     "@typegoose/typegoose": "^11.1.0",
     "argon2": "^0.30.3",
     "cors": "^2.8.5",
@@ -30,6 +31,7 @@
     "jsonwebtoken": "^9.0.0",
     "luxon": "^3.3.0",
     "mongoose": "^7.1.0",
+    "node-mailjet": "^6.0.2",
     "typescript": "^5.0.4",
     "winston": "^3.8.2"
   },
