@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { PrenotazioneCampo, PrenotazioneCampoModel } from "../../classes/PrenotazioneCampo";
 import { Circolo, CircoloModel, Campo, TipoCampo, GiornoSettimana } from "../../classes/Circolo";
 import { TipoAccount } from "../../classes/Utente";
-import { checkTokenCircolo } from "../../middleware/tokenChecker";
+import { checkTokenAmministratore, checkTokenCircolo } from "../../middleware/tokenChecker";
 import { logger } from "../../utils/logging";
 import { Error } from "mongoose";
 import { convertToObject, isNumericLiteral } from "typescript";
@@ -206,9 +206,31 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', checkT
 //API per registrazione circolo
 router.post("/registrazioneCircolo", async (req:Request, res:Response) => { registrazioneCircolo(req, res) })
 
+//API per eliminare l'account di un circolo (lo può fare un circolo o un amministratore)
+router.delete("/eliminaCircolo", checkTokenCircolo || checkTokenAmministratore , async (req: Request, res: Response) => {
+
+    const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email })
+
+    if (!mioCircolo) { //Circolo non trovato
+        sendHTTPResponse(res, 403, false, "Impossibile trovare il circolo");
+        return
+    }
+
+    const deleted = await CircoloModel.deleteOne({
+        email: req.utenteAttuale?.email 
+    }).exec();
+
+    if ( deleted.deletedCount == 0 ) {
+        sendHTTPResponse(res, 401, false, "Impossibile eliminare il circolo");
+        return
+    }
+
+    sendHTTPResponse(res, 200, true, "Circolo eliminato con successo")
+
+})
+
 //API per inserimento dati in seguito alla registrazione avvenuta con successo
 router.post("/inserimentoDatiCircolo", checkTokenCircolo, async (req:Request, res:Response) => { inserisciDatiCircolo(req, res) })
-
 
 //API per dare al front-end i dati relativi al circolo (per Area Circolo)
 router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response) => {
