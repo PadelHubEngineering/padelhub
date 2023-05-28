@@ -4,7 +4,7 @@
   "description": "In padel We Hub. Un sofisticato sistema di gestione per giocatori e circoli di padel",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 0",
+    "test": "jest --setupFiles dotenv/config",
     "build": "tsc -p ./tsconfig.json",
     "dev": "tsc -p ./tsconfig.json && node -r dotenv/config out/index.js",
     "populate": "tsc -p ./tsconfig.json && node -r dotenv/config out/populate.js",
