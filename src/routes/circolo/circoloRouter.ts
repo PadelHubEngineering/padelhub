@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { PrenotazioneCampo, PrenotazioneCampoModel } from "../../classes/PrenotazioneCampo";
-import { Circolo, CircoloModel, Campo, TipoCampo } from "../../classes/Circolo";
+import { Circolo, CircoloModel, Campo, TipoCampo, GiornoSettimana } from "../../classes/Circolo";
 import { TipoAccount } from "../../classes/Utente";
 import { checkTokenCircolo } from "../../middleware/tokenChecker";
 import { logger } from "../../utils/logging";
@@ -11,7 +11,7 @@ import { Partita } from "../../classes/Partita";
 import { HTTPResponse, sendHTTPResponse } from "../../utils/general.utils";
 
 import { DateTime } from  "luxon"
-import { registrazioneCircolo } from "./registrazioneCircolo";
+import { inserisciDatiCircolo, registrazioneCircolo } from "./registrazioneCircolo";
 
 const router: Router = Router();
 
@@ -203,9 +203,100 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', checkT
 })
 
 
-
-//API per prenotazione circolo
+//API per registrazione circolo
 router.post("/registrazioneCircolo", async (req:Request, res:Response) => { registrazioneCircolo(req, res) })
+
+//API per inserimento dati in seguito alla registrazione avvenuta con successo
+router.post("/inserimentoDatiCircolo", checkTokenCircolo, async (req:Request, res:Response) => { inserisciDatiCircolo(req, res) })
+
+
+//API per dare al front-end i dati relativi al circolo (per Area Circolo)
+router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response) => {
+
+    const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email })
+
+    if (!mioCircolo) { //Circolo non trovato
+        sendHTTPResponse(res, 403, false, "Impossibile scaricare i dati del circolo");
+        return
+    }
+
+    interface Servizio{
+        nome: string;
+        descrizione: string;
+    }
+
+    interface Giorno{
+        giorno: GiornoSettimana;
+        isAperto: boolean;
+        oraApertura: Date;
+        oraChiusura: Date;
+    }
+
+    interface DatiCircolo { //Modello dell'API 
+        nome: string;
+        email: string;
+        telefono: string | undefined;
+        partitaIVA: string | undefined;
+        indirizzo: string | undefined;
+        orariStruttura: Giorno[]; 
+        orariCampi: Giorno[];
+        durataSlot: number; //in minuti
+        quotaIscrizione: number | undefined;
+        quotaPartitaStandard: number | undefined;
+        quotaPartitaIscritto: number | undefined;
+        nCampiInterni: number;
+        nCampiEsterni: number;
+        serviziAggiuntivi: Servizio[];   
+    }
+
+
+    var retObj: DatiCircolo = {
+        nome: mioCircolo.nome,
+        email: mioCircolo.email,
+        telefono: mioCircolo.telefono,
+        partitaIVA: mioCircolo.partitaIVA,
+        indirizzo: mioCircolo.indirizzo,
+        orariStruttura: [], 
+        orariCampi: [],
+        durataSlot: mioCircolo.durataSlot, //in minuti
+        quotaIscrizione: mioCircolo.quotaAffiliazione,
+        quotaPartitaStandard: mioCircolo.prezzoSlotOrario,
+        quotaPartitaIscritto: mioCircolo.getPrezzoSlotOrarioAffiliato(),
+        nCampiInterni: 0,
+        nCampiEsterni: 0,
+        serviziAggiuntivi: []   
+    }
+
+    let nInterni: number = 0
+    let nEsterni: number = 0
+
+    mioCircolo.campi.forEach((campo) => {
+        if(campo.tipologia == TipoCampo.Esterno){
+            nEsterni++
+        }
+        else if(campo.tipologia == TipoCampo.Interno){
+            nInterni++
+        }
+    });
+
+    retObj.nCampiEsterni = nEsterni
+    retObj.nCampiInterni = nInterni
+
+    mioCircolo.orarioSettimanale.forEach((day) => {
+        retObj.orariStruttura.push({ giorno: day.giorno, isAperto: day.isAperto, oraApertura: day.orarioApertura, oraChiusura: day.orarioChiusura})
+    })
+    
+
+    mioCircolo.serviziAggiuntivi.forEach((servizio) => {
+        retObj.serviziAggiuntivi.push({nome: servizio.nomeServizio, descrizione: servizio.descrizioneServizio})
+    });
+
+
+    
+    sendHTTPResponse(res, 200, true, retObj)
+    return
+
+})
 
 
 export default router;
