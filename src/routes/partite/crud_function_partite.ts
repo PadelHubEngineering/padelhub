@@ -77,8 +77,6 @@ const readPartita = async (req : Request, res : Response, next : NextFunction) =
     PartitaModel.findById(id).populate("giocatori")
     .then(partita => partita ? sendHTTPResponse(res, 200, true, partita) : sendHTTPResponse(res, 404 , false, "Partita inesistente"))
     .catch((error) => {sendHTTPResponse(res, 500 , false, "[server] Errore interno")})
-
-
 }
 
 //lettura di tutte le partite
