@@ -2,12 +2,13 @@ import request from 'supertest';
 import { beforeAll, beforeEach, describe, expect, test, afterEach, afterAll } from '@jest/globals';
 import { app } from '../../../src/routes/routes';
 import jwt from "jsonwebtoken"
-import { PartitaModel } from '../../../src/classes/Partita';
+import { PartitaModel, Partita } from '../../../src/classes/Partita';
 import { jest } from '@jest/globals';
 import { response } from 'express';
 import { ResolveTypegooseNameError } from '@typegoose/typegoose/lib/internal/errors';
 import { GiocatoreModel } from '../../../src/classes/Giocatore';
 import { CircoloModel } from '../../../src/classes/Circolo';
+import { exitOnError } from 'winston';
 
 describe('GET /api/v1/partite/:idPartita', () => {
 
@@ -190,7 +191,7 @@ describe("POST /api/v1/partite/ ", () => {
     )
 
     GiocatoreModel.exists = jest.fn().mockImplementation((criterias) => {
-        return{
+        return {
             exec: jest.fn().mockImplementation(() => {
                 if ((<any>criterias).id == "64679d72d7391e02188e77e1")
                     return "64679d72d7391e02188e77e1";
@@ -224,7 +225,7 @@ describe("POST /api/v1/partite/ ", () => {
     })
     test('POST /api/v1/partite/ con id circolo valido e categoria non valida', async () => {
         GiocatoreModel.exists = jest.fn().mockImplementation((criterias) => {
-            return{
+            return {
                 exec: jest.fn().mockImplementation(() => {
                     if ((<any>criterias).id == "64679d72d7391e02188e77e1")
                         return "64679d72d7391e02188e77e1";
@@ -271,4 +272,121 @@ describe("POST /api/v1/partite/ ", () => {
         expect(resp.body).toHaveProperty("message", "Trovati giocatori non esistenti tra quelli forniti")
     })
 
+});
+
+describe("DELETE /api/v1/partite/:idPartita", () => {
+    const validPartita = "64679d72d7391e02188e77e0";
+    var tokenCircolo = jwt.sign(
+        {
+            tipoAccount: "Circolo",
+            email: "test@circolo.com",
+            nome: "testCircolo"
+        },
+        process.env.SUPER_SECRET!,
+        {
+            expiresIn: process.env.DEFAULT_EXPIRATION_PERIOD || "2d"
+        }
+    )
+    beforeAll(() => {
+        PartitaModel.findByIdAndDelete = jest.fn().mockImplementation((params) => {
+            if (params != validPartita)
+                return Promise.resolve(null)
+            return Promise.resolve("Partita")
+        }) as any;
+    });
+    afterAll(async () => {
+        PartitaModel.findById = jest.fn() as any;
+    })
+    test('DELETE /api/v1/partite/:idPartita esistente ', async () => {
+        const resp = await request(app).delete("/api/v1/partite/64679d72d7391e02188e77e0").set('x-access-token', tokenCircolo).send()
+        expect(resp.status).toBe(201);
+        expect(resp.body).toHaveProperty("success", true)
+    })
+    test('DELETE /api/v1/partite/:idPartita non esistente', async () => {
+        const resp = await request(app).delete("/api/v1/partite/64679d72d7391e02188e77e1").set('x-access-token', tokenCircolo).send()
+        expect(resp.status).toBe(404);
+        expect(resp.body).toHaveProperty("success", false)
+        expect(resp.body).toHaveProperty("message", "Nessuna partita trovata")
+    })
+});
+describe("UPDATE /api/v1/partite/:idPartita", () => {
+    const validPartita = "64679d72d7391e02188e77e0";
+    const validGiocatore = "64710dcfb43b091ad49f71be";
+    const retValue: any = {
+        id_partita: "64679d72d7391e02188e77e0",
+        isChiusa: false,
+        categoria_max: 5,
+        categoria_min: 1,
+        giocatori: ["64679d72d7391e02188e77e1"],
+        circolo: "64679d72d7391e02188e77e4",
+        orario: "1899-12-31T23:00:00.000Z",
+        checkChiusa: function () { },
+        checkLevel: function () { },
+        aggiungi_player: function () { },
+    }
+    var tokenGiocatore = jwt.sign(
+        {
+            tipoAccount: "Giocatore",
+            email: "test@giocatore.com",
+            nome: "testGiocatore"
+        },
+        process.env.SUPER_SECRET!,
+        {
+            expiresIn: process.env.DEFAULT_EXPIRATION_PERIOD || "2d"
+        }
+    )
+    beforeAll(() => {
+        PartitaModel.findById = jest.fn().mockImplementation((params) => {
+            if (params != validPartita)
+                return Promise.resolve(null)
+            return Promise.resolve(retValue)
+        }) as any;
+        retValue.checkChiusa = jest.fn().mockImplementation((params) => {
+            return Promise.resolve(retValue.giocatori.length == 4);
+        })
+        retValue.checkLevel = jest.fn().mockImplementation((params) => {
+            if (params == validGiocatore)
+                return true;
+            return false;
+        })
+        retValue.aggiungi_player = jest.fn().mockImplementation((params) => {
+            retValue.giocatori.push(params)
+            return Promise.resolve(retValue)
+        })
+    });
+    afterAll(async () => {
+        PartitaModel.findById = jest.fn() as any;
+    })
+    test('UPDATE /api/v1/partite/:idPartita esistente ', async () => {
+        const resp = await request(app).patch("/api/v1/partite/64679d72d7391e02188e77e0").set('x-access-token', tokenGiocatore).send({
+            giocatore: "64710dcfb43b091ad49f71be"
+        })
+        console.log(resp.body)
+        expect(resp.status).toBe(201);
+        expect(resp.body).toHaveProperty("success", true)
+    })
+    test('UPDATE /api/v1/partite/:idPartita giocatore liv. non valido', async () => {
+        const resp = await request(app).patch("/api/v1/partite/64679d72d7391e02188e77e0").set('x-access-token', tokenGiocatore).send({
+            giocatore: "64710dcfb43b091ad49f71b"
+        })
+        expect(resp.status).toBe(401);
+        expect(resp.body).toHaveProperty("success", false)
+        expect(resp.body).toHaveProperty("message", "Non puoi partecipare a questa partita : Livello invalido")
+    })
+    test('UPDATE /api/v1/partite/:idPartita non valido', async () => {
+        const resp = await request(app).patch("/api/v1/partite/10").set('x-access-token', tokenGiocatore).send({
+            giocatore: "64710dcfb43b091ad49f71be"
+        })
+        expect(resp.status).toBe(401);
+        expect(resp.body).toHaveProperty("success", false)
+        expect(resp.body).toHaveProperty("message", "ID partita invalido")
+    })
+    test('DELETE /api/v1/partite/:idPartita non esistente', async () => {
+        const resp = await request(app).patch("/api/v1/partite/64679d72d7391e02188e77e1").set('x-access-token', tokenGiocatore).send({
+            giocatore: "64710dcfb43b091ad49f71be"
+        })
+        expect(resp.status).toBe(404);
+        expect(resp.body).toHaveProperty("success", false)
+        expect(resp.body).toHaveProperty("message", "ID partita invalido")
+    })
 });
