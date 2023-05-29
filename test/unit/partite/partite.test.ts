@@ -90,7 +90,7 @@ describe("GET /api/v1/partite/", () => {
         giocatori: ["64679d72d7391e02188e77e1"],
         circolo: "64679d72d7391e02188e77e4",
         orario: "1899-12-31T23:00:00.000Z"
-    }, 
+    },
     {
         id_partita: "64679d72d7391e02188e77e2",
         isChiusa: false,
@@ -108,7 +108,7 @@ describe("GET /api/v1/partite/", () => {
             }
         }) as any;
         CircoloModel.findOne = jest.fn().mockImplementation((params) => {
-            if((<any>params).email != "test@circolo.com")
+            if ((<any>params).email != "test@circolo.com")
                 return null;
             return retValue;
         }) as any;
@@ -171,3 +171,104 @@ describe("GET /api/v1/partite/", () => {
     })
 });
 
+
+describe("POST /api/v1/partite/ ", () => {
+    afterAll(async () => {
+        GiocatoreModel.exists = jest.fn() as any;
+    })
+
+    var tokenGiocatore = jwt.sign(
+        {
+            tipoAccount: "Giocatore",
+            email: "test@giocatore.com",
+            nome: "testGiocatore"
+        },
+        process.env.SUPER_SECRET!,
+        {
+            expiresIn: process.env.DEFAULT_EXPIRATION_PERIOD || "2d"
+        }
+    )
+
+    GiocatoreModel.exists = jest.fn().mockImplementation((criterias) => {
+        return{
+            exec: jest.fn().mockImplementation(() => {
+                if ((<any>criterias).id == "64679d72d7391e02188e77e1")
+                    return "64679d72d7391e02188e77e1";
+                return null
+            })
+        }
+    }) as any;
+    test('POST /api/v1/partite/ con id circolo non valido', async () => {
+        const resp = await request(app).post('/api/v1/partite/').set('x-access-token', tokenGiocatore).send({
+            categoria_max: 5,
+            categoria_min: 1,
+            giocatori: ["64679d72d7391e02188e77e1"],
+            circolo: "10",
+            orario: "1899-12-31T23:00:00.000Z"
+        })
+        expect(resp.status).toBe(400)
+        expect(resp.body).toHaveProperty("success", false)
+        expect(resp.body).toHaveProperty("message", "Id circolo formalmente errato")
+    })
+    test('POST /api/v1/partite/ con id circolo valido', async () => {
+        PartitaModel.create = jest.fn().mockImplementation(() => Promise.resolve('return value')) as any;
+        const resp = await request(app).post('/api/v1/partite/').set('x-access-token', tokenGiocatore).send({
+            categoria_max: 5,
+            categoria_min: 1,
+            giocatori: ["64679d72d7391e02188e77e1"],
+            circolo: "64679d72d7391e02188e77e4",
+            orario: "1899-12-31T23:00:00.000Z"
+        })
+        expect(resp.status).toBe(200)
+        expect(resp.body).toHaveProperty("success", true)
+    })
+    test('POST /api/v1/partite/ con id circolo valido e categoria non valida', async () => {
+        GiocatoreModel.exists = jest.fn().mockImplementation((criterias) => {
+            return{
+                exec: jest.fn().mockImplementation(() => {
+                    if ((<any>criterias).id == "64679d72d7391e02188e77e1")
+                        return "64679d72d7391e02188e77e1";
+                    return null
+                })
+            }
+        }) as any;
+        PartitaModel.create = jest.fn().mockImplementation(() => Promise.resolve('return value')) as any;
+        const resp = await request(app).post('/api/v1/partite/').set('x-access-token', tokenGiocatore).send({
+            categoria_max: 6,
+            categoria_min: 1,
+            giocatori: ["64679d72d7391e02188e77e1"],
+            circolo: "64679d72d7391e02188e77e4",
+            orario: "1899-12-31T23:00:00.000Z"
+        })
+        expect(resp.status).toBe(400)
+        expect(resp.body).toHaveProperty("success", false)
+        expect(resp.body).toHaveProperty("message", "Categoria invalida")
+    })
+    test('POST /api/v1/partite/ con id circolo valido e giocatori con id non valido', async () => {
+        PartitaModel.create = jest.fn().mockImplementation(() => Promise.resolve('return value')) as any;
+        const resp = await request(app).post('/api/v1/partite/').set('x-access-token', tokenGiocatore).send({
+            categoria_max: 5,
+            categoria_min: 1,
+            giocatori: ["10"],
+            circolo: "64679d72d7391e02188e77e4",
+            orario: "1899-12-31T23:00:00.000Z"
+        })
+        expect(resp.status).toBe(400)
+        expect(resp.body).toHaveProperty("success", false)
+        expect(resp.body).toHaveProperty("message", "Trovati giocatori non validi tra quelli forniti")
+    })
+    test('POST /api/v1/partite/ con id circolo valido e giocatori con id non esistente nel database', async () => {
+        PartitaModel.create = jest.fn().mockImplementation(() => Promise.resolve('return value')) as any;
+        const resp = await request(app).post('/api/v1/partite/').set('x-access-token', tokenGiocatore).send({
+            categoria_max: 5,
+            categoria_min: 1,
+            giocatori: ["64679d72d7391e02188e77e0"],
+            circolo: "64679d72d7391e02188e77e4",
+            orario: "1899-12-31T23:00:00.000Z"
+        })
+        expect(resp.status).toBe(400)
+        expect(resp.body).toHaveProperty("success", false)
+        expect(resp.body).toHaveProperty("message", "Trovati giocatori non esistenti tra quelli forniti")
+    })
+
+});

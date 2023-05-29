@@ -20,11 +20,6 @@ const createPartita = async (req: Request, res: Response, next : NextFunction) =
         return
     }
 
-    if( !( giocatori instanceof Array ) ) {
-        sendHTTPResponse(res, 400, false, "Array di giocatori fornito non valido")
-        return
-    }
-
     if(categoria_max<categoria_min ||( categoria_min< 1 || categoria_min >5) || ( categoria_max< 1 || categoria_max >5)  ){
         sendHTTPResponse(res, 400, false, "Categoria invalida")
         return
@@ -60,7 +55,7 @@ const createPartita = async (req: Request, res: Response, next : NextFunction) =
         return
     }*/
 
-    return await partita.save()
+    return await PartitaModel.create(partita)
     .then((partita) => {sendHTTPResponse(res, 200, true, partita)})
     .catch((error)=> {sendHTTPResponse(res, 500 , false, "[server] Errore interno")});
 }
