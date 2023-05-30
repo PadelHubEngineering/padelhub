@@ -135,3 +135,8 @@ combined.log
 
 # rest test
 *.rest
+
+
+# testing compiled files
+
+**.test.js

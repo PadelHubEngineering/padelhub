@@ -52,6 +52,7 @@ export class Partita{
 
         if(!this.checkChiusa()){
             this.giocatori.push(gioc);
+            this.markModified('giocatori');
             console.log("new Giocatore Aggiunto da metodo")
             return await this.save()
         }else{

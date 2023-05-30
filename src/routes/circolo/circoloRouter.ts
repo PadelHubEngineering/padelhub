@@ -4,7 +4,7 @@ import { Circolo, CircoloModel, Campo, TipoCampo } from "../../classes/Circolo";
 import { TipoAccount } from "../../classes/Utente";
 import { checkTokenCircolo } from "../../middleware/tokenChecker";
 import { logger } from "../../utils/logging";
-import { Error } from "mongoose";
+import { Error, isValidObjectId } from "mongoose";
 import { convertToObject, isNumericLiteral } from "typescript";
 import { error } from "winston";
 import { Partita } from "../../classes/Partita";
@@ -81,6 +81,12 @@ router.delete('/prenotazioneSlot/:id_prenotazione', async (req: Request, res: Re
 
     const id_prenotazione = req.params.id_prenotazione
 
+    if ( !isValidObjectId(id_prenotazione) ){
+        sendHTTPResponse(res, 401, false, "Impossibile trovare la prenotazione richiesta");
+        return
+    }
+
+
     // Controllo che la prenotazione esista nel db
 
     const prenotazione = await PrenotazioneCampoModel.findOne({ _id: id_prenotazione }).exec();
@@ -99,7 +105,7 @@ router.delete('/prenotazioneSlot/:id_prenotazione', async (req: Request, res: Re
         return
     }
 
-    sendHTTPResponse(res, 200, true, "Prenotazione eliminata con successo")
+    sendHTTPResponse(res, 201, true, "Prenotazione eliminata con successo")
 
 })
 
@@ -111,7 +117,7 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', async 
         +req.params.day
       );
 
-    const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email })
+    const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email }).exec()
 
     if (!mioCircolo) {
         sendHTTPResponse(res, 403, false, "Impossibile scaricare i dati del circolo");
