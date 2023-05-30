@@ -131,7 +131,7 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
     return await PartitaModel.findById(id)
         .then(async (partita) => {
             if (partita) {
-                if (!partita?.checkChiusa()) {
+                if (partita?.checkChiusa()) {
                     console.log("Piena")
                     sendHTTPResponse(res, 401, false, "Partita già al completo")
                     return
