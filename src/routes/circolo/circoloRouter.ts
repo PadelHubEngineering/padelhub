@@ -242,10 +242,6 @@ router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response
         return
     }
 
-    interface Servizio{
-        nome: string;
-        descrizione: string;
-    }
 
     interface Giorno{
         giorno: GiornoSettimana;
@@ -268,7 +264,7 @@ router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response
         quotaPartitaIscritto: number | undefined;
         nCampiInterni: number;
         nCampiEsterni: number;
-        serviziAggiuntivi: Servizio[];   
+        serviziAggiuntivi: string[];   
     }
 
 
@@ -309,8 +305,8 @@ router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response
     })
     
 
-    mioCircolo.serviziAggiuntivi.forEach((servizio) => {
-        retObj.serviziAggiuntivi.push({nome: servizio.nomeServizio, descrizione: servizio.descrizioneServizio})
+    mioCircolo.serviziAggiuntivi.forEach((servizio:string) => {
+        retObj.serviziAggiuntivi.push(servizio)
     });
 
 
