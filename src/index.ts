@@ -9,6 +9,7 @@ import { TipoAccount, UtenteModel } from "./classes/Utente";
 import { deleteBefore, populate } from "./utils/populate";
 //import { createUnparsedSourceFile, servicesVersion, textSpanIntersectsWith } from "typescript";
 //import { Circolo, CircoloModel, GiornoSettimana, OrarioGiornaliero } from "./classes/Circolo";
+import { PrenotazioneGiocatore, PrenotazioneModel } from "./classes/PrenotazionePartita";
 
 
 const port = process.env.PORT || 8080;
@@ -26,6 +27,11 @@ async function main() {
     //await deleteBefore()
     //await populate()
     // Inizializzazione Express
+    
+
+  
+
+
     app.listen(port, () => logger.debug(`App listening on port ${port}!`));
 }
 

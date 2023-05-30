@@ -8,14 +8,14 @@ import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses"
 @modelOptions({
     schemaOptions : {
         timestamps : true,
-        collection : "Prenotazioni Partite"
+        collection : "PrenotazioniGiocatori"
     }
 })
-export class Prenotazione{
+export class PrenotazioneGiocatore{
     id_prenotazione!: mongoose.Types.ObjectId;
 
     @prop({ required : false , type : Boolean })  //mongoose
-    pagato : boolean //typescript
+    pagato : boolean = false//typescript
     
 
     @prop({ type : Number , default : 0 , min : 0 })
@@ -24,19 +24,23 @@ export class Prenotazione{
     @prop({ required : true , ref: () => Partita})
     partita : Ref<Partita>
 
+    @prop({required : true , ref: () => Giocatore})
+    giocatore : Ref<Giocatore>
+
     @prop()
     dataPrenotazione?: Date
 
-    constructor(cifra : number , partita : Ref<Partita> , data : Date){
+    constructor(cifra : number , partita : Ref<Partita> , data : Date, giocatore: Ref<Giocatore>){
         this.partita=partita;
         this.costo=cifra;
         this.pagato = false;
         this.dataPrenotazione=data
+        this.giocatore= giocatore
     }
 
     
     //funz pagamento
-    public async cancellaPrenotazione(this: DocumentType<Prenotazione>){
+    public async cancellaPrenotazione(this: DocumentType<PrenotazioneGiocatore>){
         if(!this.pagato){
             
             if(1){
@@ -44,13 +48,12 @@ export class Prenotazione{
 
             }
             await this.deleteOne();
-            
         }else{
             this.emissioneRimborso()
         }
     }
 
-    public async pagaPrenotazione(this: DocumentType<Prenotazione>){
+    public async pagaPrenotazione(this: DocumentType<PrenotazioneGiocatore>){
         if(!this.pagato){
             //STRIPE
             this.pagato = true
@@ -59,23 +62,16 @@ export class Prenotazione{
         }
     }
 
-    public emissioneRimborso(this: DocumentType<Prenotazione>){
+    public emissioneRimborso(this: DocumentType<PrenotazioneGiocatore>){
         if(this.pagato){
             //servizio pagamento
         }
 
     }
 
-
-
-    
-
-
-
-
 }
 
 
 
-export const PrenotazioneModel = getModelForClass(Prenotazione)
+export const PrenotazioneModel = getModelForClass(PrenotazioneGiocatore)
 
