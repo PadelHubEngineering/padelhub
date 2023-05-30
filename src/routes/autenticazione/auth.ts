@@ -7,6 +7,8 @@ import { logger } from '../../utils/logging';
 import { Giocatore, GiocatoreModel, Genere } from '../../classes/Giocatore';
 import { CircoloModel } from '../../classes/Circolo';
 import { sendHTTPResponse } from '../../utils/general.utils';
+import { isValidObjectId } from 'mongoose';
+import { CodiceConfermaModel } from '../../classes/CodiceConferma';
 
 const router: Router = Router();
 
@@ -79,4 +81,50 @@ router.post('', async function (req: Request, res: Response) {
         });
     }
 });
+
+
+router.put("/verificaUtente/:codice", async ( req: Request, res: Response ) => {
+
+    const codice = req.params.codice;
+
+    logger.debug(`Richiesta conferma indirizzo email con codice: ${codice} `)
+
+    if ( !codice || !isValidObjectId(codice) ){
+        sendHTTPResponse(res, 401, false, "Il codice inserito non è valido")
+        return
+    }
+
+    const codice_conferma = await CodiceConfermaModel.findOne({ _id: codice }).populate("utente").exec();
+
+    if( !codice_conferma ){
+        // Codice di conferma poco chiaro per motivi di sicurezza
+        sendHTTPResponse(res, 401, false, "Il codice inserito non è valido")
+        return
+    }
+
+    if( !codice_conferma.utente ){
+        // Codice di conferma poco chiaro per motivi di sicurezza
+        sendHTTPResponse(res, 401, false, "Il codice inserito non è valido")
+        logger.error("Attenzione, validato codice di conferma email, ma l'utente non era valido")
+        return
+    }
+
+    const utente = await UtenteModel.findOne({ _id: codice_conferma.utente._id }).exec();
+
+    if( !utente ){
+        // Codice di conferma poco chiaro per motivi di sicurezza
+        sendHTTPResponse(res, 401, false, "Il codice inserito non è valido")
+        logger.error("Attenzione, validato codice di conferma email, ma l'utente non esiste")
+        return
+    }
+
+    // Confermo effettivamente l'utente
+    utente.confermato = true;
+    utente.save();
+
+    await CodiceConfermaModel.deleteOne({ _id: codice_conferma._id }).exec()
+
+    sendHTTPResponse(res, 200, true, "Utente confermato con successo")
+
+})
 export default router;

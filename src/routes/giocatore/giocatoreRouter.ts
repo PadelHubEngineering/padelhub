@@ -8,6 +8,7 @@ import { MongoServerError } from "mongodb";
 import { inviaEmailConferma } from "../../utils/email.utils";
 import { Ref } from "@typegoose/typegoose";
 import { Utente } from "../../classes/Utente";
+import { CodiceConferma, CodiceConfermaModel } from "../../classes/CodiceConferma";
 
 
 const router = Router();
@@ -104,11 +105,18 @@ router.post("/", async ( req: Request, res: Response ) => {
 
     logger.info(`Creato nuovo giocatore: ${email}, ${nickname}`)
 
-    const invio = inviaEmailConferma("abcabc", giocatore_db._id )
+    let codice_conferma_utente = new CodiceConferma(giocatore_db)
 
-    sendHTTPResponse(res, 201, true, "Email di conferma inviata")
+    codice_conferma_utente = await CodiceConfermaModel.create(codice_conferma_utente)
 
+    const invio = await inviaEmailConferma(codice_conferma_utente._id.toString(), giocatore_db._id )
 
+    if ( invio )
+        sendHTTPResponse(res, 201, true, "Email di conferma inviata")
+    else
+        sendHTTPResponse(res, 500, false, "Impossibile inviare email di conferma, prego riprovare")
 } )
+
+
 
 export default router;
