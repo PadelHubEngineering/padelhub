@@ -20,6 +20,10 @@ function createTokenCircolo(email_circolo?: string) {
     )
 }
 
+//TODO: test visualizzazione partite: test per partite con categoria diversa da quella del giocatore, non le deve vedere
+// test nel caso lui sia gia` in una partita dello stesso circolo allo stesso orario, deve far vedere solo quella
+//
+
 describe("DELETE /api/v1/circolo/prenotazioneSlot", () => {
 
 

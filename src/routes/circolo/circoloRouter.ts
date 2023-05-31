@@ -270,7 +270,7 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', checkT
 // Route per il giocatore che deve accedere a dati di un circolo
 router.get('/:idCircolo/partiteAperte', checkTokenGiocatore, async (req: Request, res: Response) => {
 
-    const _data_slot = req.body.data_slot; //TODO: La data è superiore a quella attuale?
+    const _data_slot = req.body.data_slot;
     const { idCircolo } = req.params;
 
     const data_slot = controlloData(res, _data_slot, "Data fornita formalmente errata")
@@ -315,8 +315,17 @@ router.get('/:idCircolo/partiteAperte', checkTokenGiocatore, async (req: Request
     } else {
         // Oppure gli mostro la lista di partite aperte alle quali può partecipare
 
-        //TODO: categoria nel range giusto
-        const partite = await PartitaModel.find({ orario: data_slot, circolo: idCircolo, isChiusa: false }).exec();
+        const categoria_giocatore = giocatore_db.calcolaCategoria();
+
+        const partite = await PartitaModel.find({
+            orario: data_slot,
+            circolo: idCircolo,
+            isChiusa: false,
+            $and: [
+                { categoria_max: { $gte: categoria_giocatore } },
+                { categoria_min: { $lte: categoria_giocatore } }
+            ]
+        }).exec();
 
         ret_obj.partite = await map_to_display(partite)
     }

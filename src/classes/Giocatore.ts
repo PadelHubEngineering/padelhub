@@ -45,8 +45,19 @@ export class Giocatore extends Utente {
     // @prop({ type: () => PrenotazionePartita })
     // public partitePrenotate?: PrenotazionePartita[] = [];
 
-    public calcolaCategoria(this: DocumentType<Giocatore>): number { //TODO: da finire
-        return 3
+    public calcolaCategoria(this: DocumentType<Giocatore>): number | null {
+
+        if(
+            this.livello === undefined ||
+            this.livello < 0
+        )
+            return null;
+
+        if ( this.livello < 1000 ) return 1
+        else if ( this.livello < 2000 ) return 2
+        else if( this.livello < 3000 ) return 3
+        else if( this.livello < 4000 ) return 4
+        else return 5
     }
 
     constructor(name: string, cognome: string, email: string, nickname: string, password: string, telefono?: string,  dataDiNascita?: Date, genere?: Genere, livello?: number) {
