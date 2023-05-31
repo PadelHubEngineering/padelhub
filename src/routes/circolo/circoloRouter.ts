@@ -229,7 +229,7 @@ router.delete("/eliminaCircolo", checkTokenCircolo || checkTokenAmministratore ,
 
 })
 
-//API per inserimento dati in seguito alla registrazione avvenuta con successo
+//API per inserimento/modifica dati nell'Area Circolo
 router.post("/inserimentoDatiCircolo", checkTokenCircolo, async (req:Request, res:Response) => { inserisciDatiCircolo(req, res) })
 
 //API per dare al front-end i dati relativi al circolo (per Area Circolo)

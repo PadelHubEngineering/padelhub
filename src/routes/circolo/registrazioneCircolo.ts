@@ -3,7 +3,7 @@ import { Circolo, CircoloModel, GiornoSettimana, TipoCampo } from "../../classes
 import { TipoAccount } from "../../classes/Utente"
 import { sendHTTPResponse } from "../../utils/general.utils"
 import { logger } from "../../utils/logging"
-import { controlloStringa, controlloEmail, controlloTelefono, controlloPassword, controlloNomeCognome, controlloInt } from "../../utils/parameters.utils"
+import { controlloStringa, controlloEmail, controlloTelefono, controlloPassword, controlloNomeCognome, controlloInt, controlloNumber } from "../../utils/parameters.utils"
 import { Request, Response } from "express"
 import { MongoServerError } from "mongodb";
 import { inviaEmailConferma } from "../../utils/email.utils"
@@ -70,7 +70,7 @@ export async function registrazioneCircolo(req: Request, res: Response){
        
 }
 
-
+//INSERISCE/AGGIORNA I DATI NEL CIRCOLO NEL DB
 export async function inserisciDatiCircolo(req: Request, res: Response){
 
 
@@ -85,7 +85,6 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
         const {orariStruttura, durataSlot, quotaAffiliazione, prezzoSlotOrario, scontoAffiliazione, nCampiEsterni, nCampiInterni} = struttura
         const {serviziAggiuntivi} = servizio
 
-        console.log("Nuovo nome = " + nome)
     
         // Scarico i dati attuali del mio circolo
         const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email }).exec()
@@ -139,6 +138,18 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
             }
         });
 
+        //Ordino gli array sulla base dei loro id
+        arrEsterni.sort(function(campo1, campo2){
+            if(campo1.id < campo2.id) return -1;
+            if(campo1.id > campo2.id) return 1;
+            else return 0;
+        }); 
+        arrInterni.sort(function(campo1, campo2){
+            if(campo1.id < campo2.id) return -1;
+            if(campo1.id > campo2.id) return 1;
+            else return 0;
+        });
+
 
         //Creo l'oggetto con i campi che andranno salvati sul db
         var objToSave: DatiCircolo = { //Per ora è vuoto
@@ -158,11 +169,9 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
         //Controllo cosa è effettivamente cambiato e lo imposto
         //NOME
         if(nome != mioCircolo.nome && nome != undefined){
-            console.log("Tentativo di cambiare il nome");
             if(!controlloNomeCognome(res, nome, false, "Aggiornamento dati fallito", "nome circolo")) return 
             objToSave.nome = nome;
         } else {
-            console.log("Nome rimasto invariato");
             objToSave.nome = mioCircolo.nome;
         }
 
@@ -176,7 +185,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //PARTITA IVA - da sistemare il check
         if(partitaIVA != mioCircolo.partitaIVA  && partitaIVA != undefined){
-            if( !controlloStringa(res, partitaIVA, false, "Aggiornamento dati fallito", "partitaIVA / Codice Fiscale") ) return null;
+            if( !controlloStringa(res, partitaIVA, false, "Aggiornamento dati fallito", "partitaIVA / Codice Fiscale") ) return
             objToSave.partitaIVA = partitaIVA;
         } else {
             objToSave.partitaIVA = mioCircolo.partitaIVA;
@@ -184,7 +193,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
        
         //INDIRIZZO
         if(indirizzo != mioCircolo.indirizzo  && indirizzo != undefined){
-            if( !controlloStringa(res, indirizzo, false, "Aggiornamento dati fallito", "indirizzo") ) return null;
+            if( !controlloStringa(res, indirizzo, false, "Aggiornamento dati fallito", "indirizzo") ) return
             objToSave.indirizzo  = indirizzo ;
         } else {
             objToSave.indirizzo = mioCircolo.indirizzo;
@@ -192,7 +201,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //DURATA SLOT
         if(durataSlot != mioCircolo.durataSlot  && durataSlot != undefined){
-            //CONTROLLO
+            if(!controlloInt(res, durataSlot, 30, 180, true, "Aggiornamento dati fallito", "durataSlot"))
             objToSave.durataSlot  = durataSlot ;
         } else {
             objToSave.durataSlot = mioCircolo.durataSlot;
@@ -200,7 +209,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //QUOTA ISCRIZIONE
         if(quotaAffiliazione != mioCircolo.quotaAffiliazione && quotaAffiliazione != undefined){
-            //CONTROLLO
+            if(!controlloNumber(res, quotaAffiliazione, "Aggiornamento dati fallito", "quota affiliazione"))
             objToSave.quotaAffiliazione  = quotaAffiliazione;
         } else {
             objToSave.quotaAffiliazione = mioCircolo.quotaAffiliazione;  
@@ -208,7 +217,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //QUOTA PARTITA STANDARD
         if(prezzoSlotOrario != mioCircolo.prezzoSlotOrario && prezzoSlotOrario!= undefined){
-            //CONTROLLO
+            if(!controlloNumber(res, prezzoSlotOrario, "Aggiornamento dati fallito", "prezzo slot partita"))
             objToSave.prezzoSlotOrario  = prezzoSlotOrario ;
         } else {
             objToSave.prezzoSlotOrario = mioCircolo.prezzoSlotOrario;
@@ -216,7 +225,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //SCONTO AFFILIAZIONE
         if(scontoAffiliazione != mioCircolo.scontoAffiliazione && scontoAffiliazione != undefined){
-            //CONTROLLO
+            if(!controlloInt(res, scontoAffiliazione, 0, 100, true, "Aggiornamento dati fallito", "sconto"))
             objToSave.scontoAffiliazione  = scontoAffiliazione ;
         } else {
             objToSave.scontoAffiliazione = mioCircolo.scontoAffiliazione;
@@ -292,6 +301,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //SERVIZI AGGIUNTIVI
         serviziAggiuntivi.forEach((servizio:string) => {
+            if(!controlloStringa(res, servizio, false, "Aggiornamento dati fallito", "servizio"))
             objToSave.serviziAggiuntivi.push(servizio)
         })
 

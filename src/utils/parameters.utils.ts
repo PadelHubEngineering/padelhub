@@ -185,3 +185,15 @@ export function controlloPassword(res:Response, value: any, error_message: strin
     return value as string;
 
 }
+
+export function controlloNumber(res: Response, value: any, error_message: string, value_name?: string){
+  
+        if( isNaN(value) ){
+            let msg = `${error_message}: ${ value_name || "Valore inserito" } non numero`;
+    
+            sendHTTPResponse(res, 400, false, msg)
+            return null
+        }
+    
+        return value as string;
+}
