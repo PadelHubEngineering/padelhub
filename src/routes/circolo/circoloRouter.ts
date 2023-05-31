@@ -2,20 +2,80 @@ import { Router, Request, Response } from "express";
 import { PrenotazioneCampo, PrenotazioneCampoModel } from "../../classes/PrenotazioneCampo";
 import { Circolo, CircoloModel, Campo, TipoCampo } from "../../classes/Circolo";
 import { TipoAccount } from "../../classes/Utente";
-import { checkTokenCircolo } from "../../middleware/tokenChecker";
+import { checkTokenCircolo, checkTokenGiocatore } from "../../middleware/tokenChecker";
 import { logger } from "../../utils/logging";
 import { Error, isValidObjectId } from "mongoose";
 import { convertToObject, isNumericLiteral } from "typescript";
 import { error } from "winston";
-import { Partita } from "../../classes/Partita";
+import { Partita, PartitaModel } from "../../classes/Partita";
 import { HTTPResponse, sendHTTPResponse } from "../../utils/general.utils";
 
 import { DateTime } from  "luxon"
+import { controlloData } from "../../utils/parameters.utils";
+import { PrenotazionePartitaModel } from "../../classes/PrenotazionePartita";
+import { Giocatore, GiocatoreModel } from "../../classes/Giocatore";
+import { DocumentType, Ref } from "@typegoose/typegoose"
+
+type PartiteAperteI = {
+
+    giaPrenotato: boolean,
+    partite: PartitaRetI[]
+}
+
+type PartitaRetI = {
+    orario: Date,
+    giocatori: GiocatoreRetI[],
+    categoria_max: number,
+    categoria_min: number,
+}
+
+type GiocatoreRetI = {
+    nome: string,
+    cognome: string,
+    nickname: string,
+    foto: string
+}
+
+function g_to_ret(giocatore: DocumentType<Giocatore>) {
+    return {
+        nome: giocatore.nome,
+        cognome: giocatore.cognome,
+        nickname: giocatore.nickname,
+        foto: giocatore.foto,
+    } as GiocatoreRetI
+}
+
+async function map_to_display(partite: DocumentType<Partita>[]) {
+
+    let ret: PartitaRetI[] = [];
+
+    for( const partita of partite ) {
+
+        const partita_g = await partita.populate("giocatori")
+
+        // Con il populate, giocatori da Ref<Giocatore>[] diventa DocumentType<Giocatore>[]
+        // @ts-ignore-error
+        const giocatori_partita: DocumentType<Giocatore>[] = partita_g.giocatori;
+
+        ret.push({
+            ...partita_g.toObject(),
+            giocatori: giocatori_partita.map( g_to_ret ),
+            circolo: undefined,
+            createdAt: undefined,
+            updatedAt: undefined,
+            __v: undefined,
+        } as PartitaRetI)
+    }
+
+    return ret
+}
+
+
 
 const router: Router = Router();
 
 
-router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
+router.post('/prenotazioneSlot', checkTokenCircolo, async (req: Request, res: Response) => {
     const { idCampo } = req.body;
 
     const _dataOraPrenotazione = req.body.dataOraPrenotazione
@@ -77,7 +137,7 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
     })
 });
 
-router.delete('/prenotazioneSlot/:id_prenotazione', async (req: Request, res: Response) => {
+router.delete('/prenotazioneSlot/:id_prenotazione', checkTokenCircolo, async (req: Request, res: Response) => {
 
     const id_prenotazione = req.params.id_prenotazione
 
@@ -109,7 +169,7 @@ router.delete('/prenotazioneSlot/:id_prenotazione', async (req: Request, res: Re
 
 })
 
-router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', async (req: Request, res: Response) => {
+router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', checkTokenCircolo, async (req: Request, res: Response) => {
     
     const giorno = new Date(
         +req.params.year,
@@ -207,5 +267,61 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', async 
     return
 })
 
+// Route per il giocatore che deve accedere a dati di un circolo
+router.get('/:idCircolo/partiteAperte', checkTokenGiocatore, async (req: Request, res: Response) => {
+
+    const _data_slot = req.body.data_slot; //TODO: La data è superiore a quella attuale?
+    const { idCircolo } = req.params;
+
+    const data_slot = controlloData(res, _data_slot, "Data fornita formalmente errata")
+    if ( !data_slot ) return
+
+    if ( !isValidObjectId(idCircolo) ) {
+        sendHTTPResponse(res, 400, false, "L'id del circolo fornito non è valido")
+        return
+    }
+
+    const ex = await CircoloModel.exists({ _id: idCircolo }).exec();
+    if ( !ex ) {
+        sendHTTPResponse(res, 400, false, "Il circolo richiesto non è stato trovato")
+        return
+    }
+
+    // I casi sono due: l'utente ha già una prenotazione a suo nome per questo slot,
+    // in quel caso imposto `giaPrenotato` a true e ritorno solo quella partita
+
+    let ret_obj: PartiteAperteI = {
+        giaPrenotato: false,
+        partite: []
+    }
+
+    const giocatore_db = await GiocatoreModel.findOne({ email: req.utenteAttuale!.email }).exec();
+
+    if( !giocatore_db ) {
+        logger.error("Trovato giocatore con email non corretta, con token valido. Cambiare immediatamente la chiave privata")
+        sendHTTPResponse(res, 500, false, "Errore interno, impossibile scaricare lista prenotazioni")
+        return
+    }
+
+    // Controllo se il giocatore è già iscritto ad una partita per lo slot attuale
+    const partitaGiocatore = await PartitaModel.find({ orario: data_slot, circolo: idCircolo, isChiusa: false, giocatori: giocatore_db._id })
+
+    if( partitaGiocatore.length > 0 ) {
+        // Stampo la partita alla quale è già iscritto
+
+        ret_obj.giaPrenotato = true;
+        ret_obj.partite = await map_to_display(partitaGiocatore)
+
+    } else {
+        // Oppure gli mostro la lista di partite aperte alle quali può partecipare
+
+        //TODO: categoria nel range giusto
+        const partite = await PartitaModel.find({ orario: data_slot, circolo: idCircolo, isChiusa: false }).exec();
+
+        ret_obj.partite = await map_to_display(partite)
+    }
+
+    sendHTTPResponse(res, 200, true, ret_obj)
+})
 
 export default router;

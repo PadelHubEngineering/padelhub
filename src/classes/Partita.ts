@@ -1,11 +1,7 @@
 import mongoose from "mongoose"
-import {Circolo, CircoloModel} from "./Circolo"
+import {Circolo} from "./Circolo"
 import {Giocatore,GiocatoreModel} from "./Giocatore"
-import {Prenotazione} from "./PrenotazionePartita"
 import {prop, getModelForClass, Ref, DocumentType , modelOptions, post,pre} from "@typegoose/typegoose"
-import { NamedExportBindings } from "typescript"
-import { NextFunction , Request ,Response } from "express"
-import { sendHTTPResponse, HTTPResponse } from "../utils/general.utils"
 
 @modelOptions({
     schemaOptions : {

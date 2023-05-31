@@ -114,6 +114,12 @@ export class Circolo extends Utente {
         await this.save()
     }
 
+    public async setOrarioChiusuraGiorno(this: DocumentType<Circolo>, giorno: GiornoSettimana, date: Date) {
+        this.orarioSettimanale[giorno].orarioChiusura = date
+        this.markModified('orarioSettimanale')
+        await this.save()
+    }
+
     public async addCampo(this: DocumentType<Circolo>, tipoCampo: TipoCampo) {
         const id_campo = this.campi.length
 

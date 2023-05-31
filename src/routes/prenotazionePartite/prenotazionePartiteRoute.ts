@@ -4,7 +4,7 @@ import { CircoloModel,Circolo } from "../../classes/Circolo";
 import { GiocatoreModel,Giocatore} from "../../classes/Giocatore";
 import { Utente , UtenteModel, TipoAccount } from "../../classes/Utente";
 
-import { Prenotazione , PrenotazioneModel } from "../../classes/PrenotazionePartita";
+import { PrenotazionePartita , PrenotazionePartitaModel } from "../../classes/PrenotazionePartita";
 import {Router ,Request ,Response} from "express"
 
 
