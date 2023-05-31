@@ -246,43 +246,54 @@ router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response
     interface Giorno{
         giorno: GiornoSettimana;
         isAperto: boolean;
-        oraApertura: Date;
-        oraChiusura: Date;
+        apertura?: Date | undefined;
+        chiusura?: Date | undefined;
     }
 
-    interface DatiCircolo { //Modello dell'API 
-        nome: string;
-        email: string;
-        telefono: string | undefined;
-        partitaIVA: string | undefined;
-        indirizzo: string | undefined;
-        orariStruttura: Giorno[]; 
-        orariCampi: Giorno[];
-        durataSlot: number; //in minuti
-        quotaIscrizione: number | undefined;
-        quotaPartitaStandard: number | undefined;
-        quotaPartitaIscritto: number | undefined;
-        nCampiInterni: number;
-        nCampiEsterni: number;
-        serviziAggiuntivi: string[];   
+    interface DatiCircolo { //Modello dell'API
+        anagrafica: {
+            nome: string;
+            email: string;
+            telefono: string | undefined;
+            partitaIVA: string | undefined;
+            indirizzo: string | undefined;
+        },
+        struttura: {
+            orariStruttura: Giorno[]; 
+            durataSlot: number; //in minuti
+            quotaAffiliazione: number | undefined;
+            prezzoSlotOrario: number | undefined;
+            scontoAffiliazione: number | undefined;
+            nCampiInterni: number;
+            nCampiEsterni: number;
+        },
+        servizio: {
+            serviziAggiuntivi: string[];
+        }
+           
     }
 
 
     var retObj: DatiCircolo = {
-        nome: mioCircolo.nome,
-        email: mioCircolo.email,
-        telefono: mioCircolo.telefono,
-        partitaIVA: mioCircolo.partitaIVA,
-        indirizzo: mioCircolo.indirizzo,
-        orariStruttura: [], 
-        orariCampi: [],
-        durataSlot: mioCircolo.durataSlot, //in minuti
-        quotaIscrizione: mioCircolo.quotaAffiliazione,
-        quotaPartitaStandard: mioCircolo.prezzoSlotOrario,
-        quotaPartitaIscritto: mioCircolo.getPrezzoSlotOrarioAffiliato(),
-        nCampiInterni: 0,
-        nCampiEsterni: 0,
-        serviziAggiuntivi: []   
+        anagrafica:{
+            nome: mioCircolo.nome,
+            email: mioCircolo.email,
+            telefono: mioCircolo.telefono,
+            partitaIVA: mioCircolo.partitaIVA,
+            indirizzo: mioCircolo.indirizzo,
+        },
+        struttura:{
+            orariStruttura: [], 
+            durataSlot: mioCircolo.durataSlot, //in minuti
+            quotaAffiliazione: mioCircolo.quotaAffiliazione,
+            prezzoSlotOrario: mioCircolo.prezzoSlotOrario,
+            scontoAffiliazione: mioCircolo.scontoAffiliazione,
+            nCampiInterni: 0,
+            nCampiEsterni: 0
+        },
+        servizio: {
+            serviziAggiuntivi: mioCircolo.serviziAggiuntivi  
+        }
     }
 
     let nInterni: number = 0
@@ -297,19 +308,20 @@ router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response
         }
     });
 
-    retObj.nCampiEsterni = nEsterni
-    retObj.nCampiInterni = nInterni
+    retObj.struttura.nCampiEsterni= nEsterni
+    retObj.struttura.nCampiInterni = nInterni
 
     mioCircolo.orarioSettimanale.forEach((day) => {
-        retObj.orariStruttura.push({ giorno: day.giorno, isAperto: day.isAperto, oraApertura: day.orarioApertura, oraChiusura: day.orarioChiusura})
+
+        if(day.isAperto === true){
+            retObj.struttura.orariStruttura.push({ giorno: day.giorno, isAperto: true, apertura: day.orarioApertura, chiusura: day.orarioChiusura})
+        } else {
+            retObj.struttura.orariStruttura.push({ giorno: day.giorno, isAperto: false})
+        }
+
+       
     })
     
-
-    mioCircolo.serviziAggiuntivi.forEach((servizio:string) => {
-        retObj.serviziAggiuntivi.push(servizio)
-    });
-
-
     
     sendHTTPResponse(res, 200, true, retObj)
     return
