@@ -7,6 +7,7 @@ import { controlloStringa, controlloEmail, controlloTelefono, controlloPassword,
 import { Request, Response } from "express"
 import { MongoServerError } from "mongodb";
 import { inviaEmailConferma } from "../../utils/email.utils"
+import { TypeFlags } from "typescript"
 
 //CONTROLLA SE FUNZIONA SE NON VENGONO INSERITI I DATI NON OBBLIGATORI
 export async function registrazioneCircolo(req: Request, res: Response){
@@ -26,13 +27,8 @@ export async function registrazioneCircolo(req: Request, res: Response){
        var circolo_db: Ref<Circolo>;
 
        try{
-        const circolo: Circolo = new Circolo(
-            nome,
-            email,
-            telefono,
-            password        
-        )
-        
+        const circolo: Circolo = new Circolo(nome, email, password, telefono);
+
         circolo_db = await CircoloModel.create(circolo)
             
        }catch(error:any){
