@@ -26,15 +26,14 @@ export async function registrazioneCircolo(req: Request, res: Response){
        var circolo_db: Ref<Circolo>;
 
        try{
-        
-        circolo_db = await CircoloModel.create({
+        const circolo: Circolo = new Circolo(
             nome,
             email,
             telefono,
-            password,
-            validato: false,
-            confermato: false          
-        })
+            password        
+        )
+        
+        circolo_db = await CircoloModel.create(circolo)
             
        }catch(error:any){
 

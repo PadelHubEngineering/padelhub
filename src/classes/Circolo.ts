@@ -51,6 +51,9 @@ export class OrarioGiornaliero {
 
     constructor(giorno: GiornoSettimana) {
         this.giorno = giorno;
+        this.isAperto = false;
+        this.orarioApertura = new Date("");
+        this.orarioApertura = new Date("")
     }
 }
 

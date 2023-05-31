@@ -243,11 +243,11 @@ router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response
     }
 
 
-    interface Giorno{
+    interface OrarioGiornaliero{
         giorno: GiornoSettimana;
         isAperto: boolean;
-        apertura?: Date | undefined;
-        chiusura?: Date | undefined;
+        orarioApertura: Date;
+        orarioChiusura: Date;
     }
 
     interface DatiCircolo { //Modello dell'API
@@ -259,7 +259,7 @@ router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response
             indirizzo: string | undefined;
         },
         struttura: {
-            orariStruttura: Giorno[]; 
+            orariStruttura: OrarioGiornaliero[]; 
             durataSlot: number; //in minuti
             quotaAffiliazione: number | undefined;
             prezzoSlotOrario: number | undefined;
@@ -273,7 +273,6 @@ router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response
            
     }
 
-
     var retObj: DatiCircolo = {
         anagrafica:{
             nome: mioCircolo.nome,
@@ -283,7 +282,7 @@ router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response
             indirizzo: mioCircolo.indirizzo,
         },
         struttura:{
-            orariStruttura: [], 
+            orariStruttura: mioCircolo.orarioSettimanale, 
             durataSlot: mioCircolo.durataSlot, //in minuti
             quotaAffiliazione: mioCircolo.quotaAffiliazione,
             prezzoSlotOrario: mioCircolo.prezzoSlotOrario,
@@ -310,17 +309,6 @@ router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response
 
     retObj.struttura.nCampiEsterni= nEsterni
     retObj.struttura.nCampiInterni = nInterni
-
-    mioCircolo.orarioSettimanale.forEach((day) => {
-
-        if(day.isAperto === true){
-            retObj.struttura.orariStruttura.push({ giorno: day.giorno, isAperto: true, apertura: day.orarioApertura, chiusura: day.orarioChiusura})
-        } else {
-            retObj.struttura.orariStruttura.push({ giorno: day.giorno, isAperto: false})
-        }
-
-       
-    })
     
     
     sendHTTPResponse(res, 200, true, retObj)
