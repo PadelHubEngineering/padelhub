@@ -59,6 +59,13 @@ router.post("/", async ( req: Request, res: Response ) => {
         return
     }
 
+
+    // Pratica comune: se la email non ti è arrivata, allora reiscriviti con gli stessi dati
+    const deleted = await GiocatoreModel.deleteMany({ $or: [{ nickname }, { email }], confermato: false }).exec();
+
+    if ( deleted.deletedCount > 0 )
+        logger.info(`Eliminati ${deleted.deletedCount} giocatori con le stesse info di login non confermati. Iscrizione in corso di ${nickname}, ${email}`)
+
     let giocatore_db!: Ref<Giocatore>;
 
     try{
