@@ -12,6 +12,8 @@ import { deleteBefore, populate } from "./utils/populate";
 import { PrenotazioneGiocatore, PrenotazioneModel } from "./classes/PrenotazionePartita";
 
 
+
+
 const port = process.env.PORT || 8080;
 
 async function main() {
@@ -27,9 +29,31 @@ async function main() {
     //await deleteBefore()
     //await populate()
     // Inizializzazione Express
-    
+    var url = "http://localhost:9090/api/v1/prenotazioneGiocatori"
 
-  
+    const prenotazione = JSON.stringify({
+        giocatore : "frgfs",
+        circolo : "dvfv sdf",
+        orario : "vfdvfz",
+
+    })
+
+/*
+    const p = fetch(url,{method : "POST",headers: {"content-type":"application/json"}, body: prenotazione
+}).then(res => res.json()).then(datas=> console.log(datas))
+*/
+fetch(url,{method : "POST",headers: {"content-type":"application/json"}, body: prenotazione
+}).then(res=> res.json()).then(data => {
+    if(data.success){
+        //crea partita
+    }else{
+        //errore
+    }
+}
+)
+
+    console.log("OK")
+    
 
 
     app.listen(port, () => logger.debug(`App listening on port ${port}!`));

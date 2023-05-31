@@ -8,6 +8,7 @@ import {Router ,Request ,Response} from "express"
 import { checkTokenCircolo , checkTokenGiocatoreOCircolo, checkTokenGiocatore} from '../../middleware/tokenChecker'
 import { isValidObjectId } from "mongoose";
 import { sendHTTPResponse } from "../../utils/general.utils";
+import { http } from "winston";
 
 
 const router = Router();
@@ -41,8 +42,19 @@ router.get("/",checkTokenGiocatoreOCircolo ,async (req : Request, res :Response)
 
 //add a new reservation
 router.post("/", async (req : Request, res :Response)=>{
+    setTimeout(() => {
+        
+    }, 300);
 
-})
+    console.log("SONO IN PRENOTAZIONEEE")
+    const {giocatore, orario, circolo} = await req.body 
+    console.log(giocatore, orario , circolo)
+    
+    return sendHTTPResponse(res, 200, true, {"message":"OK GIUSTOOO"})
+
+
+}); 
+
 
 
 //getting a single user reservation
@@ -56,11 +68,6 @@ router.get("/:id", async (req : Request, res :Response)=>{
 
     PrenotazioneModel.findById(id)
     .then((prenotazioni) => {
-        if(prenotazioni?.giocatore.toString()!=id){
-            console.log("DIVERSI")
-        }else{
-            console.log("UGUALI")
-        }
         prenotazioni ? sendHTTPResponse(res,200,true,prenotazioni) : sendHTTPResponse(res,401,false,"ID prenotazione invalido") })
     .catch(() => sendHTTPResponse(res,500,false,"[server] Errore Interno"))
 

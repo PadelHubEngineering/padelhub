@@ -6,15 +6,18 @@ import { sendHTTPResponse } from "../../utils/general.utils"
 import { logger } from "../../utils/logging"
 import { Circolo, CircoloModel } from "../../classes/Circolo"
 import { TipoAccount } from "../../classes/Utente"
-import { GiocatoreModel } from "../../classes/Giocatore"
+import { Giocatore, GiocatoreModel } from "../../classes/Giocatore"
+import { PrenotazioneGiocatore, PrenotazioneModel } from "../../classes/PrenotazionePartita"
+
+
 
 //creazione di una partita
 const createPartita = async (req: Request, res: Response, next: NextFunction) => {
 
 
+
     const { giocatori, circolo, categoria_min, categoria_max, orario } = req.body
-
-
+   
     if (!isValidObjectId(circolo)) {
         sendHTTPResponse(res, 400, false, "Id circolo formalmente errato")
         return
@@ -47,6 +50,35 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
 
     })
 
+    /*
+    //preparing the reservation
+    const prenotazione = JSON.stringify({
+        giocatore : giocatori,
+        circolo : circolo,
+        orario : orario,
+
+    })
+    const token = req.headers["x-access-token"]?.toString()
+    if(!token){
+        sendHTTPResponse(res, 500, false, "[server] Internal error")
+        return
+
+    }
+    
+    await fetch("http://localhost:9090/api/v1/prenotazioneGiocatori",{
+        method : "POST",
+        headers : {
+            "x-access-token" : token,
+            "content-type" : "application/json"
+
+        },
+        body : prenotazione
+ 
+    } ).then(res => {console.log(res.json() )
+    }).then(data => {console.log(data)})
+
+
+    */
 
 
 
@@ -111,9 +143,7 @@ const deletePartita = async (req: Request, res: Response, next: NextFunction) =>
         .then((partita) => partita ? sendHTTPResponse(res, 201, true, partita) : sendHTTPResponse(res, 404, false, "Nessuna partita trovata"))
         .catch((error) => sendHTTPResponse(res, 500, false, "[server] Errore interno"))
 
-    //.then((partita) => partita ? res.status(201).json({partita}) : res.json(404).json({message: "Partita non trovata"}))
-    //.catch((error) => res.status(500).json({error}))
-
+  
 }
 
 
