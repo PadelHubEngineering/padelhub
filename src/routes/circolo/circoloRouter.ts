@@ -242,7 +242,6 @@ router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response
         return
     }
 
-
     interface OrarioGiornaliero{
         giorno: GiornoSettimana;
         isAperto: boolean;
@@ -260,7 +259,7 @@ router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response
         },
         struttura: {
             orariStruttura: OrarioGiornaliero[]; 
-            durataSlot: number; //in minuti
+            durataSlot?: number | undefined; //in minuti
             quotaAffiliazione: number | undefined;
             prezzoSlotOrario: number | undefined;
             scontoAffiliazione: number | undefined;
@@ -306,6 +305,17 @@ router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response
             nInterni++
         }
     });
+
+    //Faccio un check di cosa è undefined
+    if(retObj.anagrafica.telefono === undefined) retObj.anagrafica.telefono = " "
+    if(retObj.anagrafica.email === undefined) retObj.anagrafica.email = " "
+    if(retObj.anagrafica.partitaIVA === undefined) retObj.anagrafica.partitaIVA = " "
+    if(retObj.anagrafica.indirizzo === undefined) retObj.anagrafica.indirizzo = " "
+    if(retObj.struttura.quotaAffiliazione === undefined) retObj.struttura.quotaAffiliazione = 0
+    if(retObj.struttura.prezzoSlotOrario === undefined) retObj.struttura.prezzoSlotOrario = 0
+    if(retObj.struttura.scontoAffiliazione === undefined) retObj.struttura.scontoAffiliazione = 0
+    if(retObj.struttura.durataSlot === undefined) retObj.struttura.durataSlot = 0
+
 
     retObj.struttura.nCampiEsterni= nEsterni
     retObj.struttura.nCampiInterni = nInterni
