@@ -31,7 +31,8 @@ export type GiocatoreRetI = {
     nome: string,
     cognome: string,
     nickname: string,
-    foto: string
+    foto: string,
+    email: string
 }
 
 export function g_to_ret(giocatore: DocumentType<Giocatore>) {
@@ -40,6 +41,7 @@ export function g_to_ret(giocatore: DocumentType<Giocatore>) {
         cognome: giocatore.cognome,
         nickname: giocatore.nickname,
         foto: giocatore.foto,
+        email: giocatore.email
     } as GiocatoreRetI
 }
 
