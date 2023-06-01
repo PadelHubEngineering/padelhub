@@ -1,24 +1,12 @@
 import request from 'supertest';
-import { describe, expect, test, jest } from '@jest/globals';
+import { describe, expect, test, jest, beforeAll} from '@jest/globals';
 import { app } from '../../../src/routes/routes';
 import jwt from "jsonwebtoken"
 import { PrenotazioneCampo, PrenotazioneCampoModel } from '../../../src/classes/PrenotazioneCampo';
 import { Campo, CircoloModel, TipoCampo } from '../../../src/classes/Circolo';
 import { DateTime } from "luxon";
+import { ERRORE_NON_AUTORIZZATO, ERRORE_TOKEN_NON_FORNITO, createTokenCircolo, createTokenGiocatore, dateToApi } from '../../utils/api.utils';
 
-function createTokenCircolo(email_circolo?: string) {
-    return jwt.sign(
-        {
-            tipoAccount: "Circolo",
-            email: email_circolo || "test@circolo.com",
-            nome: "testCircolo"
-        },
-        process.env.SUPER_SECRET!,
-        {
-            expiresIn: process.env.DEFAULT_EXPIRATION_PERIOD || "2d"
-        }
-    )
-}
 
 describe("DELETE /api/v1/circolo/prenotazioneSlot", () => {
 
@@ -95,31 +83,35 @@ describe("GET /api/v1/circolo/prenotazioneSlot/{data}", () => {
     const durataSlot = 55
 
     const inizioSlot = new Date(data_to_check)
-    inizioSlot.setMinutes(55)
-    inizioSlot.setHours(8)
 
-    const fineSlot = DateTime.fromJSDate(inizioSlot).plus({ minutes: durataSlot }).toJSDate()
+    let fineSlot: Date | null = null
 
     const orarioApertura = new Date(data_to_check)
-    orarioApertura.setHours(8)
-    orarioApertura.setMinutes(0)
 
-    const orarioChiusura = DateTime.fromJSDate(orarioApertura).plus({ minutes: durataSlot * 6 }).toJSDate()
-    orarioApertura.setHours(8)
-    orarioApertura.setMinutes(0)
+    let orarioChiusura: Date | null = null
 
-    const token = createTokenCircolo(email_circolo)
+    let token: string | null = null
 
-    test("Richiesta prenotazione valida", async ()=> {
-        const validSearch = "64710dcfb43b091ad49f71be"
+    beforeAll(() => {
+
+
+        inizioSlot.setMinutes(55)
+        inizioSlot.setHours(8)
+
+        fineSlot = DateTime.fromJSDate(inizioSlot).plus({ minutes: durataSlot }).toJSDate()
+
+        orarioApertura.setHours(8)
+        orarioApertura.setMinutes(0)
+
+        orarioChiusura = DateTime.fromJSDate(orarioApertura).plus({ minutes: durataSlot * 6 }).toJSDate()
+        orarioApertura.setHours(8)
+        orarioApertura.setMinutes(0)
+
+        token = createTokenCircolo(email_circolo)
 
         PrenotazioneCampoModel.find = jest.fn().mockImplementation((criterias: any) => {
             return {
                 exec: jest.fn().mockImplementation(() => {
-                    console.log("criterias")
-                    console.log(criterias)
-                    console.log(data_to_check)
-                    console.log(DateTime.fromJSDate(data_to_check).plus({ day: 1 }).toJSDate())
                     if(
                         criterias.circolo == circoloId &&
                         criterias.inizioSlot.$gte.toJSON() == data_to_check.toJSON() &&
@@ -175,15 +167,20 @@ describe("GET /api/v1/circolo/prenotazioneSlot/{data}", () => {
                 })
             }
         }) as any;
+    })
 
+    test("Richiesta prenotazione valida", async ()=> {
+
+        if ( !token || !fineSlot || !orarioChiusura )
+            throw new Error('Il token o qualche altra data, per qualche motivo erano null. non va bene');
 
         await request(app)
-            .get(`/api/v1/circolo/prenotazioniSlot/${data_to_check.getFullYear().toString()}-${(data_to_check.getMonth() + 1).toString().padStart(2, "0")}-${data_to_check.getDate().toString().padStart(2, "0")}`)
+            .get(`/api/v1/circolo/prenotazioniSlot/${dateToApi( data_to_check )}`)
             .set('x-access-token', token)
             .expect('Content-Type', /json/)
             .expect(200)
             .then((res) => {
-                if (res.body) {
+                if (res.body && fineSlot && orarioChiusura) {
                     expect(res.body).toHaveProperty("success", true)
                     expect(res.body).toHaveProperty("payload")
 
@@ -206,7 +203,233 @@ describe("GET /api/v1/circolo/prenotazioneSlot/{data}", () => {
                     expect(res.body.payload.campiEsterni[0].prenotazioni).toHaveLength(1)
                     expect(res.body.payload.campiEsterni[0].prenotazioni[0]).toHaveProperty("inizioSlot", inizioSlot.toJSON())
                     expect(res.body.payload.campiEsterni[0].prenotazioni[0]).toHaveProperty("fineSlot", fineSlot.toJSON())
+                } else {
+                    throw new Error("Impossibile continuare il test, manca res.body (O fineslot, o orarioChiusura)")
                 }
             })
     })
+
+    test("Data in formato non formalmente corretto", async () => {
+
+        if ( !token || !fineSlot || !orarioChiusura )
+            throw new Error('Il token o qualche altra data, per qualche motivo erano null. non va bene');
+
+        await request(app)
+            .get(`/api/v1/circolo/prenotazioniSlot/2022-2-16`)
+            .set('x-access-token', token)
+            .expect('Content-Type', /json/)
+            .expect(404)
+            .then((res) => {
+                if (res.body && fineSlot && orarioChiusura) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", "Impossibile trovare il dato o la risorsa richiesta")
+                }
+            })
+    })
+
+
+    test("Richiesta prenotazioni Slot Circolo senza passaggio data come parametro", async () => {
+
+        if ( !token || !fineSlot || !orarioChiusura )
+            throw new Error('Il token o qualche altra data, per qualche motivo erano null. non va bene');
+
+        await request(app)
+            .get(`/api/v1/circolo/prenotazioniSlot/`)
+            .set('x-access-token', token)
+            .expect('Content-Type', /json/)
+            .expect(404)
+            .then((res) => {
+                if (res.body && fineSlot && orarioChiusura) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", "Impossibile trovare il dato o la risorsa richiesta")
+                }
+            })
+    })
+
+    test("Data non valida", async () => {
+
+        if ( !token )
+            throw new Error('Il token o qualche altra data, per qualche motivo erano null. non va bene');
+
+        await request(app)
+            .get(`/api/v1/circolo/prenotazioniSlot/2022-02-30`)
+            .set('x-access-token', token)
+            .expect('Content-Type', /json/)
+            .expect(400)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", "Una data inserita invalida")
+                }
+            })
+    })
+
+    test("Richiesta prenotazioni con data in formato valido ma senza passaggio token", async () => {
+
+        await request(app)
+            .get(`/api/v1/circolo/prenotazioniSlot/2022-02-16`)
+            .expect('Content-Type', /json/)
+            .expect(401)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", ERRORE_TOKEN_NON_FORNITO)
+                }
+            })
+    })
+
+
+    test("Richiesta prenotazioni con data in formato valido con token non autorizzato ad accedere alle risorse", async () => {
+
+        const tokenInvalido = createTokenGiocatore()
+
+        await request(app)
+            .get(`/api/v1/circolo/prenotazioniSlot/2022-02-16`)
+            .set('x-access-token', tokenInvalido)
+            .expect('Content-Type', /json/)
+            .expect(403)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", ERRORE_NON_AUTORIZZATO)
+                }
+            })
+    }
+)
+})
+
+describe("POST /api/v1/circolo/prenotazioneSlot", () => {
+
+    const circoloId = "6473381c54353c2f33ece86d"
+    const email_circolo = "test@circolo.com"
+    const durataSlot = 60
+
+    let token: string | null = null
+
+    beforeAll( () => {
+
+        token = createTokenCircolo(email_circolo)
+
+        // Per trovare l'id del circolo
+        CircoloModel.findOne = jest.fn().mockImplementation((criterias) => {
+            return {
+                exec: jest.fn().mockImplementation(() => {
+                    if((<any>criterias).email == email_circolo) {
+
+                        return Promise.resolve({
+                            _id: circoloId,
+                            campi: [
+                                { id: 1, tipologia: TipoCampo.Interno} as Campo,
+                                { id: 2, tipologia: TipoCampo.Esterno} as Campo,
+                            ],
+                            durataSlot
+                        })
+                    }
+                    return Promise.resolve(null)
+                })
+            }
+        }) as any;
+
+        PrenotazioneCampoModel.prototype.prenotazioneCircolo = jest.fn().mockReturnValueOnce(Promise.resolve(true))
+    } )
+
+
+    test( "Prenotazione Slot Circolo, con data non inserita nel body o in formato non valido", async () => {
+
+        if ( !token )
+            throw new Error('Il token, per qualche motivo erano null. non va bene');
+
+        await request(app)
+            .post(`/api/v1/circolo/prenotazioneSlot`)
+            .set('x-access-token', token)
+            .send({  })
+            .expect('Content-Type', /json/)
+            .expect(400)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", "La data inserita non è corretta")
+                }
+            })
+    } )
+
+
+
+    test( "Prenotazione Slot Circolo, con data inserita nel body ma account non valido", async () => {
+
+        const tokenInvalido = createTokenGiocatore()
+
+        await request(app)
+            .post(`/api/v1/circolo/prenotazioneSlot`)
+            .set('x-access-token', tokenInvalido)
+            .send({  })
+            .expect('Content-Type', /json/)
+            .expect(403)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", ERRORE_NON_AUTORIZZATO)
+                }
+            })
+    } )
+
+
+    test( "Prenotazione Slot Circolo, con data inserita nel body e account valido. Campo non esitente", async () => {
+
+        if ( !token )
+            throw new Error('Il token, per qualche motivo erano null. non va bene');
+
+        await request(app)
+            .post(`/api/v1/circolo/prenotazioneSlot`)
+            .set('x-access-token', token)
+
+            // Esistono solo due campi nella mockFunction
+            .send({ dataOraPrenotazione: new Date().toJSON(), idCampo: 3 })
+
+            .expect('Content-Type', /json/)
+            .expect(400)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", "Campo non trovato")
+                }
+            })
+    } )
+
+    test( "Prenotazione Slot Circolo, con data inserita nel body e account valido. Prenotazione già esistente da parte del circolo per quello slot", async () => {
+
+        PrenotazioneCampoModel.findOne = jest.fn().mockReturnValueOnce({ exec: async () => true }) as any;
+
+        if ( !token )
+            throw new Error('Il token, per qualche motivo erano null. non va bene');
+
+        await request(app)
+            .post(`/api/v1/circolo/prenotazioneSlot`)
+            .set('x-access-token', token)
+            .send({ dataOraPrenotazione: new Date().toJSON(), idCampo: 1 })
+            .expect('Content-Type', /json/)
+            .expect(500)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", "Prenotazione già inserita dal circolo per lo slot")
+                }
+            })
+    } )
+
+
+    test( "Creazione prenotazione slot circolo come utente anonimo", async () => {
+
+        await request(app)
+            .post(`/api/v1/circolo/prenotazioneSlot`)
+            .send({ dataOraPrenotazione: new Date().toJSON(), idCampo: 1 })
+            .expect('Content-Type', /json/)
+            .expect(401)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", ERRORE_TOKEN_NON_FORNITO)
+                }
+            })
+    } )
 })

@@ -42,7 +42,7 @@ router.post('/prenotazioneSlot', async (req: Request, res: Response) => {
     // Constrollo che il campo selezionato esista
     const campiTrovati = mioCircolo.campi.filter(e => e.id === parseInt(idCampo))
     if ( campiTrovati.length === 0 ) {
-        sendHTTPResponse(res, 500, false, "Campo non trovato")
+        sendHTTPResponse(res, 400, false, "Campo non trovato")
         return
     }
 
