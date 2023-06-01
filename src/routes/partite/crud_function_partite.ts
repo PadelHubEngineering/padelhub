@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from "express"
 import { Partita, PartitaModel } from "../../classes/Partita"
-import 'mongoose'
 import { isValidObjectId } from "mongoose"
 import { sendHTTPResponse } from "../../utils/general.utils"
 import { logger } from "../../utils/logging"
 import { Circolo, CircoloModel } from "../../classes/Circolo"
 import { TipoAccount } from "../../classes/Utente"
-import { GiocatoreModel } from "../../classes/Giocatore"
+import { Giocatore, GiocatoreModel } from "../../classes/Giocatore"
+import { PartitaRetI, p_to_ret } from "./partita.interface"
+import { DocumentType } from "@typegoose/typegoose"
 
 //creazione di una partita
 const createPartita = async (req: Request, res: Response, next: NextFunction) => {
@@ -69,8 +70,24 @@ const readPartita = async (req: Request, res: Response, next: NextFunction) => {
         return
     }
 
-    PartitaModel.findById(id).populate("giocatori")
-        .then(partita => partita ? sendHTTPResponse(res, 200, true, partita) : sendHTTPResponse(res, 404, false, "Partita inesistente"))
+    await PartitaModel.findById(id)
+        .populate("giocatori")
+        .populate("circolo")
+        .then(partita => {
+
+            if( !partita ) {
+                sendHTTPResponse(res, 404, false, "Partita inesistente")
+                return
+            }
+
+            let ret_partita: PartitaRetI = p_to_ret(
+                partita,
+                partita.giocatori as DocumentType<Giocatore>[],
+                partita.circolo as DocumentType<Circolo>
+            );
+
+            sendHTTPResponse(res, 200, true, ret_partita)
+        })
         .catch((error) => { sendHTTPResponse(res, 500, false, "[server] Errore interno") })
 }
 

@@ -121,7 +121,8 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
         categoria_min: 2,
         giocatori: [ giovanna_doc, giovanni_doc ],
         circolo: circolo_doc,
-        orario: data_slot
+        orario: data_slot,
+        tipoCampo: TipoCampo.Esterno
     })
 
     logger.debug("Creata partita di prova a " + data_slot.toJSON())
@@ -134,7 +135,7 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
         giocatore: giovanni_doc
     })
 
-    logger.debug("Creata prenotazione partita per giovanna")
+    logger.debug("Creata prenotazione partita per giovanni")
 
     await PrenotazionePartitaModel.create({
         pagato: true,
@@ -146,4 +147,28 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
 
     logger.debug("Creata prenotazione partita per giovanna")
 
+    // Creo una seconda partita solo per giovanna
+    const data_slot_2 = new Date(2023, 5, 13, 11, 0, 0);
+
+    const partita_2_doc = await PartitaModel.create({
+        isChiusa: false,
+        categoria_max: 4,
+        categoria_min: 2,
+        giocatori: [ giovanna_doc ],
+        circolo: circolo_doc,
+        orario: data_slot_2,
+        tipoCampo: TipoCampo.Interno
+    })
+
+    logger.debug("Creata seconda partita di prova a " + data_slot_2.toJSON())
+
+    await PrenotazionePartitaModel.create({
+        pagato: true,
+        costo: 56,
+        partita: partita_2_doc,
+        dataPrenotazione: new Date(),
+        giocatore: giovanna_doc
+    })
+
+    logger.debug("Creata prenotazione seconda partita per giovanna")
 })

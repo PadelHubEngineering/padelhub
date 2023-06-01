@@ -8,72 +8,14 @@ import { Error, isValidObjectId } from "mongoose";
 import { convertToObject, isNumericLiteral } from "typescript";
 import { error } from "winston";
 import { Partita, PartitaModel } from "../../classes/Partita";
-import { HTTPResponse, sendHTTPResponse } from "../../utils/general.utils";
+import { sendHTTPResponse } from "../../utils/general.utils";
 
 import { DateTime } from  "luxon"
 import { controlloData } from "../../utils/parameters.utils";
-import { PrenotazionePartitaModel } from "../../classes/PrenotazionePartita";
-import { Giocatore, GiocatoreModel } from "../../classes/Giocatore";
-import { DocumentType, Ref } from "@typegoose/typegoose"
-
-type PartiteAperteI = {
-
-    giaPrenotato: boolean,
-    partite: PartitaRetI[]
-}
-
-type PartitaRetI = {
-    orario: Date,
-    giocatori: GiocatoreRetI[],
-    categoria_max: number,
-    categoria_min: number,
-}
-
-type GiocatoreRetI = {
-    nome: string,
-    cognome: string,
-    nickname: string,
-    foto: string
-}
-
-function g_to_ret(giocatore: DocumentType<Giocatore>) {
-    return {
-        nome: giocatore.nome,
-        cognome: giocatore.cognome,
-        nickname: giocatore.nickname,
-        foto: giocatore.foto,
-    } as GiocatoreRetI
-}
-
-async function map_to_display(partite: DocumentType<Partita>[]) {
-
-    let ret: PartitaRetI[] = [];
-
-    for( const partita of partite ) {
-
-        const partita_g = await partita.populate("giocatori")
-
-        // Con il populate, giocatori da Ref<Giocatore>[] diventa DocumentType<Giocatore>[]
-        // @ts-ignore-error
-        const giocatori_partita: DocumentType<Giocatore>[] = partita_g.giocatori;
-
-        ret.push({
-            ...partita_g.toObject(),
-            giocatori: giocatori_partita.map( g_to_ret ),
-            circolo: undefined,
-            createdAt: undefined,
-            updatedAt: undefined,
-            __v: undefined,
-        } as PartitaRetI)
-    }
-
-    return ret
-}
-
-
+import { GiocatoreModel } from "../../classes/Giocatore";
+import { PartiteAperteI, c_to_ret, map_to_display } from "../partite/partita.interface";
 
 const router: Router = Router();
-
 
 router.post('/prenotazioneSlot', checkTokenCircolo, async (req: Request, res: Response) => {
     const { idCampo } = req.body;
@@ -268,9 +210,10 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', checkT
 })
 
 // Route per il giocatore che deve accedere a dati di un circolo
-router.get('/:idCircolo/partiteAperte', checkTokenGiocatore, async (req: Request, res: Response) => {
+router.get('/:idCircolo/partiteAperte/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})-:hours(\\d{2})-:minutes(\\d{2})', checkTokenGiocatore, async (req: Request, res: Response) => {
 
-    const _data_slot = req.body.data_slot;
+    const { year, month, day, hours, minutes } = req.params;
+    const _data_slot = `${year}-${month}-${day}T${hours}:${minutes}:00.000Z`;
     const { idCircolo } = req.params;
 
     const data_slot = controlloData(res, _data_slot, "Data fornita formalmente errata")
@@ -281,26 +224,29 @@ router.get('/:idCircolo/partiteAperte', checkTokenGiocatore, async (req: Request
         return
     }
 
-    const ex = await CircoloModel.exists({ _id: idCircolo }).exec();
-    if ( !ex ) {
-        sendHTTPResponse(res, 400, false, "Il circolo richiesto non è stato trovato")
-        return
-    }
-
-    // I casi sono due: l'utente ha già una prenotazione a suo nome per questo slot,
-    // in quel caso imposto `giaPrenotato` a true e ritorno solo quella partita
-
-    let ret_obj: PartiteAperteI = {
-        giaPrenotato: false,
-        partite: []
-    }
-
+    // Scarico i dati del giocatore attuale, quello che ha fatto la richiesta
     const giocatore_db = await GiocatoreModel.findOne({ email: req.utenteAttuale!.email }).exec();
 
     if( !giocatore_db ) {
         logger.error("Trovato giocatore con email non corretta, con token valido. Cambiare immediatamente la chiave privata")
         sendHTTPResponse(res, 500, false, "Errore interno, impossibile scaricare lista prenotazioni")
         return
+    }
+
+    // Scarico i dati del circolo nel quale la partita è organizzata
+    const circolo_db = await CircoloModel.findOne({ _id: idCircolo }).exec();
+    if ( !circolo_db ) {
+        sendHTTPResponse(res, 400, false, "Il circolo richiesto non è stato trovato")
+        return
+    }
+
+    // I casi sono due: l'utente ha già una prenotazione a suo nome per questo slot,
+    // in quel caso imposto `giaPrenotato` a true e ritorno solo quella partita
+    let ret_obj: PartiteAperteI = {
+        giaPrenotato: false,
+        partite: [],
+        circolo: c_to_ret(circolo_db),
+        isAffiliato: ( circolo_db._id.toString() in giocatore_db.circoliAssociati )
     }
 
     // Controllo se il giocatore è già iscritto ad una partita per lo slot attuale

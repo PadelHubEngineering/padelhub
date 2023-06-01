@@ -1,5 +1,5 @@
 import mongoose from "mongoose"
-import {Circolo} from "./Circolo"
+import {Circolo, TipoCampo} from "./Circolo"
 import {Giocatore,GiocatoreModel} from "./Giocatore"
 import {prop, getModelForClass, Ref, DocumentType , modelOptions, post,pre} from "@typegoose/typegoose"
 
@@ -31,14 +31,18 @@ export class Partita{
     @prop({required : true , ref : () => Circolo})
     circolo : Ref<Circolo>;
 
+    @prop({ required: true })
+    tipoCampo: TipoCampo
+
     @prop({ required: false })
     public orario: Date = new Date(0, 0)
    
-    constructor(giocatore : Ref<Giocatore> , categoria_max : number , categoria_min : number , circolo : Ref<Circolo> ){
+    constructor(giocatore : Ref<Giocatore> , categoria_max : number , categoria_min : number , circolo : Ref<Circolo>, tipoCampo: TipoCampo){
         this.giocatori.push(giocatore);
         this.categoria_max = categoria_max;
         this.categoria_min = categoria_min;
         this.circolo = circolo;
+        this.tipoCampo = tipoCampo
     }
 
     //rivedere per salvataggio db
