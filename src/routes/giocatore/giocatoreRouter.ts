@@ -31,25 +31,25 @@ router.post("/", async ( req: Request, res: Response ) => {
 
     logger.info(`Tentativo registrazione utente: ${email}, ${nickname}`)
 
-    if ( !controlloNomeCognome(res, nome, false, "Iscrizione fallita", "nome") ) return;
+    if ( !controlloNomeCognome(res, nome, false, "nome") ) return;
 
-    if ( !controlloNomeCognome(res, cognome, false, "Iscrizione fallita", "cognome") ) return;
+    if ( !controlloNomeCognome(res, cognome, false, "cognome") ) return;
 
-    if ( !controlloEmail(res, email, "Iscrizione fallita", "Email") ) return;
+    if ( !controlloEmail(res, email, "Email") ) return;
 
-    if ( !controlloTelefono(res, telefono, "Iscrizione fallita", "Telefono") ) return;
+    if ( !controlloTelefono(res, telefono, "Telefono") ) return;
 
-    if ( !controlloNickname(res, nickname, false, "Iscrizione fallita") ) return;
+    if ( !controlloNickname(res, nickname, false) ) return;
 
-    if ( !controlloData(res, dataDiNascita, "Iscrizione fallita", "Data di nascita") ) return;
+    if ( !controlloData(res, dataDiNascita, "Data di nascita") ) return;
 
-    if ( !controlloStrEnum(res, genere, Genere, "Iscrizione fallita", "Genere") ) return;
+    if ( !controlloStrEnum(res, genere, Genere, "Genere") ) return;
 
-    if( !controlloInt(res, livello, 0, 5000, false, "Iscrizione fallita", "Livello") ) return;
+    if( !controlloInt(res, livello, 0, 5000, false, "Livello") ) return;
 
-    if ( !controlloRegExp(res, tagTelegram, false, /.*\B@(?=\w{5,32}\b)[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+)*.*/, "Iscrizione fallita", "Tag Telegram")) return;
+    if ( !controlloRegExp(res, tagTelegram, false, /.*\B@(?=\w{5,32}\b)[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+)*.*/, "Tag Telegram")) return;
 
-    if( !controlloPassword(res, password, "Iscrizione fallita", "password") ) return;
+    if( !controlloPassword(res, password, "password") ) return;
 
     // Controllo immagine base64
     // Non controllo il campo: era una stringa e rimarra` una stringa
