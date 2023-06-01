@@ -245,8 +245,8 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
                 if(giorno.isAperto){
                     g.isAperto = true
-                    g.orarioApertura = new Date(giorno.apertura),
-                    g.orarioChiusura = new Date(giorno.chiusura)
+                    g.orarioApertura = new Date(giorno.orarioApertura),
+                    g.orarioChiusura = new Date(giorno.orarioChiusura)
                 }
 
                 objToSave.orarioSettimanale.push(g)
