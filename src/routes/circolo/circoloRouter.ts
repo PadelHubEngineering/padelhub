@@ -11,6 +11,7 @@ import { Partita } from "../../classes/Partita";
 import { HTTPResponse, sendHTTPResponse } from "../../utils/general.utils";
 
 import { DateTime } from  "luxon"
+import { controlloData, controlloDataExpanded } from "../../utils/parameters.utils";
 
 const router: Router = Router();
 
@@ -110,12 +111,15 @@ router.delete('/prenotazioneSlot/:id_prenotazione', async (req: Request, res: Re
 })
 
 router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', async (req: Request, res: Response) => {
-    
-    const giorno = new Date(
-        +req.params.year,
-        +req.params.month - 1,
-        +req.params.day
-      );
+
+
+    const { day, month, year } = req.params
+
+    const giorno = controlloDataExpanded(res, parseInt(year), parseInt(month), parseInt(day))
+    if( !giorno ) return
+
+    if ( req.params.month == "02" )
+        console.log("La data sbagliata", giorno.toJSON())
 
     const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email }).exec()
 
@@ -187,12 +191,10 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', async 
             partita: prenotazioneCampo.partita
         }
         if (campoPrenotato.tipologia == TipoCampo.Esterno) {
-            console.log("campo esterno")
             var ind = retObj.campiEsterni.findIndex((campo) => campo.idCampo == prenotazioneCampo.idCampo)
             retObj.campiEsterni[ind].prenotazioni.push(prenotazione)
         }
         else if (campoPrenotato.tipologia == TipoCampo.Interno) {
-            console.log("campo interno")
             var ind = retObj.campiInterni.findIndex((campo) => campo.idCampo == prenotazioneCampo.idCampo)
             retObj.campiInterni[ind].prenotazioni.push(prenotazione)
         }

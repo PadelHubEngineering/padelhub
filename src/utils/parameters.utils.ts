@@ -100,7 +100,22 @@ export function controlloData(res: Response, value: any, error_message: string, 
     return new Date(value);
 }
 
-export function controlloInt(res: Response, value: any, minVal: number, maxVal: number, ok_borders: boolean, error_message: string, value_name?: string) {
+export function controlloDataExpanded(res: Response, year: number, month: number, day: number, value_name?: string){
+
+    const date = DateTime.fromObject({ year: year, month: month, day: day})
+
+
+    if( !date.isValid ){
+        let msg = `${ value_name || "Una data inserita" } invalida`;
+
+        sendHTTPResponse(res, 400, false, msg)
+        return null
+    }
+
+    return date.toJSDate();
+}
+
+export function controlloInt(res: Response, value: any, minVal: number, maxVal: number, ok_borders: boolean, value_name?: string) {
 
     const intVal = parseInt(value)
 
