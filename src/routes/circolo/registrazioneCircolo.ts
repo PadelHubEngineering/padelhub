@@ -20,7 +20,8 @@ export async function registrazioneCircolo(req: Request, res: Response){
        //Controllo i dati 
        if(!controlloNomeCognome(res, nome, false, "Iscrizione fallita", "nome circolo")) return 
        if(!controlloEmail(res, email, "Iscrizione fallita", "email")) return
-       if(!controlloTelefono(res, telefono, "Iscrizione fallita", "numero di telefono")) return
+       if(telefono != undefined)
+        if(!controlloTelefono(res, telefono, "Iscrizione fallita", "numero di telefono")) return
        if(!controlloPassword(res, password, "Iscrizione fallita", "password")) return
 
        //Posso inviare i dati al db 
@@ -133,6 +134,8 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
             }
         });
 
+
+
         //Ordino gli array sulla base dei loro id
         arrEsterni.sort(function(campo1, campo2){
             if(campo1.id < campo2.id) return -1;
@@ -144,6 +147,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
             if(campo1.id > campo2.id) return 1;
             else return 0;
         });
+
 
 
         //Creo l'oggetto con i campi che andranno salvati sul db
@@ -196,7 +200,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //DURATA SLOT
         if(durataSlot != mioCircolo.durataSlot  && durataSlot != undefined){
-            if(!controlloInt(res, durataSlot, 30, 180, true, "Aggiornamento dati fallito", "durataSlot"))
+            if(!controlloInt(res, durataSlot, 30, 180, true, "Aggiornamento dati fallito", "durataSlot")) return 
             objToSave.durataSlot  = durataSlot ;
         } else {
             objToSave.durataSlot = mioCircolo.durataSlot;
@@ -204,7 +208,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //QUOTA ISCRIZIONE
         if(quotaAffiliazione != mioCircolo.quotaAffiliazione && quotaAffiliazione != undefined){
-            if(!controlloNumber(res, quotaAffiliazione, "Aggiornamento dati fallito", "quota affiliazione"))
+            if(!controlloNumber(res, quotaAffiliazione, "Aggiornamento dati fallito", "quota affiliazione")) return 
             objToSave.quotaAffiliazione  = quotaAffiliazione;
         } else {
             objToSave.quotaAffiliazione = mioCircolo.quotaAffiliazione;  
@@ -212,7 +216,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //QUOTA PARTITA STANDARD
         if(prezzoSlotOrario != mioCircolo.prezzoSlotOrario && prezzoSlotOrario!= undefined){
-            if(!controlloNumber(res, prezzoSlotOrario, "Aggiornamento dati fallito", "prezzo slot partita"))
+            if(!controlloNumber(res, prezzoSlotOrario, "Aggiornamento dati fallito", "prezzo slot partita")) return
             objToSave.prezzoSlotOrario  = prezzoSlotOrario ;
         } else {
             objToSave.prezzoSlotOrario = mioCircolo.prezzoSlotOrario;
@@ -220,7 +224,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //SCONTO AFFILIAZIONE
         if(scontoAffiliazione != mioCircolo.scontoAffiliazione && scontoAffiliazione != undefined){
-            if(!controlloInt(res, scontoAffiliazione, 0, 100, true, "Aggiornamento dati fallito", "sconto"))
+            if(!controlloInt(res, scontoAffiliazione, 0, 100, true, "Aggiornamento dati fallito", "sconto")) return
             objToSave.scontoAffiliazione  = scontoAffiliazione ;
         } else {
             objToSave.scontoAffiliazione = mioCircolo.scontoAffiliazione;
@@ -250,19 +254,24 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
         }
 
 
+        if(!controlloInt(res, nCampiInterni, 0, 50, true, "Aggiornamento dati fallito", "numero di campi interni")) return 
+        if(!controlloInt(res, nCampiEsterni, 0, 50, true, "Aggiornamento dati fallito", "numero di campi esterni")) return 
+
+
         //CAMPI INTERNI
         if(nCampiInterni != nInterni && nCampiInterni != undefined){ //Se cambia il numero di campi interni
 
             let difference = Math.abs(nCampiInterni - nInterni) //Trovo i campi di differenza 
+        
 
             if(nCampiInterni > nInterni){ //Devo aggiungere campi interni
                 for(let i=0; i<difference; i++){
-                    arrInterni.push({id: nInterni+nEsterni+i+1, tipologia: TipoCampo.Interno});
+                    arrInterni.push({id: nInterni+nEsterni+1, tipologia: TipoCampo.Interno});
                     nInterni++;
                 }
             }
             else if(nCampiInterni < nInterni){ //Devo togliere campi interni
-                for(let i=0; i<nInterni; i++){
+                for(let i=0; i<difference; i++){
                     arrInterni.pop();
                     nInterni--;
                 }
@@ -274,15 +283,16 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
         if(nCampiEsterni != nEsterni && nCampiEsterni != undefined){ //Se cambia il numero di campi interni
 
             let difference = Math.abs(nCampiEsterni - nEsterni) //Trovo i campi di differenza 
+           
 
             if(nCampiEsterni > nEsterni){ //Devo aggiungere campi esterni
                 for(let i=0; i<difference; i++){
-                    arrEsterni.push({id: nInterni+nEsterni+i+1, tipologia: TipoCampo.Esterno});
+                    arrEsterni.push({id: nInterni+nEsterni+1, tipologia: TipoCampo.Esterno});
                     nEsterni++;
                 }
             }
             else if(nCampiEsterni < nEsterni){ //Devo togliere campi esterni
-                for(let i=0; i<nEsterni; i++){
+                for(let i=0; i<difference; i++){
                     arrEsterni.pop();
                     nEsterni--;
                 }
@@ -296,9 +306,10 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //SERVIZI AGGIUNTIVI
         serviziAggiuntivi.forEach((servizio:string) => {
-            if(!controlloStringa(res, servizio, false, "Aggiornamento dati fallito", "servizio"))
+            if(!controlloStringa(res, servizio, true, "Aggiornamento dati fallito", "servizio")) return
             objToSave.serviziAggiuntivi.push(servizio)
         })
+
 
 
         //Aggiorno il DB

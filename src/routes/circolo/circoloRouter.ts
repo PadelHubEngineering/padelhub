@@ -259,7 +259,7 @@ router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response
         },
         struttura: {
             orariStruttura: OrarioGiornaliero[]; 
-            durataSlot?: number | undefined; //in minuti
+            durataSlot: number | undefined; 
             quotaAffiliazione: number | undefined;
             prezzoSlotOrario: number | undefined;
             scontoAffiliazione: number | undefined;
