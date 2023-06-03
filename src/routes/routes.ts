@@ -2,6 +2,7 @@ import express, { Express, Request, Response, Router } from 'express';
 import auth from './autenticazione/auth';
 import circoloRouter from './circolo/circoloRouter';
 import partiteRouter from './partite/partiteRouter'
+import ricercaCircoli from './giocatore/ricercaCircoli';
 import bodyParser from 'body-parser';
 import { expressLogger } from '../utils/logging';
 import prenotazionePartiteRouter from './prenotazionePartite/prenotazionePartiteRoute'
@@ -42,7 +43,7 @@ default_router.use('/partite', partiteRouter)
 default_router.use('/prenotazionePartita',prenotazionePartiteRouter)
 
 default_router.use('/giocatore', giocatoreRouter)
-
+default_router.use('/ricercaCircoli', ricercaCircoli)
 
 
 app.use("/api/v1", default_router)
