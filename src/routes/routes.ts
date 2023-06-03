@@ -34,7 +34,7 @@ default_router.get('/', function(_req: Request, res: Response) {
 });
 
 default_router.use('/authentication', auth)
-default_router.use('/circolo', checkTokenCircolo, circoloRouter)
+default_router.use('/circolo', circoloRouter)
 default_router.use('/partite', partiteRouter)
 //default_router.use('/partite', partiteRouter)
 default_router.use('/prenotazionePartita',prenotazionePartiteRouter)

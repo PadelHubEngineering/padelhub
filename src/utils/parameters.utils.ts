@@ -102,21 +102,23 @@ export function controlloData(res: Response, value: any, error_message: string, 
 
 export function controlloInt(res: Response, value: any, minVal: number, maxVal: number, ok_borders: boolean, error_message: string, value_name?: string) {
 
-    const intVal = parseInt(value)
-
     if (
-        isNaN(intVal) ||
-        ( ok_borders == false && minVal === intVal ) ||
-        ( ok_borders == false && maxVal === intVal ) ||
-        intVal < minVal ||
-        intVal > maxVal
+        isNaN(value) ||
+        ( ok_borders == false && minVal === value ) ||
+        ( ok_borders == false && maxVal === value ) ||
+        value < minVal ||
+        value > maxVal ||
+        !Number.isInteger(value)
     ){
+        logger.info("Pazzoooooo")
         let msg = `${error_message}: ${ value_name || "Un numero / valore inserito" } invalido`;
 
         sendHTTPResponse(res, 400, false, msg)
         return null
     }
-    return intVal
+
+    if(value === 0) return 1
+    return value as number
 }
 
 export function controlloStrEnum(res: Response, value: any, enum_to_check: { [_: string]: string }, error_message: string, value_name?: string) {
@@ -139,7 +141,7 @@ export function controlloEmail(res:Response, value: any, error_message: string, 
 
     //Se l'email non rispetta il regex
     if(!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(value))){
-        let msg = `${error_message}: ${ value_name || "L'email inserita" } non e' valida`;
+        let msg = `${error_message}: ${ value_name || "email inserita" } non valida`;
 
         sendHTTPResponse(res, 400, false, msg)
         return null
@@ -171,7 +173,7 @@ export function controlloTelefono(res:Response, value: any, error_message: strin
 
 export function controlloPassword(res:Response, value: any, error_message: string, value_name?: string){
 
-    //Se non è una stringa e se è vuota 
+    //Se non è una stringa
     if( !controlloStringa(res, value, false, error_message, value_name)) return null
 
     //Controllo se rispetta il regex
@@ -184,4 +186,16 @@ export function controlloPassword(res:Response, value: any, error_message: strin
 
     return value as string;
 
+}
+
+export function controlloNumber(res: Response, value: any, error_message: string, value_name?: string){
+  
+        if( isNaN(value) ){
+            let msg = `${error_message}: ${ value_name || "Valore inserito" } non numero`;
+    
+            sendHTTPResponse(res, 400, false, msg)
+            return null
+        }
+    
+        return value as string;
 }
