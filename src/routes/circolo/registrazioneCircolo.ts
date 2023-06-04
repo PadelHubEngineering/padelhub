@@ -1,13 +1,9 @@
-import { Ref } from "@typegoose/typegoose"
 import { Circolo, CircoloModel, GiornoSettimana, TipoCampo } from "../../classes/Circolo"
-import { TipoAccount } from "../../classes/Utente"
 import { sendHTTPResponse } from "../../utils/general.utils"
 import { logger } from "../../utils/logging"
 import { controlloStringa, controlloEmail, controlloTelefono, controlloPassword, controlloNomeCognome, controlloInt, controlloNumber } from "../../utils/parameters.utils"
 import { Request, Response } from "express"
 import { MongoServerError } from "mongodb";
-import { inviaEmailConferma } from "../../utils/email.utils"
-import { TypeFlags } from "typescript"
 
 //CONTROLLA SE FUNZIONA SE NON VENGONO INSERITI I DATI NON OBBLIGATORI
 export async function registrazioneCircolo(req: Request, res: Response){
@@ -18,19 +14,20 @@ export async function registrazioneCircolo(req: Request, res: Response){
        logger.info(`Tentativo registrazione circolo: ${nome}, ${email}`)
 
        //Controllo i dati 
-       if(!controlloNomeCognome(res, nome, false, "Iscrizione fallita", "nome circolo")) return 
-       if(!controlloEmail(res, email, "Iscrizione fallita", "email")) return
+       if(!controlloNomeCognome(res, nome, false, "Iscrizione fallita")) return
+       if(!controlloEmail(res, email, "Iscrizione fallita")) return
        if(telefono != undefined)
-        if(!controlloTelefono(res, telefono, "Iscrizione fallita", "numero di telefono")) return
-       if(!controlloPassword(res, password, "Iscrizione fallita", "password")) return
+        if(!controlloTelefono(res, telefono, "Iscrizione fallita")) return
+       if(!controlloPassword(res, password, "Iscrizione fallita")) return
 
        //Posso inviare i dati al db 
-       var circolo_db: Ref<Circolo>;
+       // let circolo_db: Ref<Circolo>;
 
        try{
         const circolo: Circolo = new Circolo(nome, email, password, telefono);
 
-        circolo_db = await CircoloModel.create(circolo)
+        // circolo_db =
+        await CircoloModel.create(circolo)
             
        }catch(error:any){
 
@@ -168,7 +165,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
         //Controllo cosa è effettivamente cambiato e lo imposto
         //NOME
         if(nome != mioCircolo.nome && nome != undefined){
-            if(!controlloNomeCognome(res, nome, false, "Aggiornamento dati fallito", "nome circolo")) return 
+            if(!controlloNomeCognome(res, nome, false, "Aggiornamento dati fallito")) return
             objToSave.nome = nome;
         } else {
             objToSave.nome = mioCircolo.nome;
@@ -176,7 +173,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //TELEFONO
         if(telefono != mioCircolo.telefono  && telefono != undefined){
-            if(!controlloTelefono(res, telefono, "Aggiornamento dati fallito", "numero di telefono")) return
+            if(!controlloTelefono(res, telefono, "Aggiornamento dati fallito")) return
             objToSave.telefono = telefono;
         } else {
             objToSave.telefono = mioCircolo.telefono;
@@ -184,7 +181,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //PARTITA IVA - da sistemare il check
         if(partitaIVA != mioCircolo.partitaIVA  && partitaIVA != undefined){
-            if( !controlloStringa(res, partitaIVA, false, "Aggiornamento dati fallito", "partitaIVA / Codice Fiscale") ) return
+            if( !controlloStringa(res, partitaIVA, false, "Aggiornamento dati fallito") ) return
             objToSave.partitaIVA = partitaIVA;
         } else {
             objToSave.partitaIVA = mioCircolo.partitaIVA;
@@ -192,7 +189,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
        
         //INDIRIZZO
         if(indirizzo != mioCircolo.indirizzo  && indirizzo != undefined){
-            if( !controlloStringa(res, indirizzo, false, "Aggiornamento dati fallito", "indirizzo") ) return
+            if( !controlloStringa(res, indirizzo, false, "Aggiornamento dati fallito") ) return
             objToSave.indirizzo  = indirizzo ;
         } else {
             objToSave.indirizzo = mioCircolo.indirizzo;
@@ -200,7 +197,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //DURATA SLOT
         if(durataSlot != mioCircolo.durataSlot  && durataSlot != undefined){
-            if(!controlloInt(res, durataSlot, 30, 180, true, "Aggiornamento dati fallito", "durataSlot")) return 
+            if(!controlloInt(res, durataSlot, 30, 180, true, "Aggiornamento dati fallito")) return
             objToSave.durataSlot  = durataSlot ;
         } else {
             objToSave.durataSlot = mioCircolo.durataSlot;
@@ -224,7 +221,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //SCONTO AFFILIAZIONE
         if(scontoAffiliazione != mioCircolo.scontoAffiliazione && scontoAffiliazione != undefined){
-            if(!controlloInt(res, scontoAffiliazione, 0, 100, true, "Aggiornamento dati fallito", "sconto")) return
+            if(!controlloInt(res, scontoAffiliazione, 0, 100, true, "Aggiornamento dati fallito")) return
             objToSave.scontoAffiliazione  = scontoAffiliazione ;
         } else {
             objToSave.scontoAffiliazione = mioCircolo.scontoAffiliazione;
@@ -254,8 +251,8 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
         }
 
 
-        if(!controlloInt(res, nCampiInterni, 0, 50, true, "Aggiornamento dati fallito", "numero di campi interni")) return 
-        if(!controlloInt(res, nCampiEsterni, 0, 50, true, "Aggiornamento dati fallito", "numero di campi esterni")) return 
+        if(!controlloInt(res, nCampiInterni, 0, 50, true, "Aggiornamento dati fallito")) return
+        if(!controlloInt(res, nCampiEsterni, 0, 50, true, "Aggiornamento dati fallito")) return
 
 
         //CAMPI INTERNI
@@ -306,7 +303,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
 
         //SERVIZI AGGIUNTIVI
         serviziAggiuntivi.forEach((servizio:string) => {
-            if(!controlloStringa(res, servizio, true, "Aggiornamento dati fallito", "servizio")) return
+            if(!controlloStringa(res, servizio, true, "Aggiornamento dati fallito")) return
             objToSave.serviziAggiuntivi.push(servizio)
         })
 
@@ -315,7 +312,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response){
         //Aggiorno il DB
         try{
             logger.info('Cerco di aggiornare i dati')
-            const circolo_new = await CircoloModel.findOneAndUpdate({email: req.utenteAttuale?.email}, objToSave, {new: true});
+            await CircoloModel.findOneAndUpdate({email: req.utenteAttuale?.email}, objToSave, {new: true});
 
         }catch(error:any){
 

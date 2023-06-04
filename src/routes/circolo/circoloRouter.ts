@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { PrenotazioneCampo, PrenotazioneCampoModel } from "../../classes/PrenotazioneCampo";
 import { Circolo, CircoloModel, Campo, TipoCampo, GiornoSettimana } from "../../classes/Circolo";
 import { TipoAccount } from "../../classes/Utente";
-import { checkTokenAmministratore, checkTokenCircolo } from "../../middleware/tokenChecker";
+import { checkTokenAmministratore, checkTokenCircolo, checkTokenCircoloOAmministratore } from "../../middleware/tokenChecker";
 import { logger } from "../../utils/logging";
 import { Error, isValidObjectId } from "mongoose";
 import { convertToObject, isNumericLiteral } from "typescript";
@@ -113,7 +113,7 @@ router.delete('/prenotazioneSlot/:id_prenotazione', checkTokenCircolo, async (re
 
 })
 
-router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', async (req: Request, res: Response) => {
+router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', checkTokenCircolo, async (req: Request, res: Response) => {
 
 
     const { day, month, year } = req.params
@@ -211,10 +211,10 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', async 
 
 
 //API per registrazione circolo
-router.post("/registrazioneCircolo", async (req:Request, res:Response) => { registrazioneCircolo(req, res) })
+router.post("/registrazioneCircolo", registrazioneCircolo)
 
 //API per eliminare l'account di un circolo (lo può fare un circolo o un amministratore)
-router.delete("/eliminaCircolo", checkTokenCircolo || checkTokenAmministratore , async (req: Request, res: Response) => {
+router.delete("/eliminaCircolo", checkTokenCircoloOAmministratore , async (req: Request, res: Response) => {
 
     const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email })
 
@@ -237,7 +237,7 @@ router.delete("/eliminaCircolo", checkTokenCircolo || checkTokenAmministratore ,
 })
 
 //API per inserimento/modifica dati nell'Area Circolo
-router.post("/inserimentoDatiCircolo", checkTokenCircolo, async (req:Request, res:Response) => { inserisciDatiCircolo(req, res) })
+router.post("/inserimentoDatiCircolo", checkTokenCircolo, inserisciDatiCircolo)
 
 //API per dare al front-end i dati relativi al circolo (per Area Circolo)
 router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response) => {
