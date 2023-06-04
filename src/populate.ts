@@ -62,13 +62,25 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
         false,
         99,
     )
+    let circoltwo = new Circolo(
+        "ilpadelsonoloro",
+        "ipsl@gmail.com",
+        "circolo123",
+        "044222301",
+        "IT234234029340",
+        56,
+        false,
+        99,
+    )
 
     //TODO: Manca durata slot
     //TODO: mancano degli orari di apertura decenti
 
     let circoloDoc = await CircoloModel.create(circolone)
+    let circoloTwo = await CircoloModel.create(circoltwo)
 
     console.log("creato il circolone")
+    console.log("creato il circoltwo")
 
     console.log("creato " + await circoloDoc.addCampo(TipoCampo.Esterno))
     console.log("creato " + await circoloDoc.addCampo(TipoCampo.Esterno))

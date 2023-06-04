@@ -3,6 +3,7 @@ import { CircoloModel } from "../../classes/Circolo";
 import axios from 'axios';
 import { logger } from "../../utils/logging";
 import { sendHTTPResponse } from "../../utils/general.utils";
+import { checkTokenGiocatore } from "../../middleware/tokenChecker";
 
 const router = Router();
 
@@ -30,15 +31,12 @@ router.get('/:location', async (req: Request, res: Response) => {
             if (circolo.indirizzo) {
                 const { data, status } = await axios.get(bingRoute(locationURI, encodeURI(circolo.indirizzo)));
                 if (status == 200) {
-                    //console.log(data)
-                    console.log("push")
-                    results.push(data)
+                    const obj = Object.assign({}, circolo.toObject(), { distanza: data.resourceSets[0].resources[0].travelDistance })
+                    results.push(obj)
                 }
             }
         }
     }
-
-    console.log("stampo")
     console.log(results)
     sendHTTPResponse(res, 200, true, "OK");
 })
