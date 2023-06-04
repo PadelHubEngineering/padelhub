@@ -9,28 +9,40 @@ import { ResolveTypegooseNameError } from '@typegoose/typegoose/lib/internal/err
 import { GiocatoreModel } from '../../../src/classes/Giocatore';
 import { CircoloModel } from '../../../src/classes/Circolo';
 import { exitOnError } from 'winston';
+import * as interfaces from '../../../src/routes/partite/partita.interface';
 
 describe('GET /api/v1/partite/:idPartita', () => {
 
     beforeAll(() => {
+        
         PartitaModel.findById = jest.fn().mockImplementation((params) => {
             if (params != "64679d72d7391e02188e77e0")
                 return {
-                    populate: (jest.fn() as jest.Mock).mockResolvedValueOnce(null as never)
+                    populate: (jest.fn() as jest.Mock).mockImplementation(() => {
+                        return {
+                            populate: (jest.fn() as jest.Mock).mockResolvedValue(null as never)
+                        }
+                    })
                 }
-
             return {
-                populate: (jest.fn() as jest.Mock).mockResolvedValueOnce({
-                    id_partita: "64679d72d7391e02188e77e0",
-                    isChiusa: false,
-                    categoria_max: 5,
-                    categoria_min: 1,
-                    giocatori: ["64679d72d7391e02188e77e1"],
-                    circolo: "64679d72d7391e02188e77e4",
-                    orario: new Date("1899-12-31T23:00:00.000Z")
-                } as never)
+                populate: (jest.fn() as jest.Mock).mockImplementation(() => {
+                    return {
+                        populate: (jest.fn() as jest.Mock).mockResolvedValue({
+                            id_partita: "64679d72d7391e02188e77e0",
+                            isChiusa: false,
+                            categoria_max: 5,
+                            categoria_min: 1,
+                            giocatori: ["64679d72d7391e02188e77e1"],
+                            circolo: "64679d72d7391e02188e77e4",
+                            orario: new Date("1899-12-31T23:00:00.000Z")
+                        } as never)
+                    }
+                })
             }
-        }) as any;
+        }) as any
+
+        const mock = jest.spyOn(interfaces, "p_to_ret",)
+        mock.mockResolvedValue(true as never);
     });
     afterAll(async () => {
         PartitaModel.findById = jest.fn() as any;
@@ -309,6 +321,7 @@ describe("DELETE /api/v1/partite/:idPartita", () => {
         expect(resp.body).toHaveProperty("message", "Nessuna partita trovata")
     })
 });
+
 describe("UPDATE /api/v1/partite/:idPartita", () => {
     const validPartita = "64679d72d7391e02188e77e0";
     const validGiocatore = "64710dcfb43b091ad49f71be";
