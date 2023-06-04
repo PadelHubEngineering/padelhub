@@ -88,3 +88,7 @@ export function checkTokenAmministratore(req: Request, res: Response, next: Next
 export function checkTokenGiocatoreOCircolo(req: Request, res: Response, next: NextFunction) {
     checkToken(req, res, next, [ TipoAccount.Giocatore, TipoAccount.Circolo ])
 }
+
+export function checkTokenCircoloOAmministratore(req: Request, res: Response, next: NextFunction) {
+    checkToken(req, res, next, [ TipoAccount.Amministratore, TipoAccount.Circolo ])
+}

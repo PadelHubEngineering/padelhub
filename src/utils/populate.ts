@@ -1,4 +1,4 @@
-import { Circolo, CircoloModel, GiornoSettimana, OrarioGiornaliero, ServizioAggiuntivo, TipoCampo } from "../classes/Circolo";
+import { Circolo, CircoloModel, GiornoSettimana, OrarioGiornaliero, TipoCampo } from "../classes/Circolo";
 import { GiocatoreModel } from "../classes/Giocatore";
 import { PrenotazioneCampoModel } from "../classes/PrenotazioneCampo";
 import { UtenteModel } from "../classes/Utente";
@@ -11,7 +11,7 @@ export async function deleteBefore(){
 export async function populate(){
 
     const c: Circolo = new Circolo("Matteo", "matteo2@gmail.com", "1234");
-    c.serviziAggiuntivi?.push(new ServizioAggiuntivo("Bagni", "Puliti"))
+    c.serviziAggiuntivi?.push("Bagni Puliti")
     c.orarioSettimanale.forEach( (orario: OrarioGiornaliero) => {
         orario.orarioApertura.setUTCHours(7,0);
         orario.orarioChiusura.setUTCHours(18,0)

@@ -13,7 +13,9 @@ import giocatoreRouter from './giocatore/giocatoreRouter';
 
 export const app: Express = express();
 
-app.use(expressLogger);
+if( !process.env.TESTING )
+  app.use(expressLogger);
+
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 

@@ -1,8 +1,8 @@
 import { Router, Request, Response } from "express";
 import { PrenotazioneCampo, PrenotazioneCampoModel } from "../../classes/PrenotazioneCampo";
-import { Circolo, CircoloModel, Campo, TipoCampo } from "../../classes/Circolo";
+import { Circolo, CircoloModel, Campo, TipoCampo, GiornoSettimana } from "../../classes/Circolo";
 import { TipoAccount } from "../../classes/Utente";
-import { checkTokenCircolo, checkTokenGiocatore } from "../../middleware/tokenChecker";
+import { checkTokenAmministratore, checkTokenGiocatore, checkTokenCircolo, checkTokenCircoloOAmministratore } from "../../middleware/tokenChecker";
 import { logger } from "../../utils/logging";
 import { Error, isValidObjectId } from "mongoose";
 import { convertToObject, isNumericLiteral } from "typescript";
@@ -14,6 +14,10 @@ import { DateTime } from  "luxon"
 import { controlloData } from "../../utils/parameters.utils";
 import { GiocatoreModel } from "../../classes/Giocatore";
 import { PartiteAperteI, c_to_ret, map_to_display } from "../partite/partita.interface";
+
+import { controlloData, controlloDataExpanded } from "../../utils/parameters.utils";
+import { inserisciDatiCircolo, registrazioneCircolo } from "./registrazioneCircolo";
+
 
 const router: Router = Router();
 
@@ -43,7 +47,7 @@ router.post('/prenotazioneSlot', checkTokenCircolo, async (req: Request, res: Re
     // Constrollo che il campo selezionato esista
     const campiTrovati = mioCircolo.campi.filter(e => e.id === parseInt(idCampo))
     if ( campiTrovati.length === 0 ) {
-        sendHTTPResponse(res, 500, false, "Campo non trovato")
+        sendHTTPResponse(res, 400, false, "Campo non trovato")
         return
     }
 
@@ -112,12 +116,12 @@ router.delete('/prenotazioneSlot/:id_prenotazione', checkTokenCircolo, async (re
 })
 
 router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', checkTokenCircolo, async (req: Request, res: Response) => {
-    
-    const giorno = new Date(
-        +req.params.year,
-        +req.params.month - 1,
-        +req.params.day
-      );
+
+
+    const { day, month, year } = req.params
+
+    const giorno = controlloDataExpanded(res, parseInt(year), parseInt(month), parseInt(day))
+    if( !giorno ) return
 
     const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email }).exec()
 
@@ -189,12 +193,10 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', checkT
             partita: prenotazioneCampo.partita
         }
         if (campoPrenotato.tipologia == TipoCampo.Esterno) {
-            console.log("campo esterno")
             var ind = retObj.campiEsterni.findIndex((campo) => campo.idCampo == prenotazioneCampo.idCampo)
             retObj.campiEsterni[ind].prenotazioni.push(prenotazione)
         }
         else if (campoPrenotato.tipologia == TipoCampo.Interno) {
-            console.log("campo interno")
             var ind = retObj.campiInterni.findIndex((campo) => campo.idCampo == prenotazioneCampo.idCampo)
             retObj.campiInterni[ind].prenotazioni.push(prenotazione)
         }
@@ -278,5 +280,129 @@ router.get('/:idCircolo/partiteAperte/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})-
 
     sendHTTPResponse(res, 200, true, ret_obj)
 })
+
+//API per registrazione circolo
+router.post("/registrazioneCircolo", registrazioneCircolo)
+
+//API per eliminare l'account di un circolo (lo può fare un circolo o un amministratore)
+router.delete("/eliminaCircolo", checkTokenCircoloOAmministratore , async (req: Request, res: Response) => {
+
+    const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email })
+
+    if (!mioCircolo) { //Circolo non trovato
+        sendHTTPResponse(res, 403, false, "Impossibile trovare il circolo");
+        return
+    }
+
+    const deleted = await CircoloModel.deleteOne({
+        email: req.utenteAttuale?.email 
+    }).exec();
+
+    if ( deleted.deletedCount == 0 ) {
+        sendHTTPResponse(res, 401, false, "Impossibile eliminare il circolo");
+        return
+    }
+
+    sendHTTPResponse(res, 200, true, "Circolo eliminato con successo")
+
+})
+
+//API per inserimento/modifica dati nell'Area Circolo
+router.post("/inserimentoDatiCircolo", checkTokenCircolo, inserisciDatiCircolo)
+
+//API per dare al front-end i dati relativi al circolo (per Area Circolo)
+router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response) => {
+
+    const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email })
+
+    if (!mioCircolo) { //Circolo non trovato
+        sendHTTPResponse(res, 403, false, "Impossibile scaricare i dati del circolo");
+        return
+    }
+
+    interface OrarioGiornaliero{
+        giorno: GiornoSettimana;
+        isAperto: boolean;
+        orarioApertura: Date;
+        orarioChiusura: Date;
+    }
+
+    interface DatiCircolo { //Modello dell'API
+        anagrafica: {
+            nome: string;
+            email: string;
+            telefono: string | undefined;
+            partitaIVA: string | undefined;
+            indirizzo: string | undefined;
+        },
+        struttura: {
+            orariStruttura: OrarioGiornaliero[]; 
+            durataSlot: number | undefined; 
+            quotaAffiliazione: number | undefined;
+            prezzoSlotOrario: number | undefined;
+            scontoAffiliazione: number | undefined;
+            nCampiInterni: number;
+            nCampiEsterni: number;
+        },
+        servizio: {
+            serviziAggiuntivi: string[];
+        }
+           
+    }
+
+    var retObj: DatiCircolo = {
+        anagrafica:{
+            nome: mioCircolo.nome,
+            email: mioCircolo.email,
+            telefono: mioCircolo.telefono,
+            partitaIVA: mioCircolo.partitaIVA,
+            indirizzo: mioCircolo.indirizzo,
+        },
+        struttura:{
+            orariStruttura: mioCircolo.orarioSettimanale, 
+            durataSlot: mioCircolo.durataSlot, //in minuti
+            quotaAffiliazione: mioCircolo.quotaAffiliazione,
+            prezzoSlotOrario: mioCircolo.prezzoSlotOrario,
+            scontoAffiliazione: mioCircolo.scontoAffiliazione,
+            nCampiInterni: 0,
+            nCampiEsterni: 0
+        },
+        servizio: {
+            serviziAggiuntivi: mioCircolo.serviziAggiuntivi  
+        }
+    }
+
+    let nInterni: number = 0
+    let nEsterni: number = 0
+
+    mioCircolo.campi.forEach((campo) => {
+        if(campo.tipologia == TipoCampo.Esterno){
+            nEsterni++
+        }
+        else if(campo.tipologia == TipoCampo.Interno){
+            nInterni++
+        }
+    });
+
+    //Faccio un check di cosa è undefined
+    if(retObj.anagrafica.telefono === undefined) retObj.anagrafica.telefono = " "
+    if(retObj.anagrafica.email === undefined) retObj.anagrafica.email = " "
+    if(retObj.anagrafica.partitaIVA === undefined) retObj.anagrafica.partitaIVA = " "
+    if(retObj.anagrafica.indirizzo === undefined) retObj.anagrafica.indirizzo = " "
+    if(retObj.struttura.quotaAffiliazione === undefined) retObj.struttura.quotaAffiliazione = 0
+    if(retObj.struttura.prezzoSlotOrario === undefined) retObj.struttura.prezzoSlotOrario = 0
+    if(retObj.struttura.scontoAffiliazione === undefined) retObj.struttura.scontoAffiliazione = 0
+    if(retObj.struttura.durataSlot === undefined) retObj.struttura.durataSlot = 0
+
+
+    retObj.struttura.nCampiEsterni= nEsterni
+    retObj.struttura.nCampiInterni = nInterni
+    
+    
+    sendHTTPResponse(res, 200, true, retObj)
+    return
+
+})
+
 
 export default router;
