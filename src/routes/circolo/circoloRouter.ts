@@ -11,7 +11,6 @@ import { Partita, PartitaModel } from "../../classes/Partita";
 import { sendHTTPResponse } from "../../utils/general.utils";
 
 import { DateTime } from  "luxon"
-import { controlloData } from "../../utils/parameters.utils";
 import { GiocatoreModel } from "../../classes/Giocatore";
 import { PartiteAperteI, c_to_ret, map_to_display } from "../partite/partita.interface";
 
@@ -218,7 +217,7 @@ router.get('/:idCircolo/partiteAperte/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})-
     const _data_slot = `${year}-${month}-${day}T${hours}:${minutes}:00.000Z`;
     const { idCircolo } = req.params;
 
-    const data_slot = controlloData(res, _data_slot, "Data fornita formalmente errata")
+    const data_slot = controlloData(res, _data_slot, "Data fornita formalmente")
     if ( !data_slot ) return
 
     if ( !isValidObjectId(idCircolo) ) {
@@ -252,13 +251,18 @@ router.get('/:idCircolo/partiteAperte/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})-
     }
 
     // Controllo se il giocatore è già iscritto ad una partita per lo slot attuale
-    const partitaGiocatore = await PartitaModel.find({ orario: data_slot, circolo: idCircolo, isChiusa: false, giocatori: giocatore_db._id })
+    const partitaGiocatore = await PartitaModel.find({ orario: data_slot, circolo: idCircolo, isChiusa: false, giocatori: giocatore_db._id }).exec()
 
-    if( partitaGiocatore.length > 0 ) {
+    if( partitaGiocatore.length == 1 ) {
         // Stampo la partita alla quale è già iscritto
 
         ret_obj.giaPrenotato = true;
         ret_obj.partite = await map_to_display(partitaGiocatore)
+
+    } else if ( partitaGiocatore.length > 1 ){
+
+        sendHTTPResponse( res, 500, false, "Il giocatore non può essere iscritto a due partite contemporaneamente" )
+        return
 
     } else {
         // Oppure gli mostro la lista di partite aperte alle quali può partecipare
