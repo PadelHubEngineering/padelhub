@@ -113,21 +113,23 @@ export function controlloDataExpanded(res: Response, year: number, month: number
 
 export function controlloInt(res: Response, value: any, minVal: number, maxVal: number, ok_borders: boolean, value_name?: string) {
 
-    const intVal = parseInt(value)
-
     if (
-        isNaN(intVal) ||
-        ( ok_borders == false && minVal === intVal ) ||
-        ( ok_borders == false && maxVal === intVal ) ||
-        intVal < minVal ||
-        intVal > maxVal
+        isNaN(value) ||
+        ( ok_borders == false && minVal === value ) ||
+        ( ok_borders == false && maxVal === value ) ||
+        value < minVal ||
+        value > maxVal ||
+        !Number.isInteger(value)
     ){
+
         let msg = `${ value_name || "Un numero / valore inserito" } invalido`;
 
         sendHTTPResponse(res, 400, false, msg)
         return null
     }
-    return intVal
+
+    if(value === 0) return 1
+    return value as number
 }
 
 export function controlloStrEnum(res: Response, value: any, enum_to_check: { [_: string]: string }, value_name?: string) {
@@ -150,6 +152,7 @@ export function controlloEmail(res:Response, value: any, value_name?: string){
 
     //Se l'email non rispetta il regex
     if(!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(value))){
+
         let msg = `${ value_name || "L'email inserita" } non e' valida`;
 
         sendHTTPResponse(res, 400, false, msg)
@@ -195,4 +198,16 @@ export function controlloPassword(res:Response, value: any, value_name?: string)
 
     return value as string;
 
+}
+
+export function controlloNumber(res: Response, value: any, error_message: string, value_name?: string){
+  
+        if( isNaN(value) ){
+            let msg = `${error_message}: ${ value_name || "Valore inserito" } non numero`;
+    
+            sendHTTPResponse(res, 400, false, msg)
+            return null
+        }
+    
+        return value as string;
 }

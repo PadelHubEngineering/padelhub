@@ -51,21 +51,12 @@ export class OrarioGiornaliero {
 
     constructor(giorno: GiornoSettimana) {
         this.giorno = giorno;
+        this.isAperto = false;
+        this.orarioApertura = new Date(0, 0);
+        this.orarioChiusura = new Date(0, 0)
     }
 }
 
-export class ServizioAggiuntivo {
-    @prop()
-    public nomeServizio: string
-
-    @prop()
-    public descrizioneServizio: string
-
-    constructor(nomeServizio: string, descrizioneServizio: string) {
-        this.nomeServizio = nomeServizio;
-        this.descrizioneServizio = descrizioneServizio;
-    }
-}
 
 @modelOptions({ options: { allowMixed: 0 } })
 export class Circolo extends Utente {
@@ -104,7 +95,7 @@ export class Circolo extends Utente {
     public orarioSettimanale: OrarioGiornaliero[];
 
     @prop({ default: [] })
-    public serviziAggiuntivi: ServizioAggiuntivo[] = [];
+    public serviziAggiuntivi: string[] = [];
     // @prop({ type: () => [IscrizioneCircolo] })
     // public affiliati?: IscrizioneCircolo[] 
 
