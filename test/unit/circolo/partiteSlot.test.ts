@@ -54,7 +54,6 @@ describe("GET /api/v1/circolo/:idCircolo/partiteAperte/{data}", () => {
     }
 
     const circoloId = "6473381c54353c2f33ece86d"
-    const email_circolo = "test@circolo.com"
     const orario_partita = new Date();
 
     let token: string | null = null
@@ -82,7 +81,6 @@ describe("GET /api/v1/circolo/:idCircolo/partiteAperte/{data}", () => {
         CircoloModel.findOne = jest.fn().mockImplementation((criterias: any) => {
             return {
                 exec: jest.fn().mockImplementation(() => {
-                    console.log("Circolo " + criterias._id)
                     if ( criterias._id === circoloId )
                         return Promise.resolve({
                             _id: circoloId,
@@ -384,7 +382,6 @@ describe("GET /api/v1/circolo/:idCircolo/partiteAperte/{data}", () => {
             .expect('Content-Type', /json/)
             .expect(200)
             .then((res) => {
-                console.log(res.body)
                 if (res.body) {
                     expect(res.body).toHaveProperty("success", true)
                     expect(res.body).toHaveProperty("payload")
@@ -417,7 +414,6 @@ describe("GET /api/v1/circolo/:idCircolo/partiteAperte/{data}", () => {
             .expect('Content-Type', /json/)
             .expect(200)
             .then((res) => {
-                console.log(res.body)
                 if (res.body) {
                     expect(res.body).toHaveProperty("success", true)
                     expect(res.body).toHaveProperty("payload")

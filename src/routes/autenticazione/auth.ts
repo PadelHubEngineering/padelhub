@@ -42,7 +42,6 @@ router.post('', async function (req: Request, res: Response) {
     } else {
         // Controllo correttezza della password
         let { utente, tipo_utente } = searched;
-        console.log(searched.tipo_utente)
         const esito_autenticazione = await utente.checkPassword(password);
 
         if (!esito_autenticazione) {
