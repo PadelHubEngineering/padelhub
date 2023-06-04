@@ -40,22 +40,6 @@ router.get("/",checkTokenGiocatoreOCircolo ,async (req : Request, res :Response)
     
 })
 
-//add a new reservation
-router.post("/", async (req : Request, res :Response)=>{
-    setTimeout(() => {
-        
-    }, 300);
-
-    console.log("SONO IN PRENOTAZIONEEE")
-    const {giocatore, orario, circolo} = await req.body 
-    console.log(giocatore, orario , circolo)
-    
-    return sendHTTPResponse(res, 200, true, {"message":"OK GIUSTOOO"})
-
-
-}); 
-
-
 
 //getting a single user reservation
 router.get("/:id", async (req : Request, res :Response)=>{
@@ -75,9 +59,27 @@ router.get("/:id", async (req : Request, res :Response)=>{
 
 //deleting a single reservation/cashback
 router.delete("/:id",async (req : Request, res :Response)=>{
+    const id = req.params.PartitaId;
+    if (!isValidObjectId(id)) {
+        sendHTTPResponse(res, 401, false, "ID partita invalido")
+        return
+    }
 
-})
+    //cerca prenotazione e prendi partita_id
+    // ricerca partita (populate dalla prenotazione)
+    // rimuovi il giocatore dall'array della partita e poi salva partita aggiornata, se vuota, elimina partita
+    // infine elimina la prenotazione
 
+    let prenotazione= await PrenotazioneModel.findByIdAndDelete(id)
+
+    if(prenotazione)
+        .then((prenotazione) => prenotazione ? sendHTTPResponse(res, 201, true, prenotazione) : sendHTTPResponse(res, 404, false, "Nessuna prenotazione trovata"))
+        .catch((error) => sendHTTPResponse(res, 500, false, "[server] Errore interno") )
+    
+
+
+  
+});
 
 
 export default router;

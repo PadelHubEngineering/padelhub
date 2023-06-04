@@ -145,8 +145,8 @@ export class Circolo extends Utente {
     getPrezzoSlotOrarioAffiliato(): number | undefined {
         if (this.prezzoSlotOrario) {
             return ((100 - this.scontoAffiliazione) * this.prezzoSlotOrario) / 100
-        }
-        return
+        } 
+        return this.prezzoSlotOrario
     }
 }
 

@@ -14,9 +14,10 @@ import { PrenotazioneGiocatore, PrenotazioneModel } from "../../classes/Prenotaz
 //creazione di una partita
 const createPartita = async (req: Request, res: Response, next: NextFunction) => {
 
-
-
     const { giocatori, circolo, categoria_min, categoria_max, orario } = req.body
+
+
+
    
     if (!isValidObjectId(circolo)) {
         sendHTTPResponse(res, 400, false, "Id circolo formalmente errato")
@@ -34,7 +35,7 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
             sendHTTPResponse(res, 400, false, "Trovati giocatori non validi tra quelli forniti")
             return
         }
-        const gioc_db = await GiocatoreModel.exists({ id: id_giocatore }).exec();
+        const gioc_db = await GiocatoreModel.exists({ _id: id_giocatore }).exec();
         if (gioc_db === null) {
             sendHTTPResponse(res, 400, false, "Trovati giocatori non esistenti tra quelli forniti")
             return
@@ -80,16 +81,32 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
 
     */
 
-
-
-    /*if( !_dataOraPrenotazione || typeof(_dataOraPrenotazione) !== "string" || Date.parse(_dataOraPrenotazione) === NaN){
-    sendHTTPResponse(res, 400, false, "La data inserita non è corretta")
-        return
-    }*/
-
+   let flag= 0;
     return await PartitaModel.create(partita)
-        .then((partita) => { sendHTTPResponse(res, 200, true, partita) })
-        .catch((error) => { sendHTTPResponse(res, 500, false, "[server] Errore interno") });
+        .then(async function(partita){
+            console.log(partita)
+            flag=1
+            let costo = await partita.getPrezzo(giocatori)
+            const prenotazione = new PrenotazioneModel({
+                partita : partita.id,
+                giocatore: giocatori.at(0) as String,
+                dataPrenotazione : orario ,
+                costo : costo
+            })
+            const p= await PrenotazioneModel.create(prenotazione)
+            
+            //.catch( async function(err){await PartitaModel.deleteOne(partita.id)}
+            sendHTTPResponse(res, 200, true, partita) })
+        .catch(async function(error){if(flag){await PartitaModel.deleteOne(partita._id) ;console.log("Eliminato con successo")}sendHTTPResponse(res, 500, false, "[server] Errore interno") });
+    /*
+       
+    const parza = await(PartitaModel).create(partita)
+    try{
+
+    }catch
+    */
+    
+
 }
 
 //lettura di una singola partita

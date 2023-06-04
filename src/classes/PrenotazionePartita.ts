@@ -27,8 +27,8 @@ export class PrenotazioneGiocatore{
     @prop({required : true , ref: () => Giocatore})
     giocatore : Ref<Giocatore>
 
-    @prop()
-    dataPrenotazione?: Date
+    @prop({required :true})
+    dataPrenotazione: Date
 
     constructor(cifra : number , partita : Ref<Partita> , data : Date, giocatore: Ref<Giocatore>){
         this.partita=partita;

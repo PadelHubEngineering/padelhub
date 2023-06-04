@@ -38,11 +38,12 @@ export class Partita{
     @prop({ required: false })
     public orario: Date = new Date(0, 0)
    
-    constructor(giocatore : Ref<Giocatore> , categoria_max : number , categoria_min : number , circolo : Ref<Circolo> ){
+    constructor(giocatore : Ref<Giocatore> , categoria_max : number , categoria_min : number , circolo : Ref<Circolo> , data : Date){
         this.giocatori.push(giocatore);
         this.categoria_max = categoria_max;
         this.categoria_min = categoria_min;
         this.circolo = circolo;
+        this.orario = data
     }
 
     //rivedere per salvataggio db
@@ -85,6 +86,22 @@ export class Partita{
     }
     
 
+    public async getPrezzo(this : DocumentType<Partita>,gioc : Ref<Giocatore>){
+        const g = await GiocatoreModel.findById(gioc).catch((err)=> console.log(err))
+        
+        const c = await CircoloModel.findById(this.circolo).catch((err)=> console.log(err))
+     
+ 
+        if(g?.isAffiliato(this.circolo)){
+            console.log(c?.getPrezzoSlotOrarioAffiliato())
+            return c?.getPrezzoSlotOrarioAffiliato()
+        }
+    
+        return c?.prezzoSlotOrario
+        
+    
+    }
+    
     public async rimuovi_player(this: DocumentType<Partita>,gioc : Ref<Giocatore>){
         if(this.giocatori.includes(gioc)){
             const index = this.giocatori.indexOf(gioc);
