@@ -11,7 +11,10 @@ import { Partita } from "../../classes/Partita";
 import { HTTPResponse, sendHTTPResponse } from "../../utils/general.utils";
 
 import { DateTime } from  "luxon"
+
+import { controlloData, controlloDataExpanded } from "../../utils/parameters.utils";
 import { inserisciDatiCircolo, registrazioneCircolo } from "./registrazioneCircolo";
+
 
 const router: Router = Router();
 
@@ -42,7 +45,7 @@ router.post('/prenotazioneSlot', checkTokenCircolo, async (req: Request, res: Re
     // Constrollo che il campo selezionato esista
     const campiTrovati = mioCircolo.campi.filter(e => e.id === parseInt(idCampo))
     if ( campiTrovati.length === 0 ) {
-        sendHTTPResponse(res, 500, false, "Campo non trovato")
+        sendHTTPResponse(res, 400, false, "Campo non trovato")
         return
     }
 
@@ -110,13 +113,13 @@ router.delete('/prenotazioneSlot/:id_prenotazione', checkTokenCircolo, async (re
 
 })
 
-router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', checkTokenCircolo, async (req: Request, res: Response) => {
-    
-    const giorno = new Date(
-        +req.params.year,
-        +req.params.month - 1,
-        +req.params.day
-      );
+router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', async (req: Request, res: Response) => {
+
+
+    const { day, month, year } = req.params
+
+    const giorno = controlloDataExpanded(res, parseInt(year), parseInt(month), parseInt(day))
+    if( !giorno ) return
 
     const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email }).exec()
 
@@ -188,12 +191,10 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', checkT
             partita: prenotazioneCampo.partita
         }
         if (campoPrenotato.tipologia == TipoCampo.Esterno) {
-            console.log("campo esterno")
             var ind = retObj.campiEsterni.findIndex((campo) => campo.idCampo == prenotazioneCampo.idCampo)
             retObj.campiEsterni[ind].prenotazioni.push(prenotazione)
         }
         else if (campoPrenotato.tipologia == TipoCampo.Interno) {
-            console.log("campo interno")
             var ind = retObj.campiInterni.findIndex((campo) => campo.idCampo == prenotazioneCampo.idCampo)
             retObj.campiInterni[ind].prenotazioni.push(prenotazione)
         }
