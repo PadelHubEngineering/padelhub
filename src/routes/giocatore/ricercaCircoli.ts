@@ -8,7 +8,9 @@ import { checkTokenGiocatore } from "../../middleware/tokenChecker";
 const router = Router();
 
 router.get('/:location', async (req: Request, res: Response) => {
-    const location: string = req.params.location;
+    const location: any = req.query.location;
+    const dataGiorno: any = req.query.data;
+
     let locationURI: string = "";
     const bingRoute = (waypoint1: String, waypoint2: string) => {
         return `https://dev.virtualearth.net/REST/V1/Routes/Driving?o=json&wp.0=${waypoint1}&wp.1=${waypoint2}&key=${process.env.BING_MAP_KEY}`
@@ -37,8 +39,7 @@ router.get('/:location', async (req: Request, res: Response) => {
             }
         }
     }
-    console.log(results)
-    sendHTTPResponse(res, 200, true, "OK");
+    sendHTTPResponse(res, 200, true, results);
 })
 
 export default router;
