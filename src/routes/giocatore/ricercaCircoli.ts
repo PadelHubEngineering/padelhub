@@ -12,7 +12,8 @@ import { DateTime } from "luxon";
 const router = Router();
 
 router.get('', checkTokenGiocatoreOAnonimo, async (req: Request, res: Response) => {
-    let location: any = req.query.luogo
+    const waypointRicerca = [String(req.query.y),String(req.query.x)]
+    // let location: any = req.query.luogo
     let dataGiorno: Date | undefined;
     let locationURI: string = "";
 
@@ -23,8 +24,8 @@ router.get('', checkTokenGiocatoreOAnonimo, async (req: Request, res: Response) 
         }
         dataGiorno = new Date(<any>req.query.data)
     }
-    const bingRoute = (waypoint1: String, waypoint2: string) => {
-        return `https://dev.virtualearth.net/REST/V1/Routes/Driving?o=json&wp.0=${waypoint1}&wp.1=${waypoint2}&key=${process.env.BING_MAP_KEY}`
+    const bingRoute = (waypoint1: string[], waypoint2: string) => {
+        return `https://dev.virtualearth.net/REST/V1/Routes/Driving?o=json&wp.0=${waypoint1[0]},${waypoint1[1]}&wp.1=${waypoint2}&key=${process.env.BING_MAP_KEY}`
     }
     let giocatore: any = null;
     if (req.utenteAttuale != undefined) {
@@ -35,18 +36,18 @@ router.get('', checkTokenGiocatoreOAnonimo, async (req: Request, res: Response) 
         }
     }
 
-    if (!location) {
-        sendHTTPResponse(res, 400, false, "paramentro 'luogo' non valido")
-        return
-    }
-    try {
-        locationURI = decodeURI(location)
-    }
-    catch {
-        logger.error("URI waypoint non valido")
-        sendHTTPResponse(res, 400, false, "URI waypoint non valido")
-        return
-    }
+    // if (!location) {
+    //     sendHTTPResponse(res, 400, false, "paramentro 'luogo' non valido")
+    //     return
+    // }
+    // try {
+    //     locationURI = decodeURI(location)
+    // }
+    // catch {
+    //     logger.error("URI waypoint non valido")
+    //     sendHTTPResponse(res, 400, false, "URI waypoint non valido")
+    //     return
+    // }
 
 
     const circoli = await CircoloModel.find({}).exec()
@@ -54,7 +55,7 @@ router.get('', checkTokenGiocatoreOAnonimo, async (req: Request, res: Response) 
 
     for await (const circolo of circoli) {
         if (circolo && circolo.indirizzo) {
-            const { data, status } = await axios.get(bingRoute(locationURI, encodeURI(circolo.indirizzo)));
+            const { data, status } = await axios.get(bingRoute(waypointRicerca, encodeURI(circolo.indirizzo)));
             if (giocatore) {
                 const obj = Object.assign({}, c_to_ret(circolo), { iscritto: circolo.id in giocatore.circoliAssociati, distanza: data.resourceSets[0].resources[0].travelDistance })
                 if (dataGiorno != undefined) {

@@ -52,6 +52,11 @@ export function preliminary_check() {
         logger.error("Impossibile caricare chiave privata di MailJet, esco")
         return false
     }
+    
+    if(process.env.BING_MAP_KEY == undefined){
+        logger.error("Impossibile caricare chiave privata di Bing Map, esco")
+        return false
+    }
 
 
     if ( process.env.CONFIRMATION_EMAIL_URL === undefined ){
