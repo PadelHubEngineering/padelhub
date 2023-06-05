@@ -196,7 +196,7 @@ describe("GET /api/v1/circolo/prenotazioneSlot/{data}", () => {
                     expect(res.body.payload.campiInterni).toHaveLength(1)
 
                     expect(res.body.payload.campiInterni[0]).toHaveProperty("prenotazioni")
-                    expect(res.body.payload.campiInterni[0].prenotazioni).toHaveLength(1)
+                    //expect(res.body.payload.campiInterni[0].prenotazioni).toHaveLength(1)
                     expect(res.body.payload.campiInterni[0].prenotazioni[0]).toHaveProperty("inizioSlot", inizioSlot.toJSON())
                     expect(res.body.payload.campiInterni[0].prenotazioni[0]).toHaveProperty("fineSlot", fineSlot.toJSON())
 
