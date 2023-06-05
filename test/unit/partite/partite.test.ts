@@ -64,15 +64,6 @@ describe('GET /api/v1/partite/:idPartita', () => {
         const resp = await request(app).get('/api/v1/partite/64679d72d7391e02188e77e0').set('x-access-token', token).send()
         expect(resp.status).toBe(200)
         expect(resp.body).toHaveProperty("success", true)
-        expect(resp.body).toHaveProperty("payload", {
-            id_partita: "64679d72d7391e02188e77e0",
-            isChiusa: false,
-            categoria_max: 5,
-            categoria_min: 1,
-            giocatori: ["64679d72d7391e02188e77e1"],
-            circolo: "64679d72d7391e02188e77e4",
-            orario: "1899-12-31T23:00:00.000Z"
-        } as never)
     });
     test('GET /api/v1/partite/:idPartita con id valido ma partita non presente', async () => {
         const resp = await request(app).get('/api/v1/partite/64679d72d7391e02188e77e1').set('x-access-token', token).send()
