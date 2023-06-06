@@ -1,3 +1,4 @@
+import { Circolo } from '../classes/Circolo';
 import { logger } from './logging';
 import Stripe from 'stripe';
 
@@ -8,16 +9,20 @@ const stripe = new Stripe(process.env.STRIPE_KEY!, {
     typescript: true
 });
 
+export async function deleteAllAccounts() {
+    const accList = await stripe.accounts.list()
+    accList.data.forEach((acc) => {
+        stripe.accounts.del(acc.id)
+    })
+    console.log("finished")
+}
+
 export async function createConnectedAccount(email: string) {
     console.log("creating")
     const params: Stripe.AccountCreateParams = {
-        type: 'custom',
+        type: 'express',
         country: 'IT',
         email: email,
-        capabilities: {
-            card_payments: { requested: true },
-            transfers: { requested: true },
-        }
     };
 
     //const customer: Stripe.Customer = await stripe.customers.create(params);
@@ -46,3 +51,10 @@ export async function getOnboardingLink(stripeID: string, redirectURL: URL) {
     return null;
 }
 
+export async function checkOnboarding(stripeID: string): Promise<boolean | null> {
+    const accInfo: Stripe.Account = await stripe.accounts.retrieve(stripeID);
+    if(accInfo){
+        console.log(accInfo)
+    }
+    return null
+}

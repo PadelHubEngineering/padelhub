@@ -2,6 +2,7 @@ import { getDiscriminatorModelForClass, getModelForClass, mongoose, prop, Docume
 import { Utente, UtenteModel } from "./Utente"
 import { TipoAccount } from "./Utente"
 import { startSession } from "mongoose"
+import { checkOnboarding } from "../utils/gestionePagamenti.utils"
 type DocumentoSocietario = { //TODO: meglio di così
     documento: string
 }
@@ -38,7 +39,7 @@ export class OrarioGiornaliero {
     @prop({ required: true })
     public orarioApertura: Date = new Date(0, 0)
 
-    @prop({ required: true }) 
+    @prop({ required: true })
     public orarioChiusura: Date = new Date(0, 0)
 
     public getOrarioApertura() {
@@ -80,7 +81,7 @@ export class Circolo extends Utente {
 
     @prop()
     public paymentId?: string
-    
+
     @prop({ required: true })
     public validato: boolean = false
 
@@ -116,7 +117,7 @@ export class Circolo extends Utente {
         await this.save()
     }
 
-    public async setPaymentID(payID: string): Promise<Circolo>{
+    public async setPaymentID(payID: string): Promise<Circolo> {
         this.paymentId = payID;
         await CircoloModel.findOneAndUpdate({ _id: this._id }, { paymentId: this.paymentId });
         return this
@@ -130,6 +131,15 @@ export class Circolo extends Utente {
         await this.save()
 
         return id_campo
+    }
+
+    public async isOnboarded(): Promise<boolean> {
+        if (this.paymentId) {
+            const res = (await checkOnboarding(this.paymentId))
+            this.paymentOnboarding = res ? res : false;
+            return this.paymentOnboarding;
+        }
+        return false;
     }
 
     public populateOrarioSettimanale() {
