@@ -54,7 +54,7 @@ export async function getOnboardingLink(stripeID: string, redirectURL: URL) {
 export async function checkOnboarding(stripeID: string): Promise<boolean | null> {
     const accInfo: Stripe.Account = await stripe.accounts.retrieve(stripeID);
     if(accInfo){
-        console.log(accInfo)
+        return accInfo.requirements?.disabled_reason == null;
     }
     return null
 }

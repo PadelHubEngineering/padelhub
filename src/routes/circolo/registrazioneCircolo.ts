@@ -72,7 +72,6 @@ export async function registrazioneCircolo(req: Request, res: Response) {
                 const invio = await inviaEmailConferma("abcabc", circolo._id.toString())
                 if (link != null && link.url != undefined) {
                     const onboarding = await inviaEmailOnboarding(new URL(link?.url.toString()), circolo._id.toString())
-                    console.log(await circolo.isOnboarded())
                     sendHTTPResponse(res, 201, true, "Email di conferma inviata")
                     return
                 }
