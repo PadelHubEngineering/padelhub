@@ -7,6 +7,8 @@ import { logger } from "./utils/logging";
 import { Giocatore, GiocatoreModel } from "./classes/Giocatore";
 import { TipoAccount, UtenteModel } from "./classes/Utente";
 import { deleteBefore, populate } from "./utils/populate";
+import { createConnectedAccount, getOnboardingLink } from "./utils/gestionePagamenti.utils"
+import { inviaEmailOnboarding } from "./utils/email.utils";
 //import { createUnparsedSourceFile, servicesVersion, textSpanIntersectsWith } from "typescript";
 //import { Circolo, CircoloModel, GiornoSettimana, OrarioGiornaliero } from "./classes/Circolo";
 
@@ -26,7 +28,11 @@ async function main() {
     //await deleteBefore()
     //await populate()
     // Inizializzazione Express
+    //getOnboardingLink()
+    //inviaEmailOnboarding((await getOnboardingLink()), "647f58105f4ff0d2557d027b" )
     app.listen(port, () => logger.debug(`App listening on port ${port}!`));
+
+
 }
 
 if (require.main === module && preliminary_check())
