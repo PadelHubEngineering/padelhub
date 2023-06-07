@@ -9,6 +9,8 @@ import { checkTokenCircolo , checkTokenGiocatoreOCircolo, checkTokenGiocatore} f
 import { isValidObjectId } from "mongoose";
 import { sendHTTPResponse } from "../../utils/general.utils";
 import { http } from "winston";
+import { PartitaModel } from "../../classes/Partita";
+import { pre } from "@typegoose/typegoose";
 
 
 const router = Router();
@@ -57,28 +59,40 @@ router.get("/:id", async (req : Request, res :Response)=>{
 
 })
 
+
 //deleting a single reservation/cashback
 router.delete("/:id",async (req : Request, res :Response)=>{
-    const id = req.params.PartitaId;
+    const id = req.params.id;
     if (!isValidObjectId(id)) {
-        sendHTTPResponse(res, 401, false, "ID partita invalido")
+        sendHTTPResponse(res, 401, false, "ID prenotazione invalido")
         return
     }
-
-    //cerca prenotazione e prendi partita_id
-    // ricerca partita (populate dalla prenotazione)
-    // rimuovi il giocatore dall'array della partita e poi salva partita aggiornata, se vuota, elimina partita
-    // infine elimina la prenotazione
-
-    let prenotazione= await PrenotazioneModel.findByIdAndDelete(id)
-
-    if(prenotazione)
-        .then((prenotazione) => prenotazione ? sendHTTPResponse(res, 201, true, prenotazione) : sendHTTPResponse(res, 404, false, "Nessuna prenotazione trovata"))
-        .catch((error) => sendHTTPResponse(res, 500, false, "[server] Errore interno") )
+    let prenotazione = await PrenotazioneModel.findById(id)
+    if(!prenotazione){
+        return sendHTTPResponse(res, 404, false, "Prenotazione inesistente")
+    }
+    let partita = await PartitaModel.findById(prenotazione.partita._id)
+    if(!partita){
+        return sendHTTPResponse(res, 500, false, "[server] Errore interno")
+    }
+    console.log(partita)
+    let gioc = prenotazione.giocatore._id
+    if(!gioc){
+        return sendHTTPResponse(res, 500, false, "[server] Errore interno")
+    }
+    if(await partita.rimuovi_player(gioc)==true){
+        try{
+            let risposta=await prenotazione.deleteOne()
+            sendHTTPResponse(res, 201, true,risposta)
+        }catch(err){
+            return sendHTTPResponse(res, 500, false, "[server] Errore interno")
+        }
+        
+    }else{
+        return sendHTTPResponse(res, 500, false, "[server] Errore interno")
+    }
     
 
-
-  
 });
 
 

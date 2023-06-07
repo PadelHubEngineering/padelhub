@@ -107,7 +107,19 @@ export class Partita{
             const index = this.giocatori.indexOf(gioc);
             this.giocatori.splice(index,1)
             this.isChiusa=false;
-            await this.deleteOne()
+            if(this.giocatori.length==0){
+                console.log("Array vuoto")
+                await this.deleteOne()
+            
+                
+            }else{
+                console.log("Ancora altri giocatori")
+                await this.save()
+            }
+
+            return true
+            
+            
 
         }
      
