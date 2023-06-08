@@ -57,7 +57,7 @@ export class Partita{
             console.log("new Giocatore Aggiunto da metodo")
             return await this.save()
         }else{
-            return this
+            return 
         }
         
     }

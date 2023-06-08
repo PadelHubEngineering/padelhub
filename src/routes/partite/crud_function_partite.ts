@@ -51,35 +51,6 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
 
     })
 
-    /*
-    //preparing the reservation
-    const prenotazione = JSON.stringify({
-        giocatore : giocatori,
-        circolo : circolo,
-        orario : orario,
-
-    })
-    const token = req.headers["x-access-token"]?.toString()
-    if(!token){
-        sendHTTPResponse(res, 500, false, "[server] Internal error")
-        return
-
-    }
-    
-    await fetch("http://localhost:9090/api/v1/prenotazioneGiocatori",{
-        method : "POST",
-        headers : {
-            "x-access-token" : token,
-            "content-type" : "application/json"
-
-        },
-        body : prenotazione
- 
-    } ).then(res => {console.log(res.json() )
-    }).then(data => {console.log(data)})
-
-
-    */
 
    let flag= 0;
     return await PartitaModel.create(partita)
@@ -189,6 +160,28 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
                     }
                     console.log(`C'è posto ${await partita.checkLevel(giocatore)}`)
                     const p = await PartitaModel.findById(id).then((p) => p?.aggiungi_player(giocatore))
+
+                    //crea prenotazione
+                    let flag=0;
+                    if(p){
+                        console.log(partita)
+                        flag=1
+                        let costo = await partita.getPrezzo(giocatore)
+                        const prenotazione = new PrenotazioneModel({
+                            partita : partita.id,
+                            giocatore: giocatore,
+                            dataPrenotazione : partita.orario ,
+                            costo : costo
+                        })
+                        try{
+                            await PrenotazioneModel.create(prenotazione)
+                        }catch(err){
+                            await partita.deleteOne()
+                            sendHTTPResponse(res, 500, false, "[server] Errore interno")
+
+                        }
+
+                    }
 
                     sendHTTPResponse(res, 201, true, p as Partita)
                     return
