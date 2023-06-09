@@ -5,7 +5,7 @@ import { TokenAutenticazione } from '../../middleware/tokenChecker';
 
 import { logger } from '../../utils/logging';
 import { Giocatore, GiocatoreModel, Genere } from '../../classes/Giocatore';
-import { CircoloModel } from '../../classes/Circolo';
+import { Circolo, CircoloModel } from '../../classes/Circolo';
 import { sendHTTPResponse } from '../../utils/general.utils';
 import { isValidObjectId } from 'mongoose';
 import { CodiceConfermaModel } from '../../classes/CodiceConferma';
@@ -15,8 +15,7 @@ const router: Router = Router();
 async function cercaUtente(email: string): Promise<null | { utente: Utente, tipo_utente: TipoAccount }> {
 
     const searched = await UtenteModel.findOne({
-        email,
-        confermato: true
+        email
     }).exec();
 
     if (searched) {
@@ -36,13 +35,12 @@ router.post('', async function (req: Request, res: Response) {
 
     let token;
 
-    if ( !searched ){
+    if (!searched) {
         sendHTTPResponse(res, 401, false, "Utente non trovato o password errata")
         return
     } else {
         // Controllo correttezza della password
         let { utente, tipo_utente } = searched;
-        console.log(searched.tipo_utente)
         const esito_autenticazione = await utente.checkPassword(password);
 
         if (!esito_autenticazione) {
@@ -56,6 +54,20 @@ router.post('', async function (req: Request, res: Response) {
 
         // Autenticazione eseguita con successo
 
+        else if (!searched.utente.confermato) {
+            sendHTTPResponse(res, 403, false, "Account non confermato. Controlla la casella email")
+            return
+        }
+
+        else if (searched.tipo_utente == TipoAccount.Circolo) {
+            const circ: Circolo | null = await CircoloModel.findOne({ email: searched.utente.email });
+            if (circ) {
+                if (!await circ.isOnboarded()) {
+                    sendHTTPResponse(res, 403, false, "Accoun con onboarding non completato. Controlla la casella email")
+                    return
+                }
+            }
+        }
         token = jwt.sign(
             {
                 tipoAccount: tipo_utente,
@@ -79,30 +91,33 @@ router.post('', async function (req: Request, res: Response) {
                 nome: utente.nome
             } as TokenAutenticazione,
         });
+
+
+
     }
 });
 
 
-router.put("/verificaUtente/:codice", async ( req: Request, res: Response ) => {
+router.put("/verificaUtente/:codice", async (req: Request, res: Response) => {
 
     const codice = req.params.codice;
 
     logger.debug(`Richiesta conferma indirizzo email con codice: ${codice} `)
 
-    if ( !codice || !isValidObjectId(codice) ){
+    if (!codice || !isValidObjectId(codice)) {
         sendHTTPResponse(res, 401, false, "Il codice inserito non è valido")
         return
     }
 
     const codice_conferma = await CodiceConfermaModel.findOne({ _id: codice }).populate("utente").exec();
 
-    if( !codice_conferma ){
+    if (!codice_conferma) {
         // Codice di conferma poco chiaro per motivi di sicurezza
         sendHTTPResponse(res, 401, false, "Il codice inserito non è valido")
         return
     }
 
-    if( !codice_conferma.utente ){
+    if (!codice_conferma.utente) {
         // Codice di conferma poco chiaro per motivi di sicurezza
         sendHTTPResponse(res, 401, false, "Il codice inserito non è valido")
         logger.error("Attenzione, validato codice di conferma email, ma l'utente non era valido")
@@ -111,7 +126,7 @@ router.put("/verificaUtente/:codice", async ( req: Request, res: Response ) => {
 
     const utente = await UtenteModel.findOne({ _id: codice_conferma.utente._id }).exec();
 
-    if( !utente ){
+    if (!utente) {
         // Codice di conferma poco chiaro per motivi di sicurezza
         sendHTTPResponse(res, 401, false, "Il codice inserito non è valido")
         logger.error("Attenzione, validato codice di conferma email, ma l'utente non esiste")

@@ -2,6 +2,7 @@ import { getDiscriminatorModelForClass, getModelForClass, mongoose, prop, Docume
 import { Utente, UtenteModel } from "./Utente"
 import { TipoAccount } from "./Utente"
 import { startSession } from "mongoose"
+import { checkOnboarding } from "../utils/gestionePagamenti.utils"
 type DocumentoSocietario = { //TODO: meglio di così
     documento: string
 }
@@ -38,7 +39,7 @@ export class OrarioGiornaliero {
     @prop({ required: true })
     public orarioApertura: Date = new Date(0, 0)
 
-    @prop({ required: true }) 
+    @prop({ required: true })
     public orarioChiusura: Date = new Date(0, 0)
 
     public getOrarioApertura() {
@@ -61,6 +62,8 @@ export class OrarioGiornaliero {
 @modelOptions({ options: { allowMixed: 0 } })
 export class Circolo extends Utente {
 
+    _id: mongoose.Types.ObjectId;
+
     @prop()
     public indirizzo?: string
 
@@ -75,6 +78,9 @@ export class Circolo extends Utente {
 
     @prop()
     public paymentOnboarding?: boolean = false
+
+    @prop()
+    public paymentId?: string
 
     @prop({ required: true })
     public validato: boolean = false
@@ -105,6 +111,18 @@ export class Circolo extends Utente {
         await this.save()
     }
 
+    public async setOrarioChiusuraGiorno(this: DocumentType<Circolo>, giorno: GiornoSettimana, date: Date) {
+        this.orarioSettimanale[giorno].orarioChiusura = date
+        this.markModified('orarioSettimanale')
+        await this.save()
+    }
+
+    public async setPaymentID(payID: string): Promise<Circolo> {
+        this.paymentId = payID;
+        await CircoloModel.findOneAndUpdate({ _id: this._id }, { paymentId: this.paymentId });
+        return this
+    }
+
     public async addCampo(this: DocumentType<Circolo>, tipoCampo: TipoCampo) {
         const id_campo = this.campi.length
 
@@ -113,6 +131,15 @@ export class Circolo extends Utente {
         await this.save()
 
         return id_campo
+    }
+
+    public async isOnboarded(): Promise<boolean> {
+        if (this.paymentId) {
+            const res = (await checkOnboarding(this.paymentId))
+            this.paymentOnboarding = res ? res : false;
+            return this.paymentOnboarding;
+        }
+        return false;
     }
 
     public populateOrarioSettimanale() {

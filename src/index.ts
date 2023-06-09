@@ -7,6 +7,8 @@ import { logger } from "./utils/logging";
 import { Giocatore, GiocatoreModel } from "./classes/Giocatore";
 import { TipoAccount, UtenteModel } from "./classes/Utente";
 import { deleteBefore, populate } from "./utils/populate";
+import { createConnectedAccount, deleteAllAccounts, getOnboardingLink, handlePaymentSlot, populateProducts } from "./utils/gestionePagamenti.utils"
+import { inviaEmailOnboarding } from "./utils/email.utils";
 //import { createUnparsedSourceFile, servicesVersion, textSpanIntersectsWith } from "typescript";
 //import { Circolo, CircoloModel, GiornoSettimana, OrarioGiornaliero } from "./classes/Circolo";
 
@@ -26,7 +28,16 @@ async function main() {
     //await deleteBefore()
     //await populate()
     // Inizializzazione Express
-    app.listen(port, () => logger.debug(`App listening on port ${port}!`));
+
+
+    console.log(await handlePaymentSlot("acct_1NG6pvFk2nvmmn2V", 60, 20))
+    // console.log(await createProduct("Slot 60 minuti"));
+    // console.log(await createProduct("Slot 90 minuti"));
+    // console.log(await createProduct("Slot 120 minuti"));
+
+    app.listen(port, () => logger.info(`App listening on port ${port}!`));
+
+
 }
 
 if (require.main === module && preliminary_check())

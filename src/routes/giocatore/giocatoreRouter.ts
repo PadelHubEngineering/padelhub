@@ -116,7 +116,7 @@ router.post("/", async ( req: Request, res: Response ) => {
 
     codice_conferma_utente = await CodiceConfermaModel.create(codice_conferma_utente)
 
-    const invio = await inviaEmailConferma(codice_conferma_utente._id.toString(), giocatore_db._id )
+    const invio = await inviaEmailConferma(codice_conferma_utente._id.toString(), String(giocatore_db._id) )
 
     if ( invio )
         sendHTTPResponse(res, 201, true, "Email di conferma inviata")
