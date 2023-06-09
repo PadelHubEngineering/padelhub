@@ -1,6 +1,6 @@
 import { DocumentType } from "@typegoose/typegoose"
 import { Giocatore } from "../../classes/Giocatore"
-import { Circolo } from "../../classes/Circolo"
+import { Circolo, Campo } from "../../classes/Circolo"
 import { Partita } from "../../classes/Partita"
 
 export type PartiteAperteI = {
@@ -24,7 +24,9 @@ export type CircoloRetI = {
     _id: string,
     nome: string,
     durataSlot: number,
-    costoPrenotazione: number
+    costoPrenotazione: number,
+    email: string
+    campi: Campo[]
 }
 
 export type GiocatoreRetI = {
@@ -50,6 +52,8 @@ export function c_to_ret(circolo: DocumentType<Circolo>) {
         _id: circolo._id.toString(),
         nome: circolo.nome,
         durataSlot: circolo.durataSlot,
+        email: circolo.email,
+        campi: circolo.campi,
         costoPrenotazione: circolo.prezzoSlotOrario
     } as CircoloRetI
 }

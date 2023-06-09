@@ -64,6 +64,16 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
         false,
         99,
     )
+    let circoltwo = new Circolo(
+        "ilpadelsonoloro",
+        "ipsl@gmail.com",
+        "circolo123",
+        "044222301",
+        "IT234234029340",
+        56,
+        false,
+        99,
+    )
 
     circolone.confermato = true;
     circolone.durataSlot = 60;
@@ -85,7 +95,6 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
     await circolo_doc.setOrarioAperturaGiorno(GiornoSettimana.Giovedi, data_9)
     await circolo_doc.setOrarioAperturaGiorno(GiornoSettimana.Venerdi, data_10)
     await circolo_doc.setOrarioAperturaGiorno(GiornoSettimana.Sabato, data_10)
-
     // Ma chiude sempre alle 20
     await circolo_doc.setOrarioChiusuraGiorno(GiornoSettimana.Lunedi, data_20)
     await circolo_doc.setOrarioChiusuraGiorno(GiornoSettimana.Martedi, data_20)
@@ -93,7 +102,6 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
     await circolo_doc.setOrarioChiusuraGiorno(GiornoSettimana.Giovedi, data_20)
     await circolo_doc.setOrarioChiusuraGiorno(GiornoSettimana.Venerdi, data_20)
     await circolo_doc.setOrarioChiusuraGiorno(GiornoSettimana.Sabato, data_20)
-
 
     console.log("creato campo " + await circolo_doc.addCampo(TipoCampo.Esterno))
     console.log("creato campo " + await circolo_doc.addCampo(TipoCampo.Esterno))
