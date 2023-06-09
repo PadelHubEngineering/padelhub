@@ -30,7 +30,4 @@ router.patch("/:PartitaId",checkTokenGiocatore,updatePartita)
 
 
 
-
-
-
 export default router

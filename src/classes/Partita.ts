@@ -1,11 +1,8 @@
 import mongoose from "mongoose"
-import {Circolo, CircoloModel} from "./Circolo"
+import {Circolo, TipoCampo} from "./Circolo"
 import {Giocatore,GiocatoreModel} from "./Giocatore"
 import {PrenotazioneGiocatore, PrenotazioneModel} from "./PrenotazionePartita"
 import {prop, getModelForClass, Ref, DocumentType , modelOptions, post,pre} from "@typegoose/typegoose"
-import { NamedExportBindings } from "typescript"
-import { NextFunction , Request ,Response } from "express"
-import { sendHTTPResponse, HTTPResponse } from "../utils/general.utils"
 
 @modelOptions({
     schemaOptions : {
@@ -34,6 +31,9 @@ export class Partita{
 
     @prop({required : true , ref : () => Circolo})
     circolo : Ref<Circolo>;
+
+    @prop({ required: true })
+    tipoCampo: TipoCampo
 
     @prop({ required: false })
     public orario: Date = new Date(0, 0)

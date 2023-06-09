@@ -7,6 +7,8 @@ import { logger } from "./utils/logging";
 import { Giocatore, GiocatoreModel } from "./classes/Giocatore";
 import { TipoAccount, UtenteModel } from "./classes/Utente";
 import { deleteBefore, populate } from "./utils/populate";
+import { createConnectedAccount, deleteAllAccounts, getOnboardingLink, handlePaymentSlot, populateProducts } from "./utils/gestionePagamenti.utils"
+import { inviaEmailOnboarding } from "./utils/email.utils";
 //import { createUnparsedSourceFile, servicesVersion, textSpanIntersectsWith } from "typescript";
 //import { Circolo, CircoloModel, GiornoSettimana, OrarioGiornaliero } from "./classes/Circolo";
 import { PrenotazioneGiocatore, PrenotazioneModel } from "./classes/PrenotazionePartita";
@@ -29,9 +31,6 @@ async function main() {
     //await deleteBefore()
     //await populate()
     // Inizializzazione Express
-
-
-
     app.listen(port, () => logger.debug(`App listening on port ${port}!`));
 }
 

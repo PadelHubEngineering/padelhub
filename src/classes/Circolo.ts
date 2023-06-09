@@ -2,6 +2,7 @@ import { getDiscriminatorModelForClass, getModelForClass, mongoose, prop, Docume
 import { Utente, UtenteModel } from "./Utente"
 import { TipoAccount } from "./Utente"
 import { startSession } from "mongoose"
+import { checkOnboarding } from "../utils/gestionePagamenti.utils"
 type DocumentoSocietario = { //TODO: meglio di così
     documento: string
 }
@@ -38,7 +39,7 @@ export class OrarioGiornaliero {
     @prop({ required: true })
     public orarioApertura: Date = new Date(0, 0)
 
-    @prop({ required: true }) 
+    @prop({ required: true })
     public orarioChiusura: Date = new Date(0, 0)
 
     public getOrarioApertura() {
@@ -51,24 +52,17 @@ export class OrarioGiornaliero {
 
     constructor(giorno: GiornoSettimana) {
         this.giorno = giorno;
+        this.isAperto = false;
+        this.orarioApertura = new Date(0, 0);
+        this.orarioChiusura = new Date(0, 0)
     }
 }
 
-export class ServizioAggiuntivo {
-    @prop()
-    public nomeServizio: string
-
-    @prop()
-    public descrizioneServizio: string
-
-    constructor(nomeServizio: string, descrizioneServizio: string) {
-        this.nomeServizio = nomeServizio;
-        this.descrizioneServizio = descrizioneServizio;
-    }
-}
 
 @modelOptions({ options: { allowMixed: 0 } })
 export class Circolo extends Utente {
+
+    _id: mongoose.Types.ObjectId;
 
     @prop()
     public indirizzo?: string
@@ -84,6 +78,9 @@ export class Circolo extends Utente {
 
     @prop()
     public paymentOnboarding?: boolean = false
+
+    @prop()
+    public paymentId?: string
 
     @prop({ required: true })
     public validato: boolean = false
@@ -104,7 +101,7 @@ export class Circolo extends Utente {
     public orarioSettimanale: OrarioGiornaliero[];
 
     @prop({ default: [] })
-    public serviziAggiuntivi: ServizioAggiuntivo[] = [];
+    public serviziAggiuntivi: string[] = [];
     // @prop({ type: () => [IscrizioneCircolo] })
     // public affiliati?: IscrizioneCircolo[] 
 
@@ -112,6 +109,18 @@ export class Circolo extends Utente {
         this.orarioSettimanale[giorno].orarioApertura = date
         this.markModified('orarioSettimanale')
         await this.save()
+    }
+
+    public async setOrarioChiusuraGiorno(this: DocumentType<Circolo>, giorno: GiornoSettimana, date: Date) {
+        this.orarioSettimanale[giorno].orarioChiusura = date
+        this.markModified('orarioSettimanale')
+        await this.save()
+    }
+
+    public async setPaymentID(payID: string): Promise<Circolo> {
+        this.paymentId = payID;
+        await CircoloModel.findOneAndUpdate({ _id: this._id }, { paymentId: this.paymentId });
+        return this
     }
 
     public async addCampo(this: DocumentType<Circolo>, tipoCampo: TipoCampo) {
@@ -124,6 +133,15 @@ export class Circolo extends Utente {
         return id_campo
     }
 
+    public async isOnboarded(): Promise<boolean> {
+        if (this.paymentId) {
+            const res = (await checkOnboarding(this.paymentId))
+            this.paymentOnboarding = res ? res : false;
+            return this.paymentOnboarding;
+        }
+        return false;
+    }
+
     public populateOrarioSettimanale() {
         this.orarioSettimanale = []
         Object.values(GiornoSettimana).filter((v) => !isNaN(Number(v))).forEach((val) => {
@@ -132,7 +150,7 @@ export class Circolo extends Utente {
     }
 
     constructor(name: string, email: string, password: string, telefono?: string, partitaIVA?: string, prezzoSlotOrario?: number, paymentOnboarding?: boolean, quotaAffiliazione?: number, scontoAffiliazione?: number) {
-        super(name, email, password, telefono)
+        super(name, email, password, false, telefono)
         this.partitaIVA = partitaIVA
         this.prezzoSlotOrario = prezzoSlotOrario
         this.paymentOnboarding = paymentOnboarding

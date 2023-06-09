@@ -140,3 +140,4 @@ combined.log
 # testing compiled files
 
 **.test.js
+.DS_Store

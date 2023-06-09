@@ -9,7 +9,8 @@ import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses"
     schemaOptions : {
         timestamps : true,
         collection : "PrenotazioniGiocatori"
-    }
+    },
+    options: { allowMixed: 0 }
 })
 export class PrenotazioneGiocatore{
     id_prenotazione!: mongoose.Types.ObjectId;
@@ -34,6 +35,7 @@ export class PrenotazioneGiocatore{
         this.partita=partita;
         this.costo=cifra;
         this.pagato = false;
+        this.giocatore = giocatore;
         this.dataPrenotazione=data
         this.giocatore= giocatore
     }
@@ -68,10 +70,8 @@ export class PrenotazioneGiocatore{
         }
 
     }
-
 }
 
 
 
 export const PrenotazioneModel = getModelForClass(PrenotazioneGiocatore)
-
