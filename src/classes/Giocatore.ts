@@ -5,7 +5,6 @@ import { TipoAccount } from "./Utente";
 import { sendHTTPResponse } from "../utils/general.utils";
 import { mongo } from "mongoose";
 import { ObjectId } from "mongoose";
-import { PrenotazionePartita } from "./PrenotazionePartita";
 
 export enum Genere {
     Maschio = "maschio",
@@ -15,7 +14,7 @@ export enum Genere {
 
 export class Giocatore extends Utente {
 
-    _id: ObjectId;
+    _id: mongoose.Types.ObjectId;
 
     @prop({ required: true })
     public cognome: string

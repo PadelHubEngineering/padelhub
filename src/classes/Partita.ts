@@ -1,5 +1,5 @@
 import mongoose from "mongoose"
-import {Circolo, TipoCampo} from "./Circolo"
+import {Circolo, TipoCampo, CircoloModel} from "./Circolo"
 import {Giocatore,GiocatoreModel} from "./Giocatore"
 import {PrenotazioneGiocatore, PrenotazioneModel} from "./PrenotazionePartita"
 import {prop, getModelForClass, Ref, DocumentType , modelOptions, post,pre} from "@typegoose/typegoose"
