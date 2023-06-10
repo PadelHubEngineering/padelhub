@@ -89,7 +89,7 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
             const circoloInfo = await partita.getCircolo()
             if (circoloInfo) {
                 if (circoloInfo.paymentId) {
-                    const link = await handlePaymentPrenotazione(circoloInfo.paymentId, costo!, p._id.toString())
+                    const link = await handlePaymentPrenotazione(circoloInfo.paymentId, costo!, p._id.toString(), partita.id)
                     console.log(link)
                     if (link) {
                         SessionePagamentoModel.saveCodice(link.id, prenotazione._id)
@@ -225,7 +225,7 @@ const pagaPartita = async (req: Request, res: Response, next: NextFunction) => {
                         const circoloInfo = await partita.getCircolo()
                         if (circoloInfo) {
                             if (circoloInfo.paymentId) {
-                                const link = await handlePaymentPrenotazione(circoloInfo.paymentId, costo!, p._id.toString())
+                                const link = await handlePaymentPrenotazione(circoloInfo.paymentId, costo!, p._id.toString(), partita.id)
                                 if (link) {
                                     SessionePagamentoModel.saveCodice(link.id, prenotazione._id)
                                     res.redirect(link.url)
