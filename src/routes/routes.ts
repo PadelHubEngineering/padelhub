@@ -3,15 +3,15 @@ import auth from './autenticazione/auth';
 import circoloRouter from './circolo/circoloRouter';
 import partiteRouter from './partite/partiteRouter'
 import ricercaCircoli from './giocatore/ricercaCircoli';
+import pagamentiRouter from './pagamenti/pagamentiRouter'
 import bodyParser from 'body-parser';
 import { expressLogger } from '../utils/logging';
-import prenotazionePartiteRouter from './prenotazionePartite/prenotazionePartiteRoute'
+import prenotazioneGiocatoriRouter from './prenotazionePartite/prenotazionePartiteRoute'
 
 import cors from "cors"
 import { checkTokenCircolo, checkTokenGiocatoreOCircolo } from '../middleware/tokenChecker';
 import { errorJsonHandler, notFoundErrorHandler } from "../middleware/errorHandler"
 import giocatoreRouter from './giocatore/giocatoreRouter';
-
 export const app: Express = express();
 
 if( !process.env.TESTING )
@@ -39,11 +39,10 @@ default_router.get('/', function(_req: Request, res: Response) {
 default_router.use('/authentication', auth)
 default_router.use('/circolo', circoloRouter)
 default_router.use('/partite', partiteRouter)
-default_router.use('/prenotazionePartita',prenotazionePartiteRouter)
-
+default_router.use('/prenotazioneGiocatori',prenotazioneGiocatoriRouter)
 default_router.use('/giocatore', giocatoreRouter)
 default_router.use('/ricercaCircoli', ricercaCircoli)
-
+default_router.use('/pagamenti', pagamentiRouter)
 
 app.use("/api/v1", default_router)
 

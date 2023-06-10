@@ -5,7 +5,7 @@ import { Partita, PartitaModel } from "./classes/Partita";
 import { Genere, Giocatore, GiocatoreModel } from "./classes/Giocatore";
 import { Circolo, CircoloModel, GiornoSettimana, TipoCampo } from "./classes/Circolo";
 import { PrenotazioneCampoModel } from "./classes/PrenotazioneCampo";
-import { PrenotazionePartitaModel } from "./classes/PrenotazionePartita";
+import { PrenotazioneModel } from "./classes/PrenotazionePartita";
 
 mongoose.connect(process.env.MONGO_URL!).then(async e => {
 
@@ -14,8 +14,7 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
     await PrenotazioneCampoModel.deleteMany({})
     await UtenteModel.deleteMany({})
     await PartitaModel.deleteMany({})
-    await PrenotazionePartitaModel.deleteMany({})
-
+    await PrenotazioneModel.deleteMany({})
 
     logger.info("DB pulito")
 
@@ -135,7 +134,7 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
 
     logger.debug("Creata partita di prova a " + data_slot.toJSON())
 
-    await PrenotazionePartitaModel.create({
+    await PrenotazioneModel.create({
         pagato: true,
         costo: 56,
         partita: partita_1_doc,
@@ -145,7 +144,7 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
 
     logger.debug("Creata prenotazione partita per giovanni")
 
-    await PrenotazionePartitaModel.create({
+    await PrenotazioneModel.create({
         pagato: true,
         costo: 56,
         partita: partita_1_doc,
@@ -170,7 +169,7 @@ mongoose.connect(process.env.MONGO_URL!).then(async e => {
 
     logger.debug("Creata seconda partita di prova a " + data_slot_2.toJSON())
 
-    await PrenotazionePartitaModel.create({
+    await PrenotazioneModel.create({
         pagato: true,
         costo: 56,
         partita: partita_2_doc,

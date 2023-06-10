@@ -1,9 +1,10 @@
-import { Ref, getDiscriminatorModelForClass, getModelForClass, prop, mongoose, DocumentType } from "@typegoose/typegoose"
-import { Circolo } from "./Circolo";
+import { Ref, getDiscriminatorModelForClass, getModelForClass, prop, mongoose , DocumentType} from "@typegoose/typegoose"
+import { Circolo, CircoloModel } from "./Circolo";
 import { Utente, UtenteModel } from "./Utente";
 import { TipoAccount } from "./Utente";
+import { sendHTTPResponse } from "../utils/general.utils";
+import { mongo } from "mongoose";
 import { ObjectId } from "mongoose";
-import { PrenotazionePartita } from "./PrenotazionePartita";
 
 export enum Genere {
     Maschio = "maschio",
@@ -13,7 +14,7 @@ export enum Genere {
 
 export class Giocatore extends Utente {
 
-    _id: ObjectId;
+    _id: mongoose.Types.ObjectId;
 
     @prop({ required: true })
     public cognome: string
@@ -37,7 +38,7 @@ export class Giocatore extends Utente {
     public tagTelegram: string
 
     @prop({ ref: () => Circolo })
-    public circoliAssociati: Ref<Circolo>[] = []; //Non va perchè manca la classe
+    public circoliAssociati: Ref<Circolo>[] = [];
 
     @prop({ ref: () => Giocatore })
     public preferiti: Ref<Giocatore>[] = [];
@@ -68,6 +69,15 @@ export class Giocatore extends Utente {
         this.genere = genere
         this.livello = livello
     }
+
+    public isAffiliato( circolo :Ref<Circolo>){
+        if (this.circoliAssociati.includes(circolo)){
+            return true
+        }
+        return false
+    }
+
+
 
 }
 export const GiocatoreModel = getDiscriminatorModelForClass(UtenteModel, Giocatore, TipoAccount.Giocatore);

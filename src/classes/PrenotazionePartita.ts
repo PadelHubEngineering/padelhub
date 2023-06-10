@@ -4,44 +4,45 @@ import {Giocatore,GiocatoreModel} from "./Giocatore"
 import {Partita,PartitaModel} from "./Partita"
 import mongoose, { SchemaTypeOptions } from "mongoose"
 import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses"
+import { handlePaymentPrenotazione } from "../utils/gestionePagamenti.utils"
 
 @modelOptions({
     schemaOptions : {
         timestamps : true,
-        collection : "PrenotazioniPartita"
+        collection : "PrenotazioniGiocatori"
     },
     options: { allowMixed: 0 }
 })
-export class PrenotazionePartita{
+export class PrenotazioneGiocatore{
     id_prenotazione!: mongoose.Types.ObjectId;
 
-    @prop({ required : false , type : Boolean })  //mongoose
-    pagato : boolean //typescript
+    @prop({ required : true , type : Boolean })  //mongoose
+    pagato : boolean = false//typescript
     
-
     @prop({ type : Number , default : 0 , min : 0 })
     costo : number
 
     @prop({ required : true , ref: () => Partita})
     partita : Ref<Partita>
 
-    @prop({ required: true, ref: () => Giocatore })
-    giocatore: Ref<Giocatore>
+    @prop({required : true , ref: () => Giocatore})
+    giocatore : Ref<Giocatore>
 
-    @prop()
-    dataPrenotazione?: Date
+    @prop({required :true})
+    dataPrenotazione: Date
 
-    constructor(cifra : number , partita : Ref<Partita>, giocatore: Ref<Giocatore>, data : Date){
+    constructor(cifra : number , partita : Ref<Partita> , data : Date, giocatore: Ref<Giocatore>){
         this.partita=partita;
         this.costo=cifra;
         this.pagato = false;
         this.giocatore = giocatore;
         this.dataPrenotazione=data
+        this.giocatore= giocatore
     }
 
     
     //funz pagamento
-    public async cancellaPrenotazione(this: DocumentType<PrenotazionePartita>){
+    public async cancellaPrenotazione(this: DocumentType<PrenotazioneGiocatore>){
         if(!this.pagato){
             
             if(1){
@@ -49,22 +50,19 @@ export class PrenotazionePartita{
 
             }
             await this.deleteOne();
-            
         }else{
             this.emissioneRimborso()
         }
     }
 
-    public async pagaPrenotazione(this: DocumentType<PrenotazionePartita>){
-        if(!this.pagato){
-            //STRIPE
+    public async pagaPrenotazione(this: DocumentType<PrenotazioneGiocatore>){
+        if(!this.pagato){   
             this.pagato = true
-
             await this.save()
         }
     }
 
-    public emissioneRimborso(this: DocumentType<PrenotazionePartita>){
+    public emissioneRimborso(this: DocumentType<PrenotazioneGiocatore>){
         if(this.pagato){
             //servizio pagamento
         }
@@ -72,4 +70,6 @@ export class PrenotazionePartita{
     }
 }
 
-export const PrenotazionePartitaModel = getModelForClass(PrenotazionePartita)
+
+
+export const PrenotazioneModel = getModelForClass(PrenotazioneGiocatore)

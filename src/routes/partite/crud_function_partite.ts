@@ -6,16 +6,32 @@ import { logger } from "../../utils/logging"
 import { Circolo, CircoloModel } from "../../classes/Circolo"
 import { TipoAccount } from "../../classes/Utente"
 import { Giocatore, GiocatoreModel } from "../../classes/Giocatore"
+import { PrenotazioneGiocatore, PrenotazioneModel } from "../../classes/PrenotazionePartita"
 import { PartitaRetI, p_to_ret } from "./partita.interface"
 import { DocumentType } from "@typegoose/typegoose"
+import { handlePaymentPrenotazione } from "../../utils/gestionePagamenti.utils"
+import { SessionePagamentoModel } from "../../classes/SessionePagamento"
 
 //creazione di una partita
 const createPartita = async (req: Request, res: Response, next: NextFunction) => {
 
+    const { circolo, categoria_min, categoria_max, orario } = req.body
+    const email = req.utenteAttuale?.email
+    var giocatore: DocumentType<Giocatore> | null
 
-    const { giocatori, circolo, categoria_min, categoria_max, orario } = req.body
+    if (!email) {
+        sendHTTPResponse(res, 404, false, "Giocatore non trovato")
+        return
+    } else {
+        giocatore = await GiocatoreModel.findOne({ email: email })
+        console.log(giocatore)
+        if (!giocatore?._id) {
+            sendHTTPResponse(res, 400, false, "giocatore non valido")
+            return
+        }
 
 
+    }
     if (!isValidObjectId(circolo)) {
         sendHTTPResponse(res, 400, false, "Id circolo formalmente errato")
         return
@@ -26,21 +42,8 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
         return
     }
 
-
-    for (let id_giocatore of giocatori) {
-        if (!isValidObjectId(id_giocatore)) {
-            sendHTTPResponse(res, 400, false, "Trovati giocatori non validi tra quelli forniti")
-            return
-        }
-        const gioc_db = await GiocatoreModel.exists({ id: id_giocatore }).exec();
-        if (gioc_db === null) {
-            sendHTTPResponse(res, 400, false, "Trovati giocatori non esistenti tra quelli forniti")
-            return
-        }
-    }
-
     const partita = new PartitaModel({
-        giocatori: giocatori,
+        giocatori: [],
         circolo: circolo,
         categoria_min: categoria_min,
         categoria_max: categoria_max,
@@ -49,16 +52,35 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
     })
 
 
-
-
-    /*if( !_dataOraPrenotazione || typeof(_dataOraPrenotazione) !== "string" || Date.parse(_dataOraPrenotazione) === NaN){
-    sendHTTPResponse(res, 400, false, "La data inserita non è corretta")
-        return
-    }*/
-
+    let flag = 0;
     return await PartitaModel.create(partita)
-        .then((partita) => { sendHTTPResponse(res, 200, true, partita) })
-        .catch((error) => { sendHTTPResponse(res, 500, false, "[server] Errore interno") });
+        .then(async function (partita) {
+            flag = 1
+            let costo = await partita.getPrezzo(giocatore)
+            const prenotazione = new PrenotazioneModel({
+                partita: partita.id,
+                giocatore: giocatore?._id,//giocatori.at(0) as String,
+                dataPrenotazione: orario,
+                costo: costo,
+                pagato: false
+            })
+            const p = await PrenotazioneModel.create(prenotazione)
+
+            //Pagamento
+            const circoloInfo = await partita.getCircolo()
+            if (circoloInfo) {
+                if (circoloInfo.paymentId) {
+                    const link = await handlePaymentPrenotazione(circoloInfo.paymentId, costo!, p._id.toString(), partita.id)
+                    //console.log(link)
+                    if (link) {
+                        SessionePagamentoModel.saveCodice(link.id, prenotazione._id)
+                        sendHTTPResponse(res, 200, true, { url: link.url })
+                        return
+                    }
+                }
+            }
+        })
+        .catch(async function (error) { if (flag) { await PartitaModel.deleteOne(partita._id); console.log("Eliminato con successo") } sendHTTPResponse(res, 500, false, "[server] Errore interno") });
 }
 
 //lettura di una singola partita
@@ -75,7 +97,7 @@ const readPartita = async (req: Request, res: Response, next: NextFunction) => {
         .populate("circolo")
         .then(partita => {
 
-            if( !partita ) {
+            if (!partita) {
                 sendHTTPResponse(res, 404, false, "Partita inesistente")
                 return
             }
@@ -97,7 +119,7 @@ const readAllPartite = async (req: Request, res: Response, next: NextFunction) =
     const email = req.utenteAttuale?.email
 
     if (tipoAccount == TipoAccount.Giocatore) {
-        console.log("giocatore")
+        //console.log("giocatore")
         return await PartitaModel.find().populate("giocatori")
             .then(partite => sendHTTPResponse(res, 200, true, partite))
             .catch((error) => sendHTTPResponse(res, 500, false, "[server] Errore interno"))
@@ -128,18 +150,27 @@ const deletePartita = async (req: Request, res: Response, next: NextFunction) =>
         .then((partita) => partita ? sendHTTPResponse(res, 201, true, partita) : sendHTTPResponse(res, 404, false, "Nessuna partita trovata"))
         .catch((error) => sendHTTPResponse(res, 500, false, "[server] Errore interno"))
 
-    //.then((partita) => partita ? res.status(201).json({partita}) : res.json(404).json({message: "Partita non trovata"}))
-    //.catch((error) => res.status(500).json({error}))
 
 }
-
 
 //aggiunta di un altro giocatore alla partita
 const updatePartita = async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.PartitaId;
-    //console.log(id)
-    const giocatore = req.body.giocatore
-    //console.log(giocatore)
+    const email = req.utenteAttuale?.email
+    var giocatore: DocumentType<Giocatore> | null
+    if (!email) {
+        sendHTTPResponse(res, 404, false, "Giocatore non trovato")
+        return
+    } else {
+        giocatore = await GiocatoreModel.findOne({ email: email })
+        //console.log(giocatore)
+        if (!giocatore?._id || giocatore == null) {
+            sendHTTPResponse(res, 400, false, "giocatore non valido")
+            return
+        }
+
+    }
+
     if (!isValidObjectId(id)) {
         return sendHTTPResponse(res, 401, false, "ID partita invalido")
     }
@@ -148,8 +179,7 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
     return await PartitaModel.findById(id)
         .then(async (partita) => {
             if (partita) {
-                if (!partita?.checkChiusa()) {
-                    console.log("Piena")
+                if (partita?.checkChiusa()) {
                     sendHTTPResponse(res, 401, false, "Partita già al completo")
                     return
                 } else {
@@ -157,9 +187,40 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
                         sendHTTPResponse(res, 401, false, "Non puoi partecipare a questa partita : Livello invalido")
                         return
                     }
-                    console.log(`C'è posto ${await partita.checkLevel(giocatore)}`)
                     const p = await PartitaModel.findById(id).then((p) => p?.aggiungi_player(giocatore))
 
+                    //crea prenotazione
+                    if (p) {
+                        let costo = await partita.getPrezzo(giocatore)
+                        const prenotazione = new PrenotazioneModel({
+                            partita: partita.id,
+                            giocatore: giocatore,
+                            dataPrenotazione: partita.orario,
+                            costo: costo,
+                            pagato: false
+                        })
+
+                        try {
+                            await PrenotazioneModel.create(prenotazione)
+                        } catch (err) {
+                            sendHTTPResponse(res, 500, false, "[server] Errore interno1")
+                            return
+                        }
+
+                        //Pagamento
+                        const circoloInfo = await partita.getCircolo()
+                        if (circoloInfo) {
+                            if (circoloInfo.paymentId) {
+                                const link = await handlePaymentPrenotazione(circoloInfo.paymentId, costo!, p._id.toString(), partita.id)
+                                //console.log(link)
+                                if (link) {
+                                    SessionePagamentoModel.saveCodice(link.id, prenotazione._id)
+                                    sendHTTPResponse(res, 200, true, { url: link.url })
+                                    return
+                                }
+                            }
+                        }
+                    }
                     sendHTTPResponse(res, 201, true, p as Partita)
                     return
                 }
@@ -169,7 +230,7 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
 
             }
         })
-        .catch((error) => { sendHTTPResponse(res, 500, false, "[server] Errore interno"); console.log(error) })
+        .catch((error) => { sendHTTPResponse(res, 500, false, "[server] Errore interno2"); console.log(error) })
 
 
 }
