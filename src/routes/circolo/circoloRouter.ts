@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { PrenotazioneCampo, PrenotazioneCampoModel } from "../../classes/PrenotazioneCampo";
 import { Circolo, CircoloModel, Campo, TipoCampo, GiornoSettimana } from "../../classes/Circolo";
 import { TipoAccount } from "../../classes/Utente";
-import { checkTokenAmministratore, checkTokenGiocatore, checkTokenCircolo, checkTokenCircoloOAmministratore } from "../../middleware/tokenChecker";
+import { checkTokenAmministratore, checkTokenGiocatore, checkTokenCircolo, checkTokenCircoloOAmministratore, checkTokenGiocatoreOCircolo } from "../../middleware/tokenChecker";
 import { logger } from "../../utils/logging";
 import { Error, isValidObjectId } from "mongoose";
 import { convertToObject, isNumericLiteral } from "typescript";
@@ -19,6 +19,25 @@ import { inserisciDatiCircolo, registrazioneCircolo } from "./registrazioneCirco
 
 
 const router: Router = Router();
+
+router.get('/:idCircolo', checkTokenGiocatoreOCircolo, async( req: Request, res: Response ) => {
+
+    const { idCircolo } = req.params;
+
+    if ( !isValidObjectId(idCircolo) ){
+        sendHTTPResponse(res, 401, false, "Id circolo formalmente errato");
+        return
+    }
+
+    const circolo_db = await CircoloModel.findOne({ _id: idCircolo }).exec();
+
+    if ( !circolo_db ) {
+        sendHTTPResponse(res, 401, false, "Impossibile trovare il circolo richiesto");
+        return;
+    }
+
+    sendHTTPResponse( res, 200, true, c_to_ret( circolo_db ) );
+})
 
 router.post('/prenotazioneSlot', checkTokenCircolo, async (req: Request, res: Response) => {
     const { idCampo } = req.body;
