@@ -1,3 +1,4 @@
+import { getTokenSourceMapRange } from 'typescript';
 import { Circolo } from '../classes/Circolo';
 import { logger } from './logging';
 import Stripe from 'stripe';
@@ -77,7 +78,14 @@ export async function populateProducts() {
         logger.info(prod);
     }
 }
-
+export async function handleRefundPrenotazione(idCharge: string) {
+    const refund = await stripe.refunds.create({
+        charge: idCharge
+    })
+    if(refund.status == "success")
+        return true
+    return false
+}
 export async function handlePaymentPrenotazione(stripeID: string, slotPrice: number, idPrenotazione: string, idPartita: string): Promise<Stripe.PaymentLink | null> {
     const centPrice = slotPrice * 100
     const price = await stripe.prices.create({
