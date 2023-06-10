@@ -73,8 +73,6 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
 
 
     let flag = 0;
-    console.log(partita)
-
     return await PartitaModel.create(partita)
         .then(async function (partita) {
             flag = 1
@@ -87,10 +85,24 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
             })
             const p = await PrenotazioneModel.create(prenotazione)
 
+            //Pagamento
+            const circoloInfo = await partita.getCircolo()
+            if (circoloInfo) {
+                if (circoloInfo.paymentId) {
+                    const link = await handlePaymentPrenotazione(circoloInfo.paymentId, costo!, p._id.toString())
+                    console.log(link)
+                    if (link) {
+                        SessionePagamentoModel.saveCodice(link.id, prenotazione._id)
+                        sendHTTPResponse(res, 200, true, { url: link.url })
+                        return
+                    }
+                }
+            }
+
             //.catch( async function(err){await PartitaModel.deleteOne(partita.id)}
             sendHTTPResponse(res, 200, true, partita)
         })
-       //.catch(async function (error) { if (flag) { await PartitaModel.deleteOne(partita._id); console.log("Eliminato con successo") } sendHTTPResponse(res, 500, false, "[server] Errore interno") });
+    //.catch(async function (error) { if (flag) { await PartitaModel.deleteOne(partita._id); console.log("Eliminato con successo") } sendHTTPResponse(res, 500, false, "[server] Errore interno") });
     /*
        
     const parza = await(PartitaModel).create(partita)
@@ -213,7 +225,7 @@ const pagaPartita = async (req: Request, res: Response, next: NextFunction) => {
                         const circoloInfo = await partita.getCircolo()
                         if (circoloInfo) {
                             if (circoloInfo.paymentId) {
-                                const link = await handlePaymentPrenotazione(circoloInfo.paymentId, costo!)
+                                const link = await handlePaymentPrenotazione(circoloInfo.paymentId, costo!, p._id.toString())
                                 if (link) {
                                     SessionePagamentoModel.saveCodice(link.id, prenotazione._id)
                                     res.redirect(link.url)

@@ -78,7 +78,7 @@ export async function populateProducts() {
     }
 }
 
-export async function handlePaymentPrenotazione(stripeID: string, slotPrice: number): Promise<Stripe.PaymentLink | null> {
+export async function handlePaymentPrenotazione(stripeID: string, slotPrice: number, idPrenotazione: string, idPartita: string): Promise<Stripe.PaymentLink | null> {
     const centPrice = slotPrice * 100
     const price = await stripe.prices.create({
         currency: "eur",
@@ -94,7 +94,7 @@ export async function handlePaymentPrenotazione(stripeID: string, slotPrice: num
             after_completion: {
                 type: 'redirect',
                 redirect: {
-                    url: `http://localhost:8080/api/v1/webhook`,
+                    url: `${process.env.PAYMENT_REDIRECT_URL}/partite/${idPartita}/?idPrenotazione=${idPrenotazione}&pagato=${true}`,
                 },
             },
             transfer_data: {
