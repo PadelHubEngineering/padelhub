@@ -32,9 +32,6 @@ export class Partita{
     @prop({required : true , ref : () => Circolo})
     circolo : Ref<Circolo>;
 
-    @prop({ required: true })
-    tipoCampo: TipoCampo
-
     @prop({ required: false })
     public orario: Date = new Date(0, 0)
    
@@ -84,6 +81,10 @@ export class Partita{
         return false
         
     }
+
+    public async getCircolo(): Promise<DocumentType<Circolo> | null> {
+        return await CircoloModel.findById(this.circolo);
+    }
     
 
     public async getPrezzo(this : DocumentType<Partita>,gioc : Ref<Giocatore>){
@@ -118,9 +119,6 @@ export class Partita{
             }
 
             return true
-            
-            
-
         }
      
     }

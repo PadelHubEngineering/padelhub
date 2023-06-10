@@ -4,6 +4,7 @@ import {Giocatore,GiocatoreModel} from "./Giocatore"
 import {Partita,PartitaModel} from "./Partita"
 import mongoose, { SchemaTypeOptions } from "mongoose"
 import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses"
+import { handlePaymentPrenotazione } from "../utils/gestionePagamenti.utils"
 
 @modelOptions({
     schemaOptions : {
@@ -56,10 +57,8 @@ export class PrenotazioneGiocatore{
     }
 
     public async pagaPrenotazione(this: DocumentType<PrenotazioneGiocatore>){
-        if(!this.pagato){
-            //STRIPE
+        if(!this.pagato){   
             this.pagato = true
-
             await this.save()
         }
     }

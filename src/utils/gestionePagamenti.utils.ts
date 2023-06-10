@@ -5,16 +5,8 @@ import Stripe from 'stripe';
 
 const products: Stripe.ProductCreateParams[] = [
     {
-        id: "slot_60",
-        name: "Slot 60 minuti"
-    },
-    {
-        id: "slot_90",
-        name: "Slot 90 minuti"
-    },
-    {
-        id: "slot_120",
-        name: "Slot 120 minuti"
+        id: "partecipazione_partita",
+        name: "Partita di padel"
     }
 ]
 
@@ -75,34 +67,43 @@ export async function checkOnboarding(stripeID: string): Promise<boolean | null>
 }
 
 export async function populateProducts() {
+    const accList = await stripe.products.list()
+    accList.data.forEach((prod) => {
+        stripe.products.del(prod.id)
+    })
+    console.log("finished")
     for await (const val of products) {
         const prod = await stripe.products.create(val);
         logger.info(prod);
     }
 }
 
-export async function handlePaymentSlot(stripeID: string, durataSlot: number, slotPrice: number): Promise<Stripe.PaymentLink | null> {
-    if (durataSlot == 60 || durataSlot == 90 || durataSlot == 120) {
-        const centPrice = durataSlot*100
-        await stripe.prices.create({
-            currency: "eur",
-            unit_amount: centPrice,
-            product: `slot_${durataSlot}`
-        }).then(async (price) => {
-            if(price){
-                const payInfo: Stripe.PaymentLink = await stripe.paymentLinks.create({
-                    line_items: [{
-                        price: price.id,
-                        quantity: 1
-                    }],
-                    transfer_data: {
-                        destination: stripeID
-                    }
-                })
-                console.log(payInfo)
-                return payInfo;
+export async function handlePaymentPrenotazione(stripeID: string, slotPrice: number): Promise<Stripe.PaymentLink | null> {
+    const centPrice = slotPrice * 100
+    const price = await stripe.prices.create({
+        currency: "eur",
+        unit_amount: centPrice,
+        product: `partecipazione_partita`
+    })
+    if (price) {
+        const payInfo: Stripe.PaymentLink = await stripe.paymentLinks.create({
+            line_items: [{
+                price: price.id,
+                quantity: 1
+            }],
+            after_completion: {
+                type: 'redirect',
+                redirect: {
+                    url: `http://localhost:8080/api/v1/webhook`,
+                },
+            },
+            transfer_data: {
+                destination: stripeID
             }
         })
+        console.log(payInfo)
+        return payInfo;
     }
+
     return null;
 }
