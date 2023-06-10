@@ -18,7 +18,6 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
     const { circolo, categoria_min, categoria_max, orario } = req.body
     const email = req.utenteAttuale?.email
     var giocatore: DocumentType<Giocatore> | null
-    //var giocatori : Giocatore[] = []
 
     if (!email) {
         sendHTTPResponse(res, 404, false, "Giocatore non trovato")
@@ -33,11 +32,6 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
 
 
     }
-    const giocatori = [giocatore?._id]
-    console.log(giocatori)
-
-
-
     if (!isValidObjectId(circolo)) {
         sendHTTPResponse(res, 400, false, "Id circolo formalmente errato")
         return
@@ -47,20 +41,6 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
         sendHTTPResponse(res, 400, false, "Categoria invalida")
         return
     }
-
-    /*
-    for (let id_giocatore of giocatori) {
-        if (!isValidObjectId(id_giocatore)) {
-            sendHTTPResponse(res, 400, false, "Trovati giocatori non validi tra quelli forniti")
-            return
-        }
-        const gioc_db = await GiocatoreModel.exists({ _id: id_giocatore }).exec();
-        if (gioc_db === null) {
-            sendHTTPResponse(res, 400, false, "Trovati giocatori non esistenti tra quelli forniti")
-            return
-        }
-    }
-    */
 
     const partita = new PartitaModel({
         giocatori: [],
@@ -91,7 +71,7 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
             if (circoloInfo) {
                 if (circoloInfo.paymentId) {
                     const link = await handlePaymentPrenotazione(circoloInfo.paymentId, costo!, p._id.toString(), partita.id)
-                    console.log(link)
+                    //console.log(link)
                     if (link) {
                         SessionePagamentoModel.saveCodice(link.id, prenotazione._id)
                         sendHTTPResponse(res, 200, true, { url: link.url })
@@ -99,20 +79,8 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
                     }
                 }
             }
-
-            //.catch( async function(err){await PartitaModel.deleteOne(partita.id)}
-            //sendHTTPResponse(res, 200, true, partita)
         })
         .catch(async function (error) { if (flag) { await PartitaModel.deleteOne(partita._id); console.log("Eliminato con successo") } sendHTTPResponse(res, 500, false, "[server] Errore interno") });
-    /*
-       
-    const parza = await(PartitaModel).create(partita)
-    try{
-
-    }catch
-    */
-
-
 }
 
 //lettura di una singola partita
@@ -151,7 +119,7 @@ const readAllPartite = async (req: Request, res: Response, next: NextFunction) =
     const email = req.utenteAttuale?.email
 
     if (tipoAccount == TipoAccount.Giocatore) {
-        console.log("giocatore")
+        //console.log("giocatore")
         return await PartitaModel.find().populate("giocatori")
             .then(partite => sendHTTPResponse(res, 200, true, partite))
             .catch((error) => sendHTTPResponse(res, 500, false, "[server] Errore interno"))
@@ -185,77 +153,11 @@ const deletePartita = async (req: Request, res: Response, next: NextFunction) =>
 
 }
 
-const pagaPartita = async (req: Request, res: Response, next: NextFunction) => {
-    const id = req.params.PartitaId;
-    //console.log(id)
-    const giocatore = req.body.giocatore
-    //console.log(giocatore)
-    if (!isValidObjectId(id)) {
-        return sendHTTPResponse(res, 401, false, "ID partita invalido")
-    }
-
-    //check level
-    return await PartitaModel.findById(id)
-        .then(async (partita) => {
-            if (partita) {
-                if (!partita?.checkChiusa()) {
-                    console.log("Piena")
-                    sendHTTPResponse(res, 401, false, "Partita già al completo")
-                    return
-                } else {
-                    if (await partita.checkLevel(giocatore) == false) {
-                        sendHTTPResponse(res, 401, false, "Non puoi partecipare a questa partita : Livello invalido")
-                        return
-                    }
-                    console.log(`C'è posto ${await partita.checkLevel(giocatore)}`)
-                    const p = await PartitaModel.findById(id)
-
-                    //crea prenotazione
-                    let flag = 0;
-                    if (p) {
-                        console.log(partita)
-                        flag = 1
-                        let costo = await partita.getPrezzo(giocatore)
-                        const prenotazione = new PrenotazioneModel({
-                            partita: partita.id,
-                            giocatore: giocatore,
-                            dataPrenotazione: partita.orario,
-                            costo: costo,
-                            pagato: false
-                        })
-                        //Pagamento
-                        const circoloInfo = await partita.getCircolo()
-                        if (circoloInfo) {
-                            if (circoloInfo.paymentId) {
-                                const link = await handlePaymentPrenotazione(circoloInfo.paymentId, costo!, p._id.toString(), partita.id)
-                                if (link) {
-                                    SessionePagamentoModel.saveCodice(link.id, prenotazione._id)
-                                    res.redirect(link.url)
-                                    return
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                sendHTTPResponse(res, 404, false, "ID partita invalido")
-                return
-
-            }
-        })
-        .catch((error) => { sendHTTPResponse(res, 500, false, "[server] Errore interno"); console.log(error) })
-}
-
-
 //aggiunta di un altro giocatore alla partita
 const updatePartita = async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.PartitaId;
-    //console.log(id)
-    //const giocatore = req.body.giocatore
     const email = req.utenteAttuale?.email
     var giocatore: DocumentType<Giocatore> | null
-    //var giocatori : Giocatore[] = []
-
     if (!email) {
         sendHTTPResponse(res, 404, false, "Giocatore non trovato")
         return
@@ -269,7 +171,6 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
 
     }
 
-    //console.log(giocatore)
     if (!isValidObjectId(id)) {
         return sendHTTPResponse(res, 401, false, "ID partita invalido")
     }
@@ -278,9 +179,7 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
     return await PartitaModel.findById(id)
         .then(async (partita) => {
             if (partita) {
-                console.log(partita)
                 if (partita?.checkChiusa()) {
-                    console.log("Piena")
                     sendHTTPResponse(res, 401, false, "Partita già al completo")
                     return
                 } else {
@@ -288,12 +187,10 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
                         sendHTTPResponse(res, 401, false, "Non puoi partecipare a questa partita : Livello invalido")
                         return
                     }
-                    console.log(`C'è posto ${await partita.checkLevel(giocatore)}`)
                     const p = await PartitaModel.findById(id).then((p) => p?.aggiungi_player(giocatore))
 
                     //crea prenotazione
                     if (p) {
-                        console.log(partita)
                         let costo = await partita.getPrezzo(giocatore)
                         const prenotazione = new PrenotazioneModel({
                             partita: partita.id,
@@ -315,7 +212,7 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
                         if (circoloInfo) {
                             if (circoloInfo.paymentId) {
                                 const link = await handlePaymentPrenotazione(circoloInfo.paymentId, costo!, p._id.toString(), partita.id)
-                                console.log(link)
+                                //console.log(link)
                                 if (link) {
                                     SessionePagamentoModel.saveCodice(link.id, prenotazione._id)
                                     sendHTTPResponse(res, 200, true, { url: link.url })

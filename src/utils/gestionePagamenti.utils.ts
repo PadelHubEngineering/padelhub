@@ -82,9 +82,9 @@ export async function handleRefundPrenotazione(idCharge: string) {
     const refund = await stripe.refunds.create({
         charge: idCharge
     })
-    if(refund.status == "success")
-        return true
-    return false
+    if (refund.status == "succeeded")
+        return refund
+    return null
 }
 export async function handlePaymentPrenotazione(stripeID: string, slotPrice: number, idPrenotazione: string, idPartita: string): Promise<Stripe.PaymentLink | null> {
     const centPrice = slotPrice * 100
