@@ -46,7 +46,10 @@ export class Partita{
     //rivedere per salvataggio db
 
 
-    public async aggiungi_player(this : DocumentType<Partita>,gioc : Ref<Giocatore>){
+    public async aggiungi_player(this : DocumentType<Partita>,gioc : Ref<Giocatore>| null){
+        if(gioc==null){
+            return
+        }
 
         if(!this.checkChiusa()){
             this.giocatori.push(gioc);
@@ -69,7 +72,7 @@ export class Partita{
     }
 
 
-    public async checkLevel(this : DocumentType<Partita>,gioc : Ref<Giocatore>){
+    public async checkLevel(this : DocumentType<Partita>,gioc : Ref<Giocatore> |null){
         const g_level = await GiocatoreModel.findById(gioc,"livello").catch((err)=> console.log(err))
         if(!g_level?.livello){return false}
         if(g_level?.utenteType == "Giocatore"){
@@ -87,9 +90,8 @@ export class Partita{
     }
     
 
-    public async getPrezzo(this : DocumentType<Partita>,gioc : Ref<Giocatore>){
+    public async getPrezzo(this : DocumentType<Partita>,gioc : Ref<Giocatore>|null){
         const g = await GiocatoreModel.findById(gioc).catch((err)=> console.log(err))
-        
         const c = await CircoloModel.findById(this.circolo).catch((err)=> console.log(err))
      
  

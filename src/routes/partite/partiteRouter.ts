@@ -19,8 +19,9 @@ router.get("/", checkTokenGiocatoreOCircolo, readAllPartite);
 router.get("/:PartitaId", checkTokenGiocatoreOCircolo, readPartita);
 
 //add partita
-//router.post("/",checkTokenGiocatore ,createPartita);
-router.post("/", createPartita);
+router.post("/",checkTokenGiocatore ,createPartita);
+
+
 
 //delete partita
 router.delete("/:PartitaId", checkTokenCircolo, deletePartita);

@@ -15,11 +15,29 @@ import { SessionePagamentoModel } from "../../classes/SessionePagamento"
 //creazione di una partita
 const createPartita = async (req: Request, res: Response, next: NextFunction) => {
 
-    const { giocatori, circolo, categoria_min, categoria_max, orario } = req.body
+    const {circolo, categoria_min, categoria_max, orario } = req.body
+    const email = req.utenteAttuale?.email
+    var giocatore : DocumentType<Giocatore> | null
+    //var giocatori : Giocatore[] = []
+
+    if(!email){
+        sendHTTPResponse(res, 404, false, "Giocatore non trovato")
+        return
+    }else{
+        giocatore = await GiocatoreModel.findOne({email: email})
+        console.log(giocatore)
+        if(!giocatore?._id){
+            sendHTTPResponse(res, 400, false, "giocatore non valido")
+            return
+        }
 
 
+    }
+    const giocatori= [giocatore?._id]
+    console.log(giocatori)
 
 
+    
     if (!isValidObjectId(circolo)) {
         sendHTTPResponse(res, 400, false, "Id circolo formalmente errato")
         return
@@ -30,7 +48,7 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
         return
     }
 
-
+    /*
     for (let id_giocatore of giocatori) {
         if (!isValidObjectId(id_giocatore)) {
             sendHTTPResponse(res, 400, false, "Trovati giocatori non validi tra quelli forniti")
@@ -42,6 +60,7 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
             return
         }
     }
+    */
 
     const partita = new PartitaModel({
         giocatori: giocatori,
@@ -59,10 +78,10 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
     return await PartitaModel.create(partita)
         .then(async function (partita) {
             flag = 1
-            let costo = await partita.getPrezzo(giocatori)
+            let costo = await partita.getPrezzo(giocatore)
             const prenotazione = new PrenotazioneModel({
                 partita: partita.id,
-                giocatore: giocatori.at(0) as String,
+                giocatore: giocatore?._id,//giocatori.at(0) as String,
                 dataPrenotazione: orario,
                 costo: costo
             })
@@ -218,7 +237,24 @@ const pagaPartita = async (req: Request, res: Response, next: NextFunction) => {
 const updatePartita = async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.PartitaId;
     //console.log(id)
-    const giocatore = req.body.giocatore
+    //const giocatore = req.body.giocatore
+    const email = req.utenteAttuale?.email
+    var giocatore : DocumentType<Giocatore> | null
+    //var giocatori : Giocatore[] = []
+
+    if(!email){
+        sendHTTPResponse(res, 404, false, "Giocatore non trovato")
+        return
+    }else{
+        giocatore = await GiocatoreModel.findOne({email: email})
+        console.log(giocatore)
+        if(!giocatore?._id || giocatore == null){
+            sendHTTPResponse(res, 400, false, "giocatore non valido")
+            return
+        }
+
+    }
+    
     //console.log(giocatore)
     if (!isValidObjectId(id)) {
         return sendHTTPResponse(res, 401, false, "ID partita invalido")
@@ -228,7 +264,8 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
     return await PartitaModel.findById(id)
         .then(async (partita) => {
             if (partita) {
-                if (!partita?.checkChiusa()) {
+                console.log(partita)
+                if (partita?.checkChiusa()) {
                     console.log("Piena")
                     sendHTTPResponse(res, 401, false, "Partita già al completo")
                     return
