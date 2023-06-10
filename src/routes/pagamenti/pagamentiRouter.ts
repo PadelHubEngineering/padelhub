@@ -38,6 +38,9 @@ router.post('/webhook', async (req: Request, res: Response) => {
     if(event.type == 'checkout.session.completed'){
         console.log(await SessionePagamentoModel.isValid(event.type.payment_link))
     }
+    if(event.type == 'charge.succeeded'){
+        console.log(event.type.payment_intent)
+    }
     // Return a 200 response to acknowledge receipt of the event
     res.json({ received: true });
 })
