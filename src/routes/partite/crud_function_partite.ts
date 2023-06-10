@@ -15,29 +15,29 @@ import { SessionePagamentoModel } from "../../classes/SessionePagamento"
 //creazione di una partita
 const createPartita = async (req: Request, res: Response, next: NextFunction) => {
 
-    const {circolo, categoria_min, categoria_max, orario } = req.body
+    const { circolo, categoria_min, categoria_max, orario } = req.body
     const email = req.utenteAttuale?.email
-    var giocatore : DocumentType<Giocatore> | null
+    var giocatore: DocumentType<Giocatore> | null
     //var giocatori : Giocatore[] = []
 
-    if(!email){
+    if (!email) {
         sendHTTPResponse(res, 404, false, "Giocatore non trovato")
         return
-    }else{
-        giocatore = await GiocatoreModel.findOne({email: email})
+    } else {
+        giocatore = await GiocatoreModel.findOne({ email: email })
         console.log(giocatore)
-        if(!giocatore?._id){
+        if (!giocatore?._id) {
             sendHTTPResponse(res, 400, false, "giocatore non valido")
             return
         }
 
 
     }
-    const giocatori= [giocatore?._id]
+    const giocatori = [giocatore?._id]
     console.log(giocatori)
 
 
-    
+
     if (!isValidObjectId(circolo)) {
         sendHTTPResponse(res, 400, false, "Id circolo formalmente errato")
         return
@@ -103,7 +103,7 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
             //.catch( async function(err){await PartitaModel.deleteOne(partita.id)}
             //sendHTTPResponse(res, 200, true, partita)
         })
-    //.catch(async function (error) { if (flag) { await PartitaModel.deleteOne(partita._id); console.log("Eliminato con successo") } sendHTTPResponse(res, 500, false, "[server] Errore interno") });
+        .catch(async function (error) { if (flag) { await PartitaModel.deleteOne(partita._id); console.log("Eliminato con successo") } sendHTTPResponse(res, 500, false, "[server] Errore interno") });
     /*
        
     const parza = await(PartitaModel).create(partita)
@@ -253,22 +253,22 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
     //console.log(id)
     //const giocatore = req.body.giocatore
     const email = req.utenteAttuale?.email
-    var giocatore : DocumentType<Giocatore> | null
+    var giocatore: DocumentType<Giocatore> | null
     //var giocatori : Giocatore[] = []
 
-    if(!email){
+    if (!email) {
         sendHTTPResponse(res, 404, false, "Giocatore non trovato")
         return
-    }else{
-        giocatore = await GiocatoreModel.findOne({email: email})
-        console.log(giocatore)
-        if(!giocatore?._id || giocatore == null){
+    } else {
+        giocatore = await GiocatoreModel.findOne({ email: email })
+        //console.log(giocatore)
+        if (!giocatore?._id || giocatore == null) {
             sendHTTPResponse(res, 400, false, "giocatore non valido")
             return
         }
 
     }
-    
+
     //console.log(giocatore)
     if (!isValidObjectId(id)) {
         return sendHTTPResponse(res, 401, false, "ID partita invalido")
@@ -292,23 +292,22 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
                     const p = await PartitaModel.findById(id).then((p) => p?.aggiungi_player(giocatore))
 
                     //crea prenotazione
-                    let flag = 0;
                     if (p) {
                         console.log(partita)
-                        flag = 1
                         let costo = await partita.getPrezzo(giocatore)
                         const prenotazione = new PrenotazioneModel({
                             partita: partita.id,
                             giocatore: giocatore,
                             dataPrenotazione: partita.orario,
-                            costo: costo
+                            costo: costo,
+                            pagato: false
                         })
+
                         try {
                             await PrenotazioneModel.create(prenotazione)
                         } catch (err) {
-                            await partita.deleteOne()
-                            sendHTTPResponse(res, 500, false, "[server] Errore interno")
-
+                            sendHTTPResponse(res, 500, false, "[server] Errore interno1")
+                            return
                         }
 
                     }
@@ -322,7 +321,7 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
 
             }
         })
-        .catch((error) => { sendHTTPResponse(res, 500, false, "[server] Errore interno"); console.log(error) })
+        .catch((error) => { sendHTTPResponse(res, 500, false, "[server] Errore interno2"); console.log(error) })
 
 
 }
