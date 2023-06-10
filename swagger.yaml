@@ -36,6 +36,34 @@ paths:
                 type: boolean
               message:
                 type: string
+  /circolo/registrazioneCircolo:
+    x-summary: Registrazione circolo
+    post: 
+      summary: Consente la registrazione alla piattaforma come circolo
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/RegistrazioneCircolo'
+      responses:
+        201:
+          description: Dati inseriti validi, risposta valida
+          schema:
+            $ref: '#/definitions/RegistrazioneCircoloApproved'
+        400:
+          description: Dati inseriti non validi, errore
+          schema:
+            type: object
+            properties:
+              success: 
+                type: boolean
+              message:
+                type: string
+        500:
+          description: Inserita email già esistente
+          schema:
+            $ref: '#/definitions/RegistrazioneCircoloEmailExist'
   /circolo/prenotazioniSlot/{year}-{month}-{day}:
     x-summary: Richiesta lista prenotazioni Slot Circolo
     get: 
@@ -142,7 +170,6 @@ paths:
           description: Errore interno
           schema:
             $ref: '#/definitions/Errore'
-            
     get:
       summary: Ottiene tutte le partite
       responses:
@@ -277,6 +304,49 @@ definitions:
         tipoAccount: Giocatore
         email: email@email.com
         nome: Matteo
+  RegistrazioneCircolo:
+    title: Registrazione Circolo
+    type: object
+    properties:
+      nome:
+        type: string
+      email:
+        type: string
+      telefono:
+        type: string
+      password:
+        type: string
+    required:
+      - nome
+      - email
+      - password
+    example:
+      nome: CircoloPadel
+      email: circolo@padel.com
+      telefono: 3315467332
+      password: Circolo!123
+  RegistrazioneCircoloApproved:
+    title: Registrazione Circolo Approved
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+    example:
+      success: true
+      message: Email di conferma inviata
+  RegistrazioneCircoloEmailExist:
+    title: Registrazione Circolo Email Exist
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+    example:
+      success: true
+      message: Esiste gia` un utente con email uguale a "circolo@padel.com"
   PrenotazioneCircolo:
     title: Oggetto prenotazione slot circolo
     type: object
