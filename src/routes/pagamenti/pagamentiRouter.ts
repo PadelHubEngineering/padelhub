@@ -12,6 +12,7 @@ import { CodiceConferma, CodiceConfermaModel } from "../../classes/CodiceConferm
 import { handlePaymentPrenotazione } from "../../utils/gestionePagamenti.utils";
 import { SessionePagamento, SessionePagamentoModel } from "../../classes/SessionePagamento";
 import Stripe from 'stripe';
+import { PrenotazioneGiocatore, PrenotazioneModel } from "../../classes/PrenotazionePartita";
 
 const router = Router();
 
@@ -43,17 +44,21 @@ router.post('/webhook', async (req: Request, res: Response) => {
         }
     }
     if (event.type == 'charge.succeeded') {
-        console.log("charge")
-        console.log(event.data.object.payment_intent)
+        //console.log("charge")
+        //console.log(event.data.object.payment_intent)
         let count = 0;
         let session = null;
-        while(count < 10 && session == null){
+        while(count < 10 && session == null){ //riprova perchè gli eventi potrebbero essere troppo ravvicinati e la scrittura a db non ancora avvenuta
             session = await SessionePagamentoModel.findOne({ idIntent: event.data.object.payment_intent})
             count++;
         }
-        console.log(session)
+        //console.log(session)
         if(session){
-            console.log(await session.addCharge(event.data.object.id))
+            session = await session.addCharge(event.data.object.id)
+            const prenotazione = (await PrenotazioneModel.findById(session.prenotazione))
+            if(prenotazione){
+                await prenotazione.pagaPrenotazione()
+            }
         }
     }
     // Return a 200 response to acknowledge receipt of the event

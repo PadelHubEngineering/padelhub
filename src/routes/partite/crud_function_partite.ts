@@ -81,7 +81,8 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
                 partita: partita.id,
                 giocatore: giocatore?._id,//giocatori.at(0) as String,
                 dataPrenotazione: orario,
-                costo: costo
+                costo: costo,
+                pagato: false
             })
             const p = await PrenotazioneModel.create(prenotazione)
 
@@ -100,7 +101,7 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
             }
 
             //.catch( async function(err){await PartitaModel.deleteOne(partita.id)}
-            sendHTTPResponse(res, 200, true, partita)
+            //sendHTTPResponse(res, 200, true, partita)
         })
     //.catch(async function (error) { if (flag) { await PartitaModel.deleteOne(partita._id); console.log("Eliminato con successo") } sendHTTPResponse(res, 500, false, "[server] Errore interno") });
     /*
@@ -219,7 +220,8 @@ const pagaPartita = async (req: Request, res: Response, next: NextFunction) => {
                             partita: partita.id,
                             giocatore: giocatore,
                             dataPrenotazione: partita.orario,
-                            costo: costo
+                            costo: costo,
+                            pagato: false
                         })
                         //Pagamento
                         const circoloInfo = await partita.getCircolo()

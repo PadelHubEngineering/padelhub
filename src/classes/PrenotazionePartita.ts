@@ -16,10 +16,9 @@ import { handlePaymentPrenotazione } from "../utils/gestionePagamenti.utils"
 export class PrenotazioneGiocatore{
     id_prenotazione!: mongoose.Types.ObjectId;
 
-    @prop({ required : false , type : Boolean })  //mongoose
+    @prop({ required : true , type : Boolean })  //mongoose
     pagato : boolean = false//typescript
     
-
     @prop({ type : Number , default : 0 , min : 0 })
     costo : number
 
