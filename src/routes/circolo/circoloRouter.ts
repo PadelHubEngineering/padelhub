@@ -2,22 +2,23 @@ import { Router, Request, Response } from "express";
 import { PrenotazioneCampo, PrenotazioneCampoModel } from "../../classes/PrenotazioneCampo";
 import { Circolo, CircoloModel, Campo, TipoCampo, GiornoSettimana } from "../../classes/Circolo";
 import { TipoAccount } from "../../classes/Utente";
-import { checkTokenAmministratore, checkTokenCircolo, checkTokenCircoloOAmministratore } from "../../middleware/tokenChecker";
+import { checkTokenAmministratore, checkTokenGiocatore, checkTokenCircolo, checkTokenCircoloOAmministratore } from "../../middleware/tokenChecker";
 import { logger } from "../../utils/logging";
 import { Error, isValidObjectId } from "mongoose";
 import { convertToObject, isNumericLiteral } from "typescript";
 import { error } from "winston";
-import { Partita } from "../../classes/Partita";
-import { HTTPResponse, sendHTTPResponse } from "../../utils/general.utils";
+import { Partita, PartitaModel } from "../../classes/Partita";
+import { sendHTTPResponse } from "../../utils/general.utils";
 
 import { DateTime } from  "luxon"
+import { GiocatoreModel } from "../../classes/Giocatore";
+import { PartiteAperteI, c_to_ret, map_to_display } from "../partite/partita.interface";
 
 import { controlloData, controlloDataExpanded } from "../../utils/parameters.utils";
 import { inserisciDatiCircolo, registrazioneCircolo } from "./registrazioneCircolo";
 
 
 const router: Router = Router();
-
 
 router.post('/prenotazioneSlot', checkTokenCircolo, async (req: Request, res: Response) => {
     const { idCampo } = req.body;
@@ -209,6 +210,80 @@ router.get('/prenotazioniSlot/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})', checkT
     return
 })
 
+// Route per il giocatore che deve accedere a dati di un circolo
+router.get('/:idCircolo/partiteAperte/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})-:hours(\\d{2})-:minutes(\\d{2})', checkTokenGiocatore, async (req: Request, res: Response) => {
+
+    const { year, month, day, hours, minutes } = req.params;
+    const _data_slot = `${year}-${month}-${day}T${hours}:${minutes}:00.000Z`;
+    const { idCircolo } = req.params;
+
+    const data_slot = controlloData(res, _data_slot, "Data fornita formalmente")
+    if ( !data_slot ) return
+
+    if ( !isValidObjectId(idCircolo) ) {
+        sendHTTPResponse(res, 400, false, "L'id del circolo fornito non è valido")
+        return
+    }
+
+    // Scarico i dati del giocatore attuale, quello che ha fatto la richiesta
+    const giocatore_db = await GiocatoreModel.findOne({ email: req.utenteAttuale!.email }).exec();
+
+    if( !giocatore_db ) {
+        logger.error("Trovato giocatore con email non corretta, con token valido. Cambiare immediatamente la chiave privata")
+        sendHTTPResponse(res, 500, false, "Errore interno, impossibile scaricare lista prenotazioni")
+        return
+    }
+
+    // Scarico i dati del circolo nel quale la partita è organizzata
+    const circolo_db = await CircoloModel.findOne({ _id: idCircolo }).exec();
+    if ( !circolo_db ) {
+        sendHTTPResponse(res, 400, false, "Il circolo richiesto non è stato trovato")
+        return
+    }
+
+    // I casi sono due: l'utente ha già una prenotazione a suo nome per questo slot,
+    // in quel caso imposto `giaPrenotato` a true e ritorno solo quella partita
+    let ret_obj: PartiteAperteI = {
+        giaPrenotato: false,
+        partite: [],
+        circolo: c_to_ret(circolo_db),
+        isAffiliato: ( circolo_db._id.toString() in giocatore_db.circoliAssociati )
+    }
+
+    // Controllo se il giocatore è già iscritto ad una partita per lo slot attuale
+    const partitaGiocatore = await PartitaModel.find({ orario: data_slot, circolo: idCircolo, isChiusa: false, giocatori: giocatore_db._id }).exec()
+
+    if( partitaGiocatore.length == 1 ) {
+        // Stampo la partita alla quale è già iscritto
+
+        ret_obj.giaPrenotato = true;
+        ret_obj.partite = await map_to_display(partitaGiocatore)
+
+    } else if ( partitaGiocatore.length > 1 ){
+
+        sendHTTPResponse( res, 500, false, "Il giocatore non può essere iscritto a due partite contemporaneamente" )
+        return
+
+    } else {
+        // Oppure gli mostro la lista di partite aperte alle quali può partecipare
+
+        const categoria_giocatore = giocatore_db.calcolaCategoria();
+
+        const partite = await PartitaModel.find({
+            orario: data_slot,
+            circolo: idCircolo,
+            isChiusa: false,
+            $and: [
+                { categoria_max: { $gte: categoria_giocatore } },
+                { categoria_min: { $lte: categoria_giocatore } }
+            ]
+        }).exec();
+
+        ret_obj.partite = await map_to_display(partite)
+    }
+
+    sendHTTPResponse(res, 200, true, ret_obj)
+})
 
 //API per registrazione circolo
 router.post("/registrazioneCircolo", registrazioneCircolo)

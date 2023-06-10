@@ -64,5 +64,9 @@ export function preliminary_check() {
         return false
     }
 
+    if ( process.env.STRIPE_KEY === undefined){
+        logger.error("Impossibile caricare la Stripe Key, esco")
+        return false
+    }
     return true
 }

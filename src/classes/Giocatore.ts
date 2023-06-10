@@ -1,8 +1,9 @@
-import { Ref, getDiscriminatorModelForClass, getModelForClass, prop, mongoose } from "@typegoose/typegoose"
+import { Ref, getDiscriminatorModelForClass, getModelForClass, prop, mongoose, DocumentType } from "@typegoose/typegoose"
 import { Circolo } from "./Circolo";
 import { Utente, UtenteModel } from "./Utente";
 import { TipoAccount } from "./Utente";
 import { ObjectId } from "mongoose";
+import { PrenotazionePartita } from "./PrenotazionePartita";
 
 export enum Genere {
     Maschio = "maschio",
@@ -41,11 +42,23 @@ export class Giocatore extends Utente {
     @prop({ ref: () => Giocatore })
     public preferiti: Ref<Giocatore>[] = [];
 
-    // @prop({ type: () => [Partita] })
-    // public partiteGiocate?: Partita[]; //Non va perchè manca la classe
+    // @prop({ type: () => PrenotazionePartita })
+    // public partitePrenotate?: PrenotazionePartita[] = [];
 
-    // @prop({ type: () => [Partita] })
-    // public partitePrenotate?: Partita[]; //Non va perchè manca la classe
+    public calcolaCategoria(this: DocumentType<Giocatore>): number | null {
+
+        if(
+            this.livello === undefined ||
+            this.livello < 0
+        )
+            return null;
+
+        if ( this.livello < 1000 ) return 1
+        else if ( this.livello < 2000 ) return 2
+        else if( this.livello < 3000 ) return 3
+        else if( this.livello < 4000 ) return 4
+        else return 5
+    }
 
     constructor(name: string, cognome: string, email: string, nickname: string, password: string, telefono?: string,  dataDiNascita?: Date, genere?: Genere, livello?: number) {
         super(name, email, password, false, telefono)

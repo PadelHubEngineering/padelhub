@@ -8,10 +8,11 @@ import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses"
 @modelOptions({
     schemaOptions : {
         timestamps : true,
-        collection : "Prenotazioni Partite"
-    }
+        collection : "PrenotazioniPartita"
+    },
+    options: { allowMixed: 0 }
 })
-export class Prenotazione{
+export class PrenotazionePartita{
     id_prenotazione!: mongoose.Types.ObjectId;
 
     @prop({ required : false , type : Boolean })  //mongoose
@@ -24,19 +25,23 @@ export class Prenotazione{
     @prop({ required : true , ref: () => Partita})
     partita : Ref<Partita>
 
+    @prop({ required: true, ref: () => Giocatore })
+    giocatore: Ref<Giocatore>
+
     @prop()
     dataPrenotazione?: Date
 
-    constructor(cifra : number , partita : Ref<Partita> , data : Date){
+    constructor(cifra : number , partita : Ref<Partita>, giocatore: Ref<Giocatore>, data : Date){
         this.partita=partita;
         this.costo=cifra;
         this.pagato = false;
+        this.giocatore = giocatore;
         this.dataPrenotazione=data
     }
 
     
     //funz pagamento
-    public async cancellaPrenotazione(this: DocumentType<Prenotazione>){
+    public async cancellaPrenotazione(this: DocumentType<PrenotazionePartita>){
         if(!this.pagato){
             
             if(1){
@@ -50,7 +55,7 @@ export class Prenotazione{
         }
     }
 
-    public async pagaPrenotazione(this: DocumentType<Prenotazione>){
+    public async pagaPrenotazione(this: DocumentType<PrenotazionePartita>){
         if(!this.pagato){
             //STRIPE
             this.pagato = true
@@ -59,23 +64,12 @@ export class Prenotazione{
         }
     }
 
-    public emissioneRimborso(this: DocumentType<Prenotazione>){
+    public emissioneRimborso(this: DocumentType<PrenotazionePartita>){
         if(this.pagato){
             //servizio pagamento
         }
 
     }
-
-
-
-    
-
-
-
-
 }
 
-
-
-export const PrenotazioneModel = getModelForClass(Prenotazione)
-
+export const PrenotazionePartitaModel = getModelForClass(PrenotazionePartita)
