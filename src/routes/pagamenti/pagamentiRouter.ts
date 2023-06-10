@@ -6,13 +6,14 @@ import { logger } from "../../utils/logging";
 import base64 from "@hexagon/base64";
 import { MongoServerError } from "mongodb";
 import { inviaEmailConferma } from "../../utils/email.utils";
-import { Ref, DocumentType } from "@typegoose/typegoose";
+import { Ref, DocumentType, pre } from "@typegoose/typegoose";
 import { Utente } from "../../classes/Utente";
 import { CodiceConferma, CodiceConfermaModel } from "../../classes/CodiceConferma";
 import { handlePaymentPrenotazione } from "../../utils/gestionePagamenti.utils";
 import { SessionePagamento, SessionePagamentoModel } from "../../classes/SessionePagamento";
 import Stripe from 'stripe';
 import { PrenotazioneGiocatore, PrenotazioneModel } from "../../classes/PrenotazionePartita";
+import { PartitaModel } from "../../classes/Partita";
 
 const router = Router();
 
@@ -56,6 +57,13 @@ router.post('/webhook', async (req: Request, res: Response) => {
         if(session){
             session = await session.addCharge(event.data.object.id)
             const prenotazione = (await PrenotazioneModel.findById(session.prenotazione))
+            if(prenotazione){
+                const partita = await PartitaModel.findById(prenotazione?.partita)
+                if(partita){
+                    partita.aggiungi_player(prenotazione.giocatore)
+                }
+            }
+            
             if(prenotazione){
                 await prenotazione.pagaPrenotazione()
             }

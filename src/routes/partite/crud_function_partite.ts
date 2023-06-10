@@ -63,7 +63,7 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
     */
 
     const partita = new PartitaModel({
-        giocatori: giocatori,
+        giocatori: [],
         circolo: circolo,
         categoria_min: categoria_min,
         categoria_max: categoria_max,
@@ -208,7 +208,7 @@ const pagaPartita = async (req: Request, res: Response, next: NextFunction) => {
                         return
                     }
                     console.log(`C'è posto ${await partita.checkLevel(giocatore)}`)
-                    const p = await PartitaModel.findById(id).then((p) => p?.aggiungi_player(giocatore))
+                    const p = await PartitaModel.findById(id)
 
                     //crea prenotazione
                     let flag = 0;
@@ -310,8 +310,20 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
                             return
                         }
 
+                        //Pagamento
+                        const circoloInfo = await partita.getCircolo()
+                        if (circoloInfo) {
+                            if (circoloInfo.paymentId) {
+                                const link = await handlePaymentPrenotazione(circoloInfo.paymentId, costo!, p._id.toString(), partita.id)
+                                console.log(link)
+                                if (link) {
+                                    SessionePagamentoModel.saveCodice(link.id, prenotazione._id)
+                                    sendHTTPResponse(res, 200, true, { url: link.url })
+                                    return
+                                }
+                            }
+                        }
                     }
-
                     sendHTTPResponse(res, 201, true, p as Partita)
                     return
                 }
