@@ -36,6 +36,105 @@ paths:
                 type: boolean
               message:
                 type: string
+                
+                
+  /circolo/registrazioneCircolo:
+    x-summary: Registrazione circolo
+    post: 
+      summary: Consente la registrazione alla piattaforma come circolo
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/RegistrazioneCircolo'
+      responses:
+        201:
+          description: Dati inseriti validi, risposta valida
+          schema:
+            $ref: '#/definitions/RegistrazioneCircoloApproved'
+        400:
+          description: Dati inseriti non validi, errore
+          schema:
+            type: object
+            properties:
+              success: 
+                type: boolean
+              message:
+                type: string
+        500:
+          description: Inserita email già esistente
+          schema:
+            $ref: '#/definitions/RegistrazioneCircoloEmailExist'
+            
+            
+  /circolo/eliminaCircolo:
+    x-summary: Eliminazione Circolo
+    delete:
+      summary: Consente di eliminare un circolo dalla piattaforma
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/EliminazioneCircolo'
+      responses:
+        200:
+          description: Dati validi, eliminazione corretta
+          schema:
+            $ref: '#/definitions/EliminazioneCircoloApproved'
+        401:
+          description: Dati invalidi, errore
+          schema:
+            $ref: '#/definitions/EliminazioneCircoloImpossible'
+            
+            
+  /datiCircolo:
+    x-summary: Scarica dati Circolo
+    get:
+      summary: Fornisce tutti i dati relativi ad un Circolo
+      responses:
+        200:
+          description: Il payload contiene tutti i dati relativi al circolo
+          schema:
+            allOf:
+              - $ref: '#/definitions/RispostaBasic'
+              - type: object
+                properties:
+                  payload:
+                    type: object
+        403:
+          description: Azione fallita, il payload contiene il messaggio di errore
+          schema:
+            allOf:
+              - $ref: '#/definitions/RispostaBasic'
+              - type: object
+                properties:
+                  payload:
+                    type: object
+            
+            
+  /inserimentoDatiCircolo:
+    x-summary: Inserimento dati Circolo
+    post:
+      summary: Consente l'inserimento dei dati di un Circolo
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/InserimentoDatiCircolo'
+      responses:
+        200:
+          description: Dati validi, inserimento corretto
+          schema:
+            $ref: '#/definitions/InserimentoDatiCircoloOK'
+        500:
+          description: Dati invalidi, errore
+          schema:
+            $ref: '#/definitions/InserimentoDatiCircoloWrong'
+            
+            
   /circolo/prenotazioniSlot/{year}-{month}-{day}:
     x-summary: Richiesta lista prenotazioni Slot Circolo
     get: 
@@ -68,6 +167,8 @@ paths:
           description: Non sei autorizzato ad accedere alla risorsa. Token non valido
           schema:
            $ref: '#/definitions/Errore'
+           
+           
   /circolo/prenotazioneSlot/:
     x-summary: Richiesta Prenotazione Slot Circolo
     post:
@@ -94,6 +195,7 @@ paths:
           schema:
            $ref: '#/definitions/Errore'
            
+           
   /prenotazioneSlot/{id_prenotazione}:
     x-summary: Cancellazione Prenotazione Slot Circolo
     delete:
@@ -110,6 +212,7 @@ paths:
           description: Impossibile eliminare la prenotazione o impossibile trovare la prenotazione richiesta
           schema:
            $ref: '#/definitions/Errore'
+           
            
   /partite/:
     x-summary: Inserimento nuova partita
@@ -142,7 +245,6 @@ paths:
           description: Errore interno
           schema:
             $ref: '#/definitions/Errore'
-            
     get:
       summary: Ottiene tutte le partite
       responses:
@@ -157,6 +259,7 @@ paths:
           description: Errore Interno
           schema: 
             $ref: '#/definitions/Errore'
+            
 
   /partite/{PartitaId}:
     x-summary: Ritrova partita specifica
@@ -235,6 +338,45 @@ paths:
           description: id partita invalido
           schema:
             $ref: '#/definitions/Errore'
+            
+  /giocatore/getSlot?idCircolo=idCircolo&data=data&campo=tipoCampo:
+    x-summary: Scarica dati slot circoli
+    get:
+      summary: Fornisce l'occupazione degli slot orari dei vari circoli, evidenziando la presenza di eventuali partite aperte 
+      parameters:
+        - name: idCircolo 
+          in: query
+          type: string
+          required: true
+        - in: query
+          name: data
+          type: string
+          required: true
+        - in: query
+          name: tipoCampo
+          type: string
+          enum: [Interno, Esterno]
+          required: true
+      responses:
+        200:
+          description: Ritorna i dati del circolo e quelli relativi ai vari slot temporali, in particolare di questi viene indicata la disponibilità e la presenza di partite aperte
+          schema:
+            allOf:
+              - $ref: '#/definitions/RispostaBasic'
+              - type: object
+                properties:
+                  payload:
+                    type: object
+        403:
+          description: Ritorna il messaggio esplicativo di errore
+          schema:
+            allOf:
+              - $ref: '#/definitions/RispostaBasic'
+              - type: object
+                properties:
+                  payload:
+                    type: object
+            
 definitions:
   LoginRequest:
     title: Login Request
@@ -277,6 +419,167 @@ definitions:
         tipoAccount: Giocatore
         email: email@email.com
         nome: Matteo
+  RegistrazioneCircolo:
+    title: Registrazione Circolo
+    type: object
+    properties:
+      nome:
+        type: string
+      email:
+        type: string
+      telefono:
+        type: string
+      password:
+        type: string
+    required:
+      - nome
+      - email
+      - password
+    example:
+      nome: CircoloPadel
+      email: circolo@padel.com
+      telefono: 3315467332
+      password: Circolo!123
+  RegistrazioneCircoloApproved:
+    title: Registrazione Circolo Approved
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+    example:
+      success: true
+      message: Email di conferma inviata
+  RegistrazioneCircoloEmailExist:
+    title: Registrazione Circolo Email Exist
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+    example:
+      success: true
+      message: Esiste gia` un utente con email uguale a "circolo@padel.com"
+  EliminazioneCircolo: 
+    title: Eliminazione Circolo
+    type: object
+    properties:
+      email:
+        type: string
+    required:
+      - email
+    example:
+      email: circolo@padel.com
+  EliminazioneCircoloApproved:
+    title: Eliminazione Circolo Approved
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+    example:
+      success: true
+      message: Circolo eliminato con successo
+  EliminazioneCircoloImpossible:
+    title: Eliminazione Circolo Impossible
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+    example:
+      success: false
+      message: Impossibile eliminare il circolo
+  DatiCircoloOk: 
+    title: Dati Circolo Ok
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+    example:
+      success: true
+  InserimentoDatiCircolo:
+    title: Inserimento dati Circolo
+    type: object
+    properties:
+      anagrafica:
+        type: object
+        properties:
+          nome:
+            type: string
+          telefono:
+            type: string
+          partitaIVA:
+            type: string
+          indirizzo:
+            type: string
+      struttura: 
+        type: object
+        properties:
+          orariStruttura:
+            type: array
+            items:
+              type: object
+              properties:
+                giorno:
+                  type: number
+                isAperto: 
+                  type: boolean
+                orarioChiusura: 
+                  type: string
+                orarioApertura:
+                  type: string
+          durataSlot: 
+            type: number
+          quotaAffiliazione:
+            type: number
+          prezzoSlotOrario:
+            type: number
+          scontoAffiliazione: 
+            type: number
+          nCampiInterni: 
+            type: number
+          nCampiEsterni: 
+            type: number
+      servizio: 
+        type: object
+        properties:
+          serviziAggiuntivi: 
+            type: array
+            items: 
+              type: string
+  
+  InserimentoDatiCircoloOK:
+    title: Inserimento dati Circolo corretto
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+    example:
+      success: true
+      message: Circolo aggiornato correttamente
+      
+  InserimentoDatiCircoloWrong:
+    title: Inserimento dati Circolo errato
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+    example:
+      success: true
+      message: messaggio esplicativo dei dati errati
+    
+      
   PrenotazioneCircolo:
     title: Oggetto prenotazione slot circolo
     type: object

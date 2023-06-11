@@ -37,7 +37,7 @@ export async function inviaEmailConferma( codice_conferma: string, id_utente: st
                         "HTMLPart":
                         `
                             Clicca sul link sottostante per confermare il tuo indirizzo email:
-                            <a href='${process.env.CONFIRMATION_EMAIL_URL}/${codice_conferma}' >Conferma !</a>
+                            <a href='${process.env.FRONTEND_URL}${process.env.CONFIRMATION_EMAIL_URL}/?codiceConferma=${codice_conferma}' >Clicca qui</a>
                         `
                     }
                 ]

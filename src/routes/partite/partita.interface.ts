@@ -25,8 +25,9 @@ export type CircoloRetI = {
     nome: string,
     durataSlot: number,
     costoPrenotazione: number,
-    email: string
-    campi: Campo[]
+    email: string,
+    campi: Campo[],
+    costoPrenotazioneAffiliato: number
 }
 
 export type GiocatoreRetI = {
@@ -34,7 +35,8 @@ export type GiocatoreRetI = {
     cognome: string,
     nickname: string,
     foto: string,
-    email: string
+    email: string,
+    categoria: number
 }
 
 export function g_to_ret(giocatore: DocumentType<Giocatore>) {
@@ -43,7 +45,8 @@ export function g_to_ret(giocatore: DocumentType<Giocatore>) {
         cognome: giocatore.cognome,
         nickname: giocatore.nickname,
         foto: giocatore.foto,
-        email: giocatore.email
+        email: giocatore.email,
+        categoria: giocatore.calcolaCategoria(),
     } as GiocatoreRetI
 }
 
@@ -54,7 +57,8 @@ export function c_to_ret(circolo: DocumentType<Circolo>) {
         durataSlot: circolo.durataSlot,
         email: circolo.email,
         campi: circolo.campi,
-        costoPrenotazione: circolo.prezzoSlotOrario
+        costoPrenotazione: circolo.prezzoSlotOrario,
+        costoPrenotazioneAffiliato: circolo.getPrezzoSlotOrarioAffiliato()
     } as CircoloRetI
 }
 
