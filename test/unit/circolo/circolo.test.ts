@@ -545,6 +545,168 @@ describe("GET /api/v1/circolo/datiCircolo", () => {
             })
     })
 
+    test( "Scarica dati circolo correttamente", async () => {
+
+        const token = createTokenCircolo()
+        if ( !token )
+            throw new Error('Il token, per qualche motivo erano null. non va bene');
+
+        CircoloModel.findOne = jest.fn().mockImplementation((criterias) => {
+            return {
+                nome: "CircoloNuovo",
+                email: "zanonmarco4@gmail.com",
+                telefono: "3292877972",
+                partitaIVA: "3292877972",
+                indirizzo: "Via Trento",
+                _id: "6485f2984fd64ccdff8a9819",
+                utenteType: 'Circolo',
+                validato: false,
+                campi: [
+                  { id: 1, tipologia: 'Interno' },
+                  { id: 2, tipologia: 'Interno' },
+                  { id: 3, tipologia: 'Esterno' },
+                  { id: 4, tipologia: 'Esterno' },
+                  { id: 5, tipologia: 'Esterno' }
+                ],
+                orarioSettimanale: [
+                    {
+                        giorno: 0,
+                        isAperto: true,
+                        orarioApertura: "1899-12-31T08:00:00.000Z",
+                        orarioChiusura: "1899-12-31T23:00:00.000Z"
+                    },
+                    {
+                        giorno: 1,
+                        isAperto: true,
+                        orarioApertura: "1899-12-31T09:00:00.000Z",
+                        orarioChiusura: "1899-12-31T20:00:00.000Z"
+                    },
+                    {
+                        giorno: 2,
+                        isAperto: true,
+                        orarioApertura: "1899-12-31T09:00:00.000Z",
+                        orarioChiusura: "1899-12-31T20:00:00.000Z"
+                    },
+                    {
+                        giorno: 3,
+                        isAperto: false,
+                        orarioApertura: "1899-12-31T00:00:00.000Z",
+                        orarioChiusura: "1899-12-31T00:00:00.000Z"
+                    },
+                    {
+                        giorno: 4,
+                        isAperto: true,
+                        orarioApertura: "1899-12-31T09:00:00.000Z",
+                        orarioChiusura: "1899-12-31T23:00:00.000Z"
+                    },
+                    {
+                        giorno: 5,
+                        isAperto: false,
+                        orarioApertura: "1899-12-31T00:00:00.000Z",
+                        orarioChiusura: "1899-12-31T00:00:00.000Z"
+                    },
+                    {
+                        giorno: 6,
+                        isAperto: false,
+                        orarioApertura: "1899-12-31T00:00:00.000Z",
+                        orarioChiusura: "1899-12-31T00:00:00.000Z"
+                    }
+                ],
+                durataSlot: 60,
+                quotaAffiliazione: 20,
+                prezzoSlotOrario: 14,
+                scontoAffiliazione: 20,
+                serviziAggiuntivi: [
+                    "parcheggio",
+                    "bar",
+                    "piscina"
+                ]
+                
+            }    
+        }) as any;
+
+
+        await request(app)
+            .get(`/api/v1/circolo/datiCircolo`)
+            .set('x-access-token', token)
+            .send()
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", true)
+                    expect(res.body).toHaveProperty("payload",  {
+                        anagrafica: {
+                            nome: "CircoloNuovo",
+                            email: "zanonmarco4@gmail.com",
+                            telefono: "3292877972",
+                            partitaIVA: "3292877972",
+                            indirizzo: "Via Trento"
+                        },
+                        struttura: {
+                            orariStruttura: [
+                                {
+                                    giorno: 0,
+                                    isAperto: true,
+                                    orarioApertura: "1899-12-31T08:00:00.000Z",
+                                    orarioChiusura: "1899-12-31T23:00:00.000Z"
+                                },
+                                {
+                                    giorno: 1,
+                                    isAperto: true,
+                                    orarioApertura: "1899-12-31T09:00:00.000Z",
+                                    orarioChiusura: "1899-12-31T20:00:00.000Z"
+                                },
+                                {
+                                    giorno: 2,
+                                    isAperto: true,
+                                    orarioApertura: "1899-12-31T09:00:00.000Z",
+                                    orarioChiusura: "1899-12-31T20:00:00.000Z"
+                                },
+                                {
+                                    giorno: 3,
+                                    isAperto: false,
+                                    orarioApertura: "1899-12-31T00:00:00.000Z",
+                                    orarioChiusura: "1899-12-31T00:00:00.000Z"
+                                },
+                                {
+                                    giorno: 4,
+                                    isAperto: true,
+                                    orarioApertura: "1899-12-31T09:00:00.000Z",
+                                    orarioChiusura: "1899-12-31T23:00:00.000Z"
+                                },
+                                {
+                                    giorno: 5,
+                                    isAperto: false,
+                                    orarioApertura: "1899-12-31T00:00:00.000Z",
+                                    orarioChiusura: "1899-12-31T00:00:00.000Z"
+                                },
+                                {
+                                    giorno: 6,
+                                    isAperto: false,
+                                    orarioApertura: "1899-12-31T00:00:00.000Z",
+                                    orarioChiusura: "1899-12-31T00:00:00.000Z"
+                                }
+                            ],
+                            durataSlot: 60,
+                            quotaAffiliazione: 20,
+                            prezzoSlotOrario: 14,
+                            scontoAffiliazione: 20,
+                            nCampiInterni: 2,
+                            nCampiEsterni: 3
+                        },
+                        servizio: {
+                            serviziAggiuntivi: [
+                                "parcheggio",
+                                "bar",
+                                "piscina"
+                            ]
+                        }
+                    })
+                }
+            })
+    })
+
 })
 
 describe("POST /circolo/inserimentoDatiCircolo", () => {
@@ -570,56 +732,305 @@ describe("POST /circolo/inserimentoDatiCircolo", () => {
             })
     })
 
-    // test( "Inserisci dati circolo con telefono non valido", async () => {
+    test( "Inserisci dati circolo con dati mancanti", async () => {
 
-    //     const token = createTokenCircolo()
+        await request(app)
+            .post(`/api/v1/circolo/inserimentoDatiCircolo`)
+            .send({
+                anagrafica: {
+                    nome: "PadelLoro",
+                    telefono: "32",
+                    partitaIVA: "3292877972",
+                    indirizzo: "Via Trento"
+                }
+            })
+            .expect('Content-Type', /json/)
+            .expect(401)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", "Nessun token fornito")
+                }
+            })
+    })
 
-    //     CircoloModel.findOne = jest.fn().mockImplementation((criterias) => {
-    //         return {
-    //             exec: jest.fn().mockImplementation(() => {
-    //                 if((<any>criterias).email == email_circolo) {
+    test( "Inserisci dati circolo con dati mancanti", async () => {
 
-    //                     let orario_settimanale: any[] = []
+        const token = createTokenCircolo()
 
-    //                     for(let i=0;i<=7;i++)
-    //                         orario_settimanale.push({ orarioApertura, orarioChiusura })
+        CircoloModel.create = jest.fn().mockImplementation((criterias) => {
+            return {
+                
+                    _id:  "6485f2984fd64ccdff8a9819",
+                    nome: "Tastiko",
+                    email: "zanonmarco4@gmail.com",
+                    telefono: "3701303155",
+                    password: "$argon2id$v=19$m=65536,t=3,p=4$bHnTvdlqcR5bt7jbtIvvmA$MEgZxd0i8SUiCUGzNduxse9y1+VvWH3JN419rfM1avQ",
+                    confermato: true,
+                    utenteType: "Circolo",
+                    validato: false,
+                    scontoAffiliazione: 50,
+                    campi: [
+                      { id: 1, tipologia: "Interno" },
+                      { id: 2, tipologia: "Interno" },
+                      { id: 3, tipologia: "Esterno" },
+                      { id: 4, tipologia: "Esterno" },
+                      { id: 5, tipologia: "Esterno" },
+                    ],
+                    orarioSettimanale: [
+                        {
+                            giorno: 0,
+                            isAperto: true,
+                            orarioApertura: "1899-12-31T08:00:00.000Z",
+                            orarioChiusura: "1899-12-31T23:00:00.000Z"
+                        },
+                        {
+                            giorno: 1,
+                            isAperto: true,
+                            orarioApertura: "1899-12-31T09:00:00.000Z",
+                            orarioChiusura: "1899-12-31T20:00:00.000Z"
+                        },
+                        {
+                            giorno: 2,
+                            isAperto: true,
+                            orarioApertura: "1899-12-31T09:00:00.000Z",
+                            orarioChiusura: "1899-12-31T20:00:00.000Z"
+                        },
+                        {
+                            giorno: 3,
+                            isAperto: false,
+                            orarioApertura: "1899-12-31T00:00:00.000Z",
+                            orarioChiusura: "1899-12-31T00:00:00.000Z"
+                        },
+                        {
+                            giorno: 4,
+                            isAperto: true,
+                            orarioApertura: "1899-12-31T09:00:00.000Z",
+                            orarioChiusura: "1899-12-31T23:00:00.000Z"
+                        },
+                        {
+                            giorno: 5,
+                            isAperto: false,
+                            orarioApertura: "1899-12-31T00:00:00.000Z",
+                            orarioChiusura: "1899-12-31T00:00:00.000Z"
+                        },
+                        {
+                            giorno: 6,
+                            isAperto: false,
+                            orarioApertura: "1899-12-31T00:00:00.000Z",
+                            orarioChiusura: "1899-12-31T00:00:00.000Z"
+                        }
+                    ],
+                    serviziAggiuntivi: [],
+                    __v: 0,
+                    paymentId: "acct_1NHqtCFwZqP386K0",
+                    durataSlot: 60,
+                    indirizzo: "via venezia 1, trento (TN), 38122 ",
+                    partitaIVA: " ",
+                    prezzoSlotOrario: 80,
+                    quotaAffiliazione: 200
+                  }
+           
+        }) as any;
 
-    //                     return Promise.resolve({
-    //                         _id: circoloId,
-    //                         durataSlot,
-    //                         campi: [
-    //                             { id: 1, tipologia: TipoCampo.Interno} as Campo,
-    //                             { id: 2, tipologia: TipoCampo.Esterno} as Campo,
-    //                         ],
-    //                         orarioSettimanale: orario_settimanale
-    //                     })
-    //                 }
-    //                 return Promise.resolve(null)
-    //             })
-    //         }
-    //     }) as any;
+        if ( !token )
+            throw new Error('Il token, per qualche motivo erano null. non va bene');
 
-    //     if ( !token )
-    //         throw new Error('Il token, per qualche motivo erano null. non va bene');
+        await request(app)
+            .post(`/api/v1/circolo/inserimentoDatiCircolo`)
+            .set('x-access-token', token)
+            .send({
+                anagrafica: {
+                    nome: "PadelLoro",
+                    telefono: "32",
+                    partitaIVA: "3292877972",
+                    indirizzo: "Via Trento"
+                }
+            })
+            .expect('Content-Type', /json/)
+            .expect(403)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", "Impossibile aggiornare circolo: dati mancanti")
+                }
+            })
+    })
 
-    //     await request(app)
-    //         .post(`/api/v1/circolo/inserimentoDatiCircolo`)
-    //         .set('x-access-token', token)
-    //         .send({
-    //             anagrafica: {
-    //                 nome: "PadelLoro",
-    //                 telefono: "32",
-    //                 partitaIVA: "3292877972",
-    //                 indirizzo: "Via Trento"
-    //             }
-    //         })
-    //         .expect('Content-Type', /json/)
-    //         .expect(400)
-    //         .then((res) => {
-    //             if (res.body) {
-    //                 expect(res.body).toHaveProperty("success", false)
-    //                 expect(res.body).toHaveProperty("message", "Telefono invalido")
-    //             }
-    //         })
-    // })
+    test( "Inserisci dati circolo con campi float invece che int", async () => {
+
+        const token = createTokenCircolo()
+
+        if ( !token )
+            throw new Error('Il token, per qualche motivo erano null. non va bene');
+
+        CircoloModel.create = jest.fn().mockImplementation((criterias) => {
+            return {
+                _id:  "6485f2984fd64ccdff8a9819",
+                nome: "Tastiko",
+                email: "zanonmarco4@gmail.com",
+                telefono: "3701303155",
+                confermato: true,
+                utenteType: "Circolo",
+                validato: false,
+                scontoAffiliazione: 50,
+                campi: [
+                    {
+                      id: 1,
+                      tipologia: "Interno"
+                    },
+                    {
+                      id: 2,
+                      tipologia: "Interno"
+                    },
+                    {
+                      id: 3,
+                      tipologia: "Esterno"
+                    },
+                    {
+                      id: 4,
+                      tipologia: "Esterno"
+                    },
+                    {
+                      id: 5,
+                      tipologia: "Esterno"
+                    }
+                  ],
+                  orarioSettimanale: [
+                    {
+                        giorno: 0,
+                        isAperto: true,
+                        orarioApertura: "1899-12-31T08:00:00.000Z",
+                        orarioChiusura: "1899-12-31T23:00:00.000Z"
+                    },
+                    {
+                        giorno: 1,
+                        isAperto: true,
+                        orarioApertura: "1899-12-31T09:00:00.000Z",
+                        orarioChiusura: "1899-12-31T20:00:00.000Z"
+                    },
+                    {
+                        giorno: 2,
+                        isAperto: true,
+                        orarioApertura: "1899-12-31T09:00:00.000Z",
+                        orarioChiusura: "1899-12-31T20:00:00.000Z"
+                    },
+                    {
+                        giorno: 3,
+                        isAperto: false,
+                        orarioApertura: "1899-12-31T00:00:00.000Z",
+                        orarioChiusura: "1899-12-31T00:00:00.000Z"
+                    },
+                    {
+                        giorno: 4,
+                        isAperto: true,
+                        orarioApertura: "1899-12-31T09:00:00.000Z",
+                        orarioChiusura: "1899-12-31T23:00:00.000Z"
+                    },
+                    {
+                        giorno: 5,
+                        isAperto: false,
+                        orarioApertura: "1899-12-31T00:00:00.000Z",
+                        orarioChiusura: "1899-12-31T00:00:00.000Z"
+                    },
+                    {
+                        giorno: 6,
+                        isAperto: false,
+                        orarioApertura: "1899-12-31T00:00:00.000Z",
+                        orarioChiusura: "1899-12-31T00:00:00.000Z"
+                    }
+                  ],
+                  serviziAggiuntivi: [],
+                  __v: 0,
+                  paymentId: "acct_1NHqtCFwZqP386K0",
+                  durataSlot: 60,
+                  indirizzo: "via venezia 1, trento (TN), 38122 ",
+                  partitaIVA: " ",
+                  prezzoSlotOrario: 80,
+                  quotaAffiliazione: 200
+            }    
+        }) as any;
+
+        await request(app)
+            .post(`/api/v1/circolo/inserimentoDatiCircolo`)
+            .set('x-access-token', token) 
+            .send({
+                "anagrafica": {
+                    "nome": "CircoloNuovo",
+                    "telefono": "3292877972",
+                    "partitaIVA": "3292877972",
+                    "indirizzo": "Via Trento"
+                },
+                "struttura": {
+                    "orariStruttura": [
+                        {
+                            "giorno": 0,
+                            "isAperto": true,
+                            "orarioApertura": "1899-12-31T08:00:00.000+00:00",
+                            "orarioChiusura": "1899-12-31T23:00:00.000+00:00"
+                        },
+                        {
+                            "giorno": 1,
+                            "isAperto": true,
+                            "orarioApertura": "1899-12-31T09:00:00.000+00:00",
+                            "orarioChiusura": "1899-12-31T20:00:00.000+00:00"
+                        },
+                        {
+                            "giorno": 2,
+                            "isAperto": true,
+                            "orarioApertura": "1899-12-31T09:00:00.000+00:00",
+                            "orarioChiusura": "1899-12-31T20:00:00.000+00:00"
+                        },
+                        {
+                            "giorno": 3,
+                            "isAperto": false,
+                            "orarioApertura": "1899-12-31T09:00:00.000+00:00",
+                            "orarioChiusura": "1899-12-31T23:00:00.000+00:00"
+                        },
+                        {
+                            "giorno": 4,
+                            "isAperto": true,
+                            "orarioApertura": "1899-12-31T09:00:00.000+00:00",
+                            "orarioChiusura": "1899-12-31T23:00:00.000+00:00"
+                        },
+                        {
+                            "giorno": 5,
+                            "isAperto": false,
+                            "orarioApertura": "1899-12-31T09:00:00.000+00:00",
+                            "orarioChiusura": "1899-12-31T23:00:00.000+00:00"
+                        },
+                        {
+                            "giorno": 6,
+                            "isAperto": false,
+                            "orarioApertura": "1899-12-31T09:00:00.000+00:00",
+                            "orarioChiusura": "1899-12-31T23:00:00.000+00:00"
+                        }
+                    ],
+                    "durataSlot": 60,
+                    "quotaAffiliazione": 20,
+                    "prezzoSlotOrario": 14,
+                    "scontoAffiliazione": 20,
+                    "nCampiInterni": 3.4,
+                    "nCampiEsterni": 6.5
+                },
+                "servizio": {
+                    "serviziAggiuntivi": [
+                        "parcheggio",
+                        "bar",
+                        "piscina"
+                    ]
+                }
+            })
+            .expect('Content-Type', /json/)
+            .expect(400)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", "Aggiornamento dati fallito invalido")
+                }
+            })
+    })
+
+
+
 })

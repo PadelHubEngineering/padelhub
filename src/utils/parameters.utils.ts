@@ -60,7 +60,6 @@ export function controlloNomeCognome(res: Response, value: any, ok_empty: boolea
         value_name || "nome / cognome"
     ) ){
         let msg = `${ value_name || "Nome" } invalido`;
-        sendHTTPResponse(res, 400, false, msg)
         return null;
     }    
     else
@@ -77,7 +76,6 @@ export function controlloNickname(res: Response, value: any, ok_empty: boolean, 
         "Nickname"
     ) ){
         let msg = `${ value_name || "Nickname" } invalido`;
-        sendHTTPResponse(res, 400, false, msg)
         return null;
     }
 

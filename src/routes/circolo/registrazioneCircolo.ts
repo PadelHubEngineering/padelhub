@@ -99,13 +99,25 @@ export async function inserisciDatiCircolo(req: Request, res: Response) {
         servizio
     } = req.body
 
+    if(anagrafica === undefined || struttura === undefined  || servizio === undefined ){
+        sendHTTPResponse(res, 403, false, "Impossibile aggiornare circolo: dati mancanti")
+        return
+    }
+
     const { nome, telefono, indirizzo, partitaIVA } = anagrafica
     const { orariStruttura, durataSlot, quotaAffiliazione, prezzoSlotOrario, scontoAffiliazione, nCampiEsterni, nCampiInterni } = struttura
     const { serviziAggiuntivi } = servizio
 
+    if(nome === undefined  || telefono === undefined  || indirizzo === undefined  || partitaIVA === undefined  || orariStruttura === undefined  || durataSlot  === undefined || quotaAffiliazione === undefined || prezzoSlotOrario === undefined  || scontoAffiliazione === undefined  || nCampiInterni === undefined  || nCampiEsterni === undefined  || serviziAggiuntivi === undefined  ){
+        sendHTTPResponse(res, 403, false, "Impossibile aggiornare circolo: dati mancanti")
+        return
+    }
+
 
     // Scarico i dati attuali del mio circolo
-    const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email }).exec()
+    const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email })
+
+    console.log("MIOCIRCOLO: ",mioCircolo)
 
     if (!mioCircolo) {
         sendHTTPResponse(res, 401, false, "Impossibile scaricare i dati del circolo")
@@ -331,7 +343,6 @@ export async function inserisciDatiCircolo(req: Request, res: Response) {
         if (!controlloStringa(res, servizio, true, "Aggiornamento dati fallito")) return
         objToSave.serviziAggiuntivi.push(servizio)
     })
-
 
 
     //Aggiorno il DB
