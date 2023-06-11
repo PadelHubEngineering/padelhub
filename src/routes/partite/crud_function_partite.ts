@@ -23,7 +23,7 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
     var giocatore: DocumentType<Giocatore> | null
 
     if (!email) {
-        sendHTTPResponse(res, 404, false, "Giocatore non trovato")
+        sendHTTPResponse(res, 400, false, "Giocatore non trovato")
         return
     } else {
         giocatore = await GiocatoreModel.findOne({ email: email })
@@ -37,7 +37,7 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
     }
     const date = new Date(orario)
     if(!date){
-        sendHTTPResponse(res, 404, false, "formato data errata:(es :2023-03-12T00:00:00.000Z) ")
+        sendHTTPResponse(res, 400, false, "formato data errata:(es :2023-03-12T00:00:00.000Z) ")
         return
 
     }
@@ -48,9 +48,9 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
 
     //circolo:
     const c = await CircoloModel.findById(circolo)
-    console.log(c)
+    //console.log(c)
     if(!c){
-        sendHTTPResponse(res, 404, false, "circolo inesistente")
+        sendHTTPResponse(res, 400, false, "circolo inesistente")
         return
     }
 
@@ -100,13 +100,6 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
 
     var campi_liberi_esterni : number[] = []
     var campi_liberi_interni  : number[] = []
-
-    /*
-    c.campi.forEach( (campo)=> {if(campo.tipologia==TipoCampo.Esterno){
-        campi_liberi_esterni.push(campo.id);
-        }else{campi_liberi_interni.push(campo.id)}
-    })
-    */
    
     c.campi.forEach(campo => {
         let i =0
@@ -173,26 +166,6 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
                 pagato: false
             })
             const p = await PrenotazioneModel.create(prenotazione)
-            // //creazione prenotazione_campo
-
-            // const prenotazione_campo= {
-            //     idCampo : 1, // calcolato da sopra
-            //     partita : partita._id,
-            //     circolo : circolo,
-            //     inizioSlot : date,
-            //     fineSlot : c.get_fineSlot(date).toJSDate(),
-            //     dataPrenotazione : DateTime.now().toJSDate()
-        
-            // }
-            
-            // const re = await PrenotazioneCampoModel.create(prenotazione_campo)
-            // if(!re){
-            //     sendHTTPResponse(res, 500, false, "[server] Errore interno")
-            //     return
-        
-            // }
-            // console.log(re)
-            // ///
 
             //Pagamento
             const circoloInfo = await partita.getCircolo()
