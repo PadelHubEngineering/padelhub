@@ -32,15 +32,21 @@ export class Partita {
     @prop({ required: true, ref: () => Circolo })
     circolo: Ref<Circolo>;
 
+    @prop({ required: true , default : TipoCampo})
+    tipocampo: TipoCampo;
+
+    
     @prop({ required: false })
     public orario: Date = new Date(0, 0)
 
-    constructor(giocatore: Ref<Giocatore>, categoria_max: number, categoria_min: number, circolo: Ref<Circolo>, data: Date) {
+    constructor(giocatore: Ref<Giocatore>, categoria_max: number, categoria_min: number, circolo: Ref<Circolo>, data: Date,tipocampo : TipoCampo) {
         this.giocatori.push(giocatore);
         this.categoria_max = categoria_max;
         this.categoria_min = categoria_min;
         this.circolo = circolo;
         this.orario = data
+        this.tipocampo = tipocampo
+        
     }
 
     //rivedere per salvataggio db

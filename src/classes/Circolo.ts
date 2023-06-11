@@ -1,11 +1,13 @@
-import { getDiscriminatorModelForClass, getModelForClass, mongoose, prop, DocumentType, modelOptions } from "@typegoose/typegoose"
+import { getDiscriminatorModelForClass,mongoose, prop, DocumentType, modelOptions } from "@typegoose/typegoose"
 import { Utente, UtenteModel } from "./Utente"
 import { TipoAccount } from "./Utente"
 import { startSession } from "mongoose"
 import { checkOnboarding } from "../utils/gestionePagamenti.utils"
 import { PrenotazioneCampo, PrenotazioneCampoModel } from "./PrenotazioneCampo"
 import { DateTime } from "luxon";
-import { PrenotazioneModel } from "./PrenotazionePartita"
+import { PrenotazioneGiocatore } from "./PrenotazionePartita"
+import { Giocatore, GiocatoreModel } from "./Giocatore"
+
 
 
 type DocumentoSocietario = { //TODO: meglio di così
@@ -110,7 +112,6 @@ export class Circolo extends Utente {
     // @prop({ type: () => [IscrizioneCircolo] })
     // public affiliati?: IscrizioneCircolo[] 
 
-    
 
     public check_coerenza_dataInputSlot(this: DocumentType<Circolo>, date : Date){
         console.log(date)
@@ -157,7 +158,7 @@ export class Circolo extends Utente {
         if(!data_input){
             return false
         }
-        console.log("APERTO?????" + this.orarioSettimanale[data_input.weekday-1].isAperto)
+        
         return this.orarioSettimanale[data_input.weekday-1].isAperto
     }
 

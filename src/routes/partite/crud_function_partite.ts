@@ -18,7 +18,7 @@ import { PrenotazioneCampoModel,PrenotazioneCampo } from "../../classes/Prenotaz
 //creazione di una partita
 const createPartita = async (req: Request, res: Response, next: NextFunction) => {
 
-    const { circolo, categoria_min, categoria_max, orario } = req.body
+    const { circolo, categoria_min, categoria_max, orario, tipocampo } = req.body
     const email = req.utenteAttuale?.email
     var giocatore: DocumentType<Giocatore> | null
 
@@ -92,46 +92,59 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
 
     //per prendere l'id del campo
 
-    /*
+    
     var id_campi_prenotati : number[] = []
     campi_prenotati.forEach(campo => id_campi_prenotati.push(campo.idCampo))
     console.log(campi_prenotati)
     console.log(id_campi_prenotati)
+
     var campi_liberi_esterni : number[] = []
     var campi_liberi_interni  : number[] = []
 
-
+    /*
     c.campi.forEach( (campo)=> {if(campo.tipologia==TipoCampo.Esterno){
         campi_liberi_esterni.push(campo.id);
         }else{campi_liberi_interni.push(campo.id)}
     })
+    */
+   
+    c.campi.forEach(campo => {
+        let i =0
+        let free = true
+        for(let i =0 ;i< id_campi_prenotati.length;i++){
+            if(campo.id==id_campi_prenotati.at(i)){
+                free=false
+            }
+        }
+        if (free){
+            if(campo.tipologia==TipoCampo.Esterno){
+                console.log(campo.id)
+                console.log(campi_liberi_esterni.push(campo.id))
+            }else{
+                console.log(campo.id)
+                campi_liberi_interni.push(campo.id)
+
+            }
+        }
+    })
     console.log(campi_liberi_interni)
-    console.log(campi_liberi_esterni) //fare la pop(dei campi uguali campi_liber.includes(campo_prenotato)) e poi restituire il primo id dell'array: idCampo= array.at[0]
-
-    */
-    //creazione prenotazione campo (SOLO DOPO ULTIMA PRENOTAZIONE DOVEééééé???)
-    /*
+    console.log(campi_liberi_esterni)
     
-    const prenotazione_campo= {
-        idCampo : 1, // calcolato da sopra
-        partita : partita._id,
-        circolo : circolo,
-        inizioSlot : date,
-        fineSlot : c.get_fineSlot(date).toJSDate(),
-        dataPrenotazione : DateTime.now().toJSDate()
 
+    //check tipo campo
+    if(!tipocampo){
+        return sendHTTPResponse(res, 400, false, "Tipo campo non indicato")
+
+
+    }else if(tipocampo == TipoCampo.Esterno){
+        if(!campi_liberi_interni.length){
+            return sendHTTPResponse(res, 400, false, "Nessun campo Esterno è disponibile in questo slot")
+        }
+    }else{
+        if(!campi_liberi_interni){
+            return sendHTTPResponse(res, 400, false, "Nessun campo Interno è disponibile in questo slot")
+        }
     }
-    
-    const re = await PrenotazioneCampoModel.create(prenotazione_campo)
-    if(!re){
-        sendHTTPResponse(res, 500, false, "[server] Errore interno")
-        return
-
-    }
-    console.log(re)
-    */
-    
-
     if (categoria_max < categoria_min || (categoria_min < 1 || categoria_min > 5) || (categoria_max < 1 || categoria_max > 5)) {
         sendHTTPResponse(res, 400, false, "Categoria invalida")
         return
