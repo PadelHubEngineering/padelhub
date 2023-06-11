@@ -20,39 +20,6 @@ import { inserisciDatiCircolo, registrazioneCircolo } from "./registrazioneCirco
 
 const router: Router = Router();
 
-router.get('/:idCircolo', checkTokenGiocatoreOCircolo, async( req: Request, res: Response ) => {
-
-    const { idCircolo } = req.params;
-
-    if ( !isValidObjectId(idCircolo) ){
-        sendHTTPResponse(res, 401, false, "Id circolo formalmente errato");
-        return
-    }
-
-    const circolo_db = await CircoloModel.findOne({ _id: idCircolo }).exec();
-
-    if ( !circolo_db ) {
-        sendHTTPResponse(res, 401, false, "Impossibile trovare il circolo richiesto");
-        return;
-    }
-
-    let retObj: { circolo: CircoloRetI, isAffiliato?: boolean } = {
-        circolo: c_to_ret( circolo_db ),
-        isAffiliato: undefined
-    }
-
-    if( req.utenteAttuale?.tipoAccount === TipoAccount.Giocatore ){
-
-        const giocatore_db = await GiocatoreModel.findOne({ email: req.utenteAttuale.email }).exec();
-
-        if( giocatore_db ){
-            retObj.isAffiliato = circolo_db._id.toString() in giocatore_db.circoliAssociati
-        }
-    }
-
-    sendHTTPResponse( res, 200, true, retObj );
-})
-
 router.post('/prenotazioneSlot', checkTokenCircolo, async (req: Request, res: Response) => {
     const { idCampo } = req.body;
 
@@ -442,5 +409,37 @@ router.get("/datiCircolo", checkTokenCircolo, async (req: Request, res: Response
 
 })
 
+router.get('/:idCircolo', checkTokenGiocatoreOCircolo, async( req: Request, res: Response ) => {
+
+    const { idCircolo } = req.params;
+
+    if ( !isValidObjectId(idCircolo) ){
+        sendHTTPResponse(res, 401, false, "Id circolo formalmente errato");
+        return
+    }
+
+    const circolo_db = await CircoloModel.findOne({ _id: idCircolo }).exec();
+
+    if ( !circolo_db ) {
+        sendHTTPResponse(res, 401, false, "Impossibile trovare il circolo richiesto");
+        return;
+    }
+
+    let retObj: { circolo: CircoloRetI, isAffiliato?: boolean } = {
+        circolo: c_to_ret( circolo_db ),
+        isAffiliato: undefined
+    }
+
+    if( req.utenteAttuale?.tipoAccount === TipoAccount.Giocatore ){
+
+        const giocatore_db = await GiocatoreModel.findOne({ email: req.utenteAttuale.email }).exec();
+
+        if( giocatore_db ){
+            retObj.isAffiliato = circolo_db._id.toString() in giocatore_db.circoliAssociati
+        }
+    }
+
+    sendHTTPResponse( res, 200, true, retObj );
+})
 
 export default router;
