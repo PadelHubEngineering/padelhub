@@ -13,6 +13,7 @@ import { PartitaModel } from "../../classes/Partita";
 import { pre } from "@typegoose/typegoose";
 import { handleRefundPrenotazione } from "../../utils/gestionePagamenti.utils";
 import { SessionePagamentoModel } from "../../classes/SessionePagamento";
+import { PrenotazioneCampoModel } from "../../classes/PrenotazioneCampo";
 
 
 const router = Router();
@@ -61,7 +62,17 @@ router.get("/:id", async (req: Request, res: Response) => {
 
 
 //deleting a single reservation/cashback
-router.delete("/:id", async (req: Request, res: Response) => {
+router.delete("/:id", checkTokenGiocatore,async (req: Request, res: Response) => {
+    const email = req.utenteAttuale?.email
+
+    if (!email) {
+        sendHTTPResponse(res, 404, false, "Giocatore non trovato")
+        return
+    } else {
+        var chiamante = await GiocatoreModel.findOne({ email: email })
+
+    }
+
     const id = req.params.id;
     if (!isValidObjectId(id)) {
         sendHTTPResponse(res, 401, false, "ID prenotazione invalido")
@@ -71,6 +82,15 @@ router.delete("/:id", async (req: Request, res: Response) => {
     if (!prenotazione) {
         return sendHTTPResponse(res, 404, false, "Prenotazione inesistente")
     }
+    //check giocatore chiamante
+    if(!chiamante){
+        return sendHTTPResponse(res, 500, false, "[server] Errore interno")
+    }else{
+        if (chiamante._id!=prenotazione.giocatore._id){
+            return sendHTTPResponse(res, 404, false, "Violazione utente" )
+        }
+    }
+
     let partita = await PartitaModel.findById(prenotazione.partita._id)
     if (!partita) {
         return sendHTTPResponse(res, 500, false, "[server] Errore interno - partita")
@@ -80,6 +100,13 @@ router.delete("/:id", async (req: Request, res: Response) => {
     if (!gioc) {
         return sendHTTPResponse(res, 500, false, "[server] Errore interno - giocatore")
     }
+
+
+    //prenotazione campo da eliminare se presente (da fare dopo conferma del primo rimborso )
+    const prenotazione_campo = await PrenotazioneCampoModel.findOneAndDelete({partita:partita._id})
+    console.log(prenotazione_campo)
+    /////
+
     if (await partita.rimuovi_player(gioc) == true) {
         try {
             let risposta = await prenotazione.deleteOne()

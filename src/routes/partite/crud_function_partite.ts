@@ -68,15 +68,17 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
         sendHTTPResponse(res, 404, false, "Errore data: controllare le date di inizio e fine di uno slot ")
         return
     }
+    
 
     //check aperto
-    if(c.isOpen(date)){
+    if(!c.isOpen(date)){
         sendHTTPResponse(res, 404 , false, "Errore data: circolo chiuso")
         return
     }
     
-
-    var campi_prenotati= await PrenotazioneCampoModel.find({"circolo": "647781e64b43cd91be829c27","inizioSlot" : date}, "idCampo")
+    
+    var campi_prenotati= await PrenotazioneCampoModel.find({"circolo": c._id,"inizioSlot" : date}, "idCampo")
+    console.log(campi_prenotati)
     if(!campi_prenotati){
         sendHTTPResponse(res, 500, false, "[server] Errore interno")
         return
@@ -87,6 +89,8 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
         return
 
     }
+
+    //per prendere l'id del campo
 
     /*
     var id_campi_prenotati : number[] = []
@@ -102,9 +106,31 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
         }else{campi_liberi_interni.push(campo.id)}
     })
     console.log(campi_liberi_interni)
-    console.log(campi_liberi_esterni)
+    console.log(campi_liberi_esterni) //fare la pop(dei campi uguali campi_liber.includes(campo_prenotato)) e poi restituire il primo id dell'array: idCampo= array.at[0]
 
     */
+    //creazione prenotazione campo (SOLO DOPO ULTIMA PRENOTAZIONE DOVEééééé???)
+    /*
+    
+    const prenotazione_campo= {
+        idCampo : 1, // calcolato da sopra
+        partita : partita._id,
+        circolo : circolo,
+        inizioSlot : date,
+        fineSlot : c.get_fineSlot(date).toJSDate(),
+        dataPrenotazione : DateTime.now().toJSDate()
+
+    }
+    
+    const re = await PrenotazioneCampoModel.create(prenotazione_campo)
+    if(!re){
+        sendHTTPResponse(res, 500, false, "[server] Errore interno")
+        return
+
+    }
+    console.log(re)
+    */
+    
 
     if (categoria_max < categoria_min || (categoria_min < 1 || categoria_min > 5) || (categoria_max < 1 || categoria_max > 5)) {
         sendHTTPResponse(res, 400, false, "Categoria invalida")
@@ -125,6 +151,7 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
     return await PartitaModel.create(partita)
         .then(async function (partita) {
             flag = 1
+            
             let costo = await partita.getPrezzo(giocatore)
             const prenotazione = new PrenotazioneModel({
                 partita: partita.id,
@@ -134,6 +161,26 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
                 pagato: false
             })
             const p = await PrenotazioneModel.create(prenotazione)
+            //creazione prenotazione_campo
+
+            const prenotazione_campo= {
+                idCampo : 1, // calcolato da sopra
+                partita : partita._id,
+                circolo : circolo,
+                inizioSlot : date,
+                fineSlot : c.get_fineSlot(date).toJSDate(),
+                dataPrenotazione : DateTime.now().toJSDate()
+        
+            }
+            
+            const re = await PrenotazioneCampoModel.create(prenotazione_campo)
+            if(!re){
+                sendHTTPResponse(res, 500, false, "[server] Errore interno")
+                return
+        
+            }
+            console.log(re)
+            ///
 
             //Pagamento
             const circoloInfo = await partita.getCircolo()
@@ -265,6 +312,11 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
                     }
      
                     const p = await PartitaModel.findById(id).then((p) => p?.aggiungi_player(giocatore))
+                    //check se la partita è chiusa così da creare la prenotazione del campo
+
+                    console.log(p)
+                    console.log(partita.orario)
+                    
 
                     //crea prenotazione
                     if (p) {
@@ -276,10 +328,12 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
                             costo: costo,
                             pagato: false
                         })
+                        console.log("qui")
 
                         try {
                             await PrenotazioneModel.create(prenotazione)
                         } catch (err) {
+                            console.log(err)
                             sendHTTPResponse(res, 500, false, "[server] Errore interno1")
                             return
                         }

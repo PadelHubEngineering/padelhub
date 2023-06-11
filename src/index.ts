@@ -12,6 +12,7 @@ import { inviaEmailOnboarding } from "./utils/email.utils";
 //import { createUnparsedSourceFile, servicesVersion, textSpanIntersectsWith } from "typescript";
 //import { Circolo, CircoloModel, GiornoSettimana, OrarioGiornaliero } from "./classes/Circolo";
 import { PrenotazioneGiocatore, PrenotazioneModel } from "./classes/PrenotazionePartita";
+import { DateTime } from "luxon";
 
 
 
@@ -34,6 +35,8 @@ async function main() {
 
     //await populateProducts();
     app.listen(port, () => logger.debug(`App listening on port ${port}!`));
+
+   
 }
 
 if (require.main === module && preliminary_check())

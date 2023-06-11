@@ -120,6 +120,8 @@ export class Circolo extends Utente {
         const data_input : DateTime = DateTime.fromJSDate(date).setZone("Europe/Rome")
         if(!data_input){
             return false
+        }else if( data_input< DateTime.now()){
+            return false
         }
         try{
             var apertura = DateTime.fromJSDate(this.orarioSettimanale[data_input.weekday-1].orarioApertura)
@@ -136,6 +138,7 @@ export class Circolo extends Utente {
             if(apertura.hour == data_input.hour && apertura.minute == data_input.minute){
                 return true
             }
+            console.log(apertura)
             apertura= apertura.plus({minutes: this.durataSlot})
         }
 
@@ -143,25 +146,25 @@ export class Circolo extends Utente {
     }
 
 
+
     public isOpen(this: DocumentType<Circolo>, date : Date){
         if(!date ){
             return false
         }
         const data_input : DateTime = DateTime.fromJSDate(date).setZone("Europe/Rome")
+        console.log(data_input)
         if(!data_input){
             return false
         }
+        console.log("APERTO?????" + this.orarioSettimanale[data_input.weekday-1].isAperto)
         return this.orarioSettimanale[data_input.weekday-1].isAperto
     }
 
 
-    public async isCampoAvaible(this: DocumentType<Circolo>, date : Date){
-        const limite_inferiore = DateTime.fromJSDate(date).setZone("Europe/Rome") 
-        const limite_superiore = limite_inferiore.plus({days:1})
-        
+    public get_fineSlot(this: DocumentType<Circolo>, inizio_slot : Date){
+        var inizio = DateTime.fromJSDate(inizio_slot).setZone("Europe/Rome")
+        return inizio.plus({minute: this.durataSlot})
 
-        //const prenotazioni = await PrenotazioneModel.find()//{"circolo": this._id,"inizioSlot" : {"gte" : new Date(limite_inferiore.year,limite_inferiore.month,limite_inferiore.day), "lt" : new Date(limite_superiore.year,limite_superiore.month,limite_superiore.day)}})
-        //console.log(prenotazioni)
     }
 
 
