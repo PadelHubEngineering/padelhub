@@ -117,15 +117,17 @@ export class Circolo extends Utente {
         if(!date ){
             return false
         }
-        const data_input : DateTime = DateTime.fromJSDate(date).setZone("Europe/Rome")
+        const data_input : DateTime = DateTime.fromJSDate(date).setZone('UTC+0')
+        console.log(`data input ${data_input}`)
         if(!data_input){
             return false
         }else if( data_input< DateTime.now()){
             return false
         }
         try{
-            var apertura = DateTime.fromJSDate(this.orarioSettimanale[data_input.weekday-1].orarioApertura)
-            var chiusura = DateTime.fromJSDate(this.orarioSettimanale[data_input.weekday-1].orarioChiusura)
+            var apertura = DateTime.fromJSDate(this.orarioSettimanale[data_input.weekday-1].orarioApertura).setZone('UTC+0')
+            console.log("apertura" + apertura.toISOTime())
+            var chiusura = DateTime.fromJSDate(this.orarioSettimanale[data_input.weekday-1].orarioChiusura).setZone('UTC+0')
         }catch(err){
             return false
         }
@@ -138,7 +140,6 @@ export class Circolo extends Utente {
             if(apertura.hour == data_input.hour && apertura.minute == data_input.minute){
                 return true
             }
-            console.log(apertura)
             apertura= apertura.plus({minutes: this.durataSlot})
         }
 

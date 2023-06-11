@@ -161,26 +161,26 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
                 pagato: false
             })
             const p = await PrenotazioneModel.create(prenotazione)
-            //creazione prenotazione_campo
+            // //creazione prenotazione_campo
 
-            const prenotazione_campo= {
-                idCampo : 1, // calcolato da sopra
-                partita : partita._id,
-                circolo : circolo,
-                inizioSlot : date,
-                fineSlot : c.get_fineSlot(date).toJSDate(),
-                dataPrenotazione : DateTime.now().toJSDate()
+            // const prenotazione_campo= {
+            //     idCampo : 1, // calcolato da sopra
+            //     partita : partita._id,
+            //     circolo : circolo,
+            //     inizioSlot : date,
+            //     fineSlot : c.get_fineSlot(date).toJSDate(),
+            //     dataPrenotazione : DateTime.now().toJSDate()
         
-            }
+            // }
             
-            const re = await PrenotazioneCampoModel.create(prenotazione_campo)
-            if(!re){
-                sendHTTPResponse(res, 500, false, "[server] Errore interno")
-                return
+            // const re = await PrenotazioneCampoModel.create(prenotazione_campo)
+            // if(!re){
+            //     sendHTTPResponse(res, 500, false, "[server] Errore interno")
+            //     return
         
-            }
-            console.log(re)
-            ///
+            // }
+            // console.log(re)
+            // ///
 
             //Pagamento
             const circoloInfo = await partita.getCircolo()
@@ -311,7 +311,7 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
                         }
                     }
      
-                    const p = await PartitaModel.findById(id).then((p) => p?.aggiungi_player(giocatore))
+                    const p = await PartitaModel.findById(id)//.then((p) => p?.aggiungi_player(giocatore))
                     //check se la partita è chiusa così da creare la prenotazione del campo
 
                     console.log(p)

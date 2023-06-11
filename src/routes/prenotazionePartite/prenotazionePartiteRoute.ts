@@ -62,7 +62,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 
 
 //deleting a single reservation/cashback
-router.delete("/:id", checkTokenGiocatore,async (req: Request, res: Response) => {
+router.delete("/:id", checkTokenGiocatore, async (req: Request, res: Response) => {
     const email = req.utenteAttuale?.email
 
     if (!email) {
@@ -83,11 +83,11 @@ router.delete("/:id", checkTokenGiocatore,async (req: Request, res: Response) =>
         return sendHTTPResponse(res, 404, false, "Prenotazione inesistente")
     }
     //check giocatore chiamante
-    if(!chiamante){
+    if (!chiamante) {
         return sendHTTPResponse(res, 500, false, "[server] Errore interno")
-    }else{
-        if (chiamante._id!=prenotazione.giocatore._id){
-            return sendHTTPResponse(res, 404, false, "Violazione utente" )
+    } else {
+        if (chiamante._id.toString() != prenotazione.giocatore._id.toString()) {
+            return sendHTTPResponse(res, 404, false, "Violazione utente")
         }
     }
 
@@ -103,16 +103,16 @@ router.delete("/:id", checkTokenGiocatore,async (req: Request, res: Response) =>
 
 
     //prenotazione campo da eliminare se presente (da fare dopo conferma del primo rimborso )
-    const prenotazione_campo = await PrenotazioneCampoModel.findOneAndDelete({partita:partita._id})
+    const prenotazione_campo = await PrenotazioneCampoModel.findOneAndDelete({ partita: partita._id })
     console.log(prenotazione_campo)
     /////
 
     if (await partita.rimuovi_player(gioc) == true) {
         try {
             let risposta = await prenotazione.deleteOne()
-            if(risposta){
+            if (risposta) {
                 const session = await SessionePagamentoModel.findOne({ prenotazione: prenotazione._id })
-                if(session)
+                if (session)
                     console.log(await handleRefundPrenotazione(session.idCharge))
             }
             sendHTTPResponse(res, 201, true, risposta)
