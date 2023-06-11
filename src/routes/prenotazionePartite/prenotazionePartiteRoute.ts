@@ -13,20 +13,48 @@ import { PartitaModel } from "../../classes/Partita";
 import { pre } from "@typegoose/typegoose";
 import { handleRefundPrenotazione } from "../../utils/gestionePagamenti.utils";
 import { SessionePagamentoModel } from "../../classes/SessionePagamento";
+import { g_to_ret } from "../partite/partita.interface";
+import { prenotazione_partita_to_ret } from "./PrenotazionePartita.interface";
 
 
 const router = Router();
 
 //getting every reservations of an user //filter
 router.get("/", checkTokenGiocatoreOCircolo, async (req: Request, res: Response) => {
-    const tipoAccount = req.utenteAttuale?.tipoAccount;
-    const email = req.utenteAttuale?.email
+    const tipoAccount = req.utenteAttuale!.tipoAccount;
+    const email = req.utenteAttuale!.email
 
     if (tipoAccount == TipoAccount.Giocatore) {
-        console.log("giocatore")
-        return await PrenotazioneModel.find().populate("giocatori")
-            .then(prenotazioni => sendHTTPResponse(res, 200, true, prenotazioni))
-            .catch((error) => sendHTTPResponse(res, 500, false, "[server] Errore interno"))
+
+        const giocatore_db = await GiocatoreModel.findOne({ email });
+
+        if( !giocatore_db ) {
+            sendHTTPResponse( res, 500, false, "Impossibile scaricare dati giocatore" );
+            return;
+
+        }
+
+        let prenotazioni_db = null;
+        try{
+            prenotazioni_db = await PrenotazioneModel.find({ giocatore: giocatore_db }).populate("partita")
+
+        } catch ( error ) {
+            console.log("error", error)
+            sendHTTPResponse(res, 500, false, "[server] Errore interno")
+        }
+
+        if ( !prenotazioni_db ) {
+            sendHTTPResponse(res, 500, false, "[server] Errore interno")
+            return
+        } else {
+
+            let ret_p = []
+
+            for( const p of prenotazioni_db )
+                ret_p.push( await prenotazione_partita_to_ret(p, giocatore_db) )
+
+            sendHTTPResponse(res, 200, true, ret_p )
+        }
 
     } else if (tipoAccount == TipoAccount.Circolo) {
         const c_id = await CircoloModel.findOne({ email: email })
@@ -102,4 +130,3 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
 
 export default router;
-
