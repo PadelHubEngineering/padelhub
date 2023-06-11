@@ -3,7 +3,7 @@ import { Partita, PartitaModel } from "../../classes/Partita"
 import { isValidObjectId } from "mongoose"
 import { sendHTTPResponse } from "../../utils/general.utils"
 import { logger } from "../../utils/logging"
-import { Circolo, CircoloModel } from "../../classes/Circolo"
+import { Circolo, CircoloModel ,TipoCampo } from "../../classes/Circolo"
 import { TipoAccount } from "../../classes/Utente"
 import { Giocatore, GiocatoreModel } from "../../classes/Giocatore"
 import { PrenotazioneGiocatore, PrenotazioneModel } from "../../classes/PrenotazionePartita"
@@ -11,6 +11,9 @@ import { PartitaRetI, p_to_ret } from "./partita.interface"
 import { DocumentType } from "@typegoose/typegoose"
 import { handlePaymentPrenotazione } from "../../utils/gestionePagamenti.utils"
 import { SessionePagamentoModel } from "../../classes/SessionePagamento"
+import { DateTime } from "luxon"
+import { PrenotazioneCampoModel,PrenotazioneCampo } from "../../classes/PrenotazioneCampo"
+
 
 //creazione di una partita
 const createPartita = async (req: Request, res: Response, next: NextFunction) => {
@@ -32,10 +35,76 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
 
 
     }
+    const date = new Date(orario)
+    if(!date){
+        sendHTTPResponse(res, 404, false, "formato data errata:(es :2023-03-12T00:00:00.000Z) ")
+        return
+
+    }
     if (!isValidObjectId(circolo)) {
         sendHTTPResponse(res, 400, false, "Id circolo formalmente errato")
         return
     }
+
+    //circolo:
+    const c = await CircoloModel.findById(circolo)
+    console.log(c)
+    if(!c){
+        sendHTTPResponse(res, 404, false, "circolo inesistente")
+        return
+    }
+
+    //check se vuoto o pieno
+    
+    //check date slots
+    if(!date){
+        sendHTTPResponse(res, 404, false, "formato data errata:(es :2023-03-12T00:00:00.000Z) ")
+        return
+
+    }
+    
+
+    if(!c.check_coerenza_dataInputSlot(date)){
+        sendHTTPResponse(res, 404, false, "Errore data: controllare le date di inizio e fine di uno slot ")
+        return
+    }
+
+    //check aperto
+    if(c.isOpen(date)){
+        sendHTTPResponse(res, 404 , false, "Errore data: circolo chiuso")
+        return
+    }
+    
+
+    var campi_prenotati= await PrenotazioneCampoModel.find({"circolo": "647781e64b43cd91be829c27","inizioSlot" : date}, "idCampo")
+    if(!campi_prenotati){
+        sendHTTPResponse(res, 500, false, "[server] Errore interno")
+        return
+        
+    }
+    if(campi_prenotati.length==c.campi.length){
+        sendHTTPResponse(res, 400, false, "Tutti i campi del circolo sono già prenotati, riprova con un altro orario")
+        return
+
+    }
+
+    /*
+    var id_campi_prenotati : number[] = []
+    campi_prenotati.forEach(campo => id_campi_prenotati.push(campo.idCampo))
+    console.log(campi_prenotati)
+    console.log(id_campi_prenotati)
+    var campi_liberi_esterni : number[] = []
+    var campi_liberi_interni  : number[] = []
+
+
+    c.campi.forEach( (campo)=> {if(campo.tipologia==TipoCampo.Esterno){
+        campi_liberi_esterni.push(campo.id);
+        }else{campi_liberi_interni.push(campo.id)}
+    })
+    console.log(campi_liberi_interni)
+    console.log(campi_liberi_esterni)
+
+    */
 
     if (categoria_max < categoria_min || (categoria_min < 1 || categoria_min > 5) || (categoria_max < 1 || categoria_max > 5)) {
         sendHTTPResponse(res, 400, false, "Categoria invalida")
@@ -187,6 +256,14 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
                         sendHTTPResponse(res, 401, false, "Non puoi partecipare a questa partita : Livello invalido")
                         return
                     }
+                    //giocatore già presente
+                    if(giocatore!= null){
+                        if (partita.giocatori.includes(giocatore._id)){
+                            sendHTTPResponse(res, 400, false, "Giocatore già registrato alla partita")
+                            return 
+                        }
+                    }
+     
                     const p = await PartitaModel.findById(id).then((p) => p?.aggiungi_player(giocatore))
 
                     //crea prenotazione

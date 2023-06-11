@@ -3,6 +3,11 @@ import { Utente, UtenteModel } from "./Utente"
 import { TipoAccount } from "./Utente"
 import { startSession } from "mongoose"
 import { checkOnboarding } from "../utils/gestionePagamenti.utils"
+import { PrenotazioneCampo, PrenotazioneCampoModel } from "./PrenotazioneCampo"
+import { DateTime } from "luxon";
+import { PrenotazioneModel } from "./PrenotazionePartita"
+
+
 type DocumentoSocietario = { //TODO: meglio di così
     documento: string
 }
@@ -104,6 +109,64 @@ export class Circolo extends Utente {
     public serviziAggiuntivi: string[] = [];
     // @prop({ type: () => [IscrizioneCircolo] })
     // public affiliati?: IscrizioneCircolo[] 
+
+    
+
+    public check_coerenza_dataInputSlot(this: DocumentType<Circolo>, date : Date){
+        console.log(date)
+        if(!date ){
+            return false
+        }
+        const data_input : DateTime = DateTime.fromJSDate(date).setZone("Europe/Rome")
+        if(!data_input){
+            return false
+        }
+        try{
+            var apertura = DateTime.fromJSDate(this.orarioSettimanale[data_input.weekday-1].orarioApertura)
+            var chiusura = DateTime.fromJSDate(this.orarioSettimanale[data_input.weekday-1].orarioChiusura)
+        }catch(err){
+            return false
+        }
+
+        console.log(data_input.weekday-1)
+
+        let i =0
+        while(apertura < chiusura.minus({minutes: this.durataSlot})&& i++<24){
+         
+            if(apertura.hour == data_input.hour && apertura.minute == data_input.minute){
+                return true
+            }
+            apertura= apertura.plus({minutes: this.durataSlot})
+        }
+
+        return false     
+    }
+
+
+    public isOpen(this: DocumentType<Circolo>, date : Date){
+        if(!date ){
+            return false
+        }
+        const data_input : DateTime = DateTime.fromJSDate(date).setZone("Europe/Rome")
+        if(!data_input){
+            return false
+        }
+        return this.orarioSettimanale[data_input.weekday-1].isAperto
+    }
+
+
+    public async isCampoAvaible(this: DocumentType<Circolo>, date : Date){
+        const limite_inferiore = DateTime.fromJSDate(date).setZone("Europe/Rome") 
+        const limite_superiore = limite_inferiore.plus({days:1})
+        
+
+        //const prenotazioni = await PrenotazioneModel.find()//{"circolo": this._id,"inizioSlot" : {"gte" : new Date(limite_inferiore.year,limite_inferiore.month,limite_inferiore.day), "lt" : new Date(limite_superiore.year,limite_superiore.month,limite_superiore.day)}})
+        //console.log(prenotazioni)
+    }
+
+
+
+
 
     public async setOrarioAperturaGiorno(this: DocumentType<Circolo>, giorno: GiornoSettimana, date: Date) {
         this.orarioSettimanale[giorno].orarioApertura = date
