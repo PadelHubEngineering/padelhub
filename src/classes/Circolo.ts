@@ -37,10 +37,10 @@ export class OrarioGiornaliero {
     public isAperto: boolean
 
     @prop({ required: true })
-    public orarioApertura: Date = new Date(0, 0)
+    public orarioApertura: Date = new Date(0,0)
 
-    @prop({ required: true })
-    public orarioChiusura: Date = new Date(0, 0)
+    @prop({ required: true }) 
+    public orarioChiusura: Date = new Date(0,0)
 
     public getOrarioApertura() {
         return `${this.orarioApertura.getHours()}:${this.orarioApertura.getMinutes()}:00`
@@ -53,8 +53,8 @@ export class OrarioGiornaliero {
     constructor(giorno: GiornoSettimana) {
         this.giorno = giorno;
         this.isAperto = false;
-        this.orarioApertura = new Date(0, 0);
-        this.orarioChiusura = new Date(0, 0)
+        this.orarioApertura = new Date(0,0)
+        this.orarioChiusura = new Date(0,0)
     }
 }
 
