@@ -45,17 +45,17 @@ router.post('/webhook', async (req: Request, res: Response) => {
             session = await session.addCharge(event.data.object.id)
             const prenotazione = (await PrenotazioneModel.findById(session.prenotazione))
             if (prenotazione) {
-                const partita = await PartitaModel.findById(prenotazione?.partita)
+                let partita = await PartitaModel.findById(prenotazione?.partita)
                 const circolo = await CircoloModel.findById(partita?.circolo)
                 if (partita && circolo) {
-                    partita.aggiungi_player(prenotazione.giocatore)
-                    if (partita.checkChiusa()) {
+                    partita = await partita.aggiungi_player(prenotazione.giocatore)
+                    console.log(partita)
+                    if (partita && partita.checkChiusa()) {
                         var campi_prenotati= await PrenotazioneCampoModel.find({"circolo": circolo._id,"inizioSlot" : partita.orario}, "idCampo")
                         console.log(campi_prenotati)
                         if(!campi_prenotati){
                             sendHTTPResponse(res, 500, false, "[server] Errore interno")
-                            return
-                            
+                            return  
                         }
                         if(campi_prenotati.length==circolo.campi.length){
                             sendHTTPResponse(res, 400, false, "Tutti i campi del circolo sono già prenotati, riprova con un altro orario")
@@ -73,7 +73,7 @@ router.post('/webhook', async (req: Request, res: Response) => {
                     
                         var campi_liberi_esterni : number[] = []
                         var campi_liberi_interni  : number[] = []
-                       
+
                         circolo.campi.forEach(campo => {
                             let i =0
                             let free = true
@@ -98,6 +98,7 @@ router.post('/webhook', async (req: Request, res: Response) => {
                         
                         let id_campo : Number | undefined
                         let error_message = ""
+                        console.log(partita)
                         //check tipo campo
                         if(!partita.tipocampo){
                             return sendHTTPResponse(res, 400, false, "Tipo campo non indicato")
@@ -124,12 +125,9 @@ router.post('/webhook', async (req: Request, res: Response) => {
                                     if (risposta) {
                                         const session = await SessionePagamentoModel.findOne({ prenotazione: prenotazione._id })
                                         if (session!=null){
-                                            handleRefundPrenotazione(session.idCharge).then(() => partita.rimuovi_player(g._id)).catch(err => console.log("Errore refound"));
+                                            handleRefundPrenotazione(session.idCharge).then(() => partita?.rimuovi_player(g._id)).catch(err => console.log("Errore refound"));
                                         }
                                     }
-                                            
-                                    
-                        
                                 })
                             }
                             return sendHTTPResponse(res,400,false,error_message)
@@ -142,7 +140,7 @@ router.post('/webhook', async (req: Request, res: Response) => {
                             inizioSlot : partita.orario,
                             fineSlot : circolo.get_fineSlot(partita.orario).toJSDate(),
                             dataPrenotazione : DateTime.now().toJSDate()
-                    
+                            
                         }
                         
                         const re = await PrenotazioneCampoModel.create(prenotazione_campo)

@@ -155,10 +155,9 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
         circolo: circolo,
         categoria_min: categoria_min,
         categoria_max: categoria_max,
-        orario: orario
-
+        orario: orario,
+        tipocampo: tipocampo.toString()
     })
-
 
     let flag = 0;
     return await PartitaModel.create(partita)
