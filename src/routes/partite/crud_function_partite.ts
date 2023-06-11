@@ -13,6 +13,7 @@ import { handlePaymentPrenotazione } from "../../utils/gestionePagamenti.utils"
 import { SessionePagamentoModel } from "../../classes/SessionePagamento"
 import { DateTime } from "luxon"
 import { PrenotazioneCampoModel,PrenotazioneCampo } from "../../classes/PrenotazioneCampo"
+import { controlloData } from "../../utils/parameters.utils"
 
 
 //creazione di una partita
@@ -36,11 +37,12 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
 
     }
     const date = new Date(orario)
-    if(!date){
-        sendHTTPResponse(res, 400, false, "formato data errata:(es :2023-03-12T00:00:00.000Z) ")
-        return
+    // if(){
+    //     sendHTTPResponse(res, 400, false, "formato data errata:(es :2023-03-12T00:00:00.000Z) ")
+    //     return
 
-    }
+    // }
+    controlloData(res, orario, "Data")
     if (!isValidObjectId(circolo)) {
         sendHTTPResponse(res, 400, false, "Id circolo formalmente errato")
         return
@@ -55,14 +57,6 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
     }
 
     //check se vuoto o pieno
-    
-    //check date slots
-    if(!date){
-        sendHTTPResponse(res, 404, false, "formato data errata:(es :2023-03-12T00:00:00.000Z) ")
-        return
-
-    }
-    
 
     if(!c.check_coerenza_dataInputSlot(date)){
         sendHTTPResponse(res, 404, false, "Errore data: controllare le date di inizio e fine di uno slot ")
@@ -100,6 +94,7 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
 
     var campi_liberi_esterni : number[] = []
     var campi_liberi_interni  : number[] = []
+
    
     c.campi.forEach(campo => {
         let i =0
@@ -269,7 +264,6 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
             sendHTTPResponse(res, 400, false, "giocatore non valido")
             return
         }
-
     }
 
     if (!isValidObjectId(id)) {
@@ -280,6 +274,7 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
     return await PartitaModel.findById(id)
         .then(async (partita) => {
             if (partita) {
+                console.log(partita)
                 if (partita?.checkChiusa()) {
                     sendHTTPResponse(res, 401, false, "Partita già al completo")
                     return
