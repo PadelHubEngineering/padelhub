@@ -31,7 +31,7 @@ async function cercaUtente(email: string): Promise<null | { utente: Utente, tipo
 router.post('', async function (req: Request, res: Response) {
     const { email, password } = req.body;
 
-    var searched = await cercaUtente(email);
+    var searched = await cercaUtente(email); 
 
     let token;
 

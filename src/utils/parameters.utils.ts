@@ -58,14 +58,15 @@ export function controlloNomeCognome(res: Response, value: any, ok_empty: boolea
         ok_empty,
         /^[A-Za-z]{2,30}$/,
         value_name || "nome / cognome"
-    ) )
+    ) ){
+        let msg = `${ value_name || "Nome" } invalido`;
         return null;
-
+    }    
     else
         return value as string
 }
 
-export function controlloNickname(res: Response, value: any, ok_empty: boolean) {
+export function controlloNickname(res: Response, value: any, ok_empty: boolean, value_name?: string) {
 
     if ( !controlloRegExp(
         res,
@@ -73,8 +74,10 @@ export function controlloNickname(res: Response, value: any, ok_empty: boolean) 
         ok_empty,
         /^[a-zA-Z0-9\-\_]{6,18}$/,
         "Nickname"
-    ) )
+    ) ){
+        let msg = `${ value_name || "Nickname" } invalido`;
         return null;
+    }
 
     else
         return value as string
@@ -153,7 +156,7 @@ export function controlloEmail(res:Response, value: any, value_name?: string){
     //Se l'email non rispetta il regex
     if(!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(value))){
 
-        let msg = `${ value_name || "L'email inserita" } non e' valida`;
+        let msg = `${ value_name || "Email inserita" } non valida`;
 
         sendHTTPResponse(res, 400, false, msg)
         return null

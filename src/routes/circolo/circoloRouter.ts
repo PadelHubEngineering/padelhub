@@ -289,12 +289,13 @@ router.get('/:idCircolo/partiteAperte/:year(\\d{4})-:month(\\d{2})-:day(\\d{2})-
 router.post("/registrazioneCircolo", registrazioneCircolo)
 
 //API per eliminare l'account di un circolo (lo può fare un circolo o un amministratore)
-router.delete("/eliminaCircolo", checkTokenCircoloOAmministratore , async (req: Request, res: Response) => {
+router.delete("/eliminaCircolo", checkTokenAmministratore , async (req: Request, res: Response) => {
 
-    const mioCircolo = await CircoloModel.findOne({ email: req.utenteAttuale?.email })
+    const idCircolo = req.body
+    const mioCircolo = await CircoloModel.findById({ idCircolo })
 
     if (!mioCircolo) { //Circolo non trovato
-        sendHTTPResponse(res, 403, false, "Impossibile trovare il circolo");
+        sendHTTPResponse(res, 400, false, "Impossibile trovare il circolo");
         return
     }
 
@@ -303,7 +304,7 @@ router.delete("/eliminaCircolo", checkTokenCircoloOAmministratore , async (req: 
     }).exec();
 
     if ( deleted.deletedCount == 0 ) {
-        sendHTTPResponse(res, 401, false, "Impossibile eliminare il circolo");
+        sendHTTPResponse(res, 400, false, "Impossibile eliminare il circolo");
         return
     }
 

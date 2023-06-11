@@ -68,5 +68,10 @@ export function preliminary_check() {
         logger.error("Impossibile caricare la Stripe Key, esco")
         return false
     }
+    if ( process.env.PAYMENT_REDIRECT_URL === undefined){
+        logger.error("Impossibile caricare l'url di redirect dell'onboarding")
+        return false
+    }
+    
     return true
 }

@@ -166,7 +166,7 @@ interface DatiSlot{
 }
 
 //Api che restituisce la dispobilità dei vari slot orari dei circoli
-router.get('/getSlot', checkTokenGiocatore, async (req: Request, res: Response) => {
+router.get('/getSlot', checkTokenGiocatore, async (req: Request, res: Response) => { 
 
     //Prendo dalla request --> data, circolo, tipo di campo, categoria del giocatore
     const {idCircolo, data, campo} = req.query
@@ -176,7 +176,7 @@ router.get('/getSlot', checkTokenGiocatore, async (req: Request, res: Response) 
         return
     }
     if (!DateTime.fromFormat(<any>data, "yyyy-mm-dd").isValid) {
-        sendHTTPResponse(res, 400, false, "data non valida")
+        sendHTTPResponse(res, 403, false, "data non valida")
         return
     }
     if(!campo){
