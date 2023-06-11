@@ -107,7 +107,7 @@ router.post('/webhook', async (req: Request, res: Response) => {
                             if(!campi_liberi_esterni.length){
                                 error_message = "Nessun campo Esterno è disponibile in questo slot"
                             }else{
-                                id_campo = campi_liberi_interni.at(0)
+                                id_campo = campi_liberi_esterni.at(0)
                             }
                         }else{
                             if(!campi_liberi_interni){
