@@ -234,6 +234,35 @@ export class Circolo extends Utente {
         } 
         return this.prezzoSlotOrario
     }
+
+    isCircoloValid( this: DocumentType<Circolo> ) {
+
+        if( this.campi.length === 0 )
+            return false;
+
+        if( !this.partitaIVA || this.partitaIVA === "" )
+            return false;
+
+        if( !this.indirizzo || this.indirizzo === "" )
+            return false;
+
+        if( !this.orarioSettimanale.reduce( (acc, orario) => acc || orario.isAperto, false ) )
+            return false;
+
+        if( this.prezzoSlotOrario === undefined || this.prezzoSlotOrario <= 0 )
+            return false;
+
+        if( !this.quotaAffiliazione === undefined )
+            return false;
+
+        if( this.scontoAffiliazione === undefined )
+            return false;
+
+        if( this.durataSlot === undefined || this.durataSlot <= 0 )
+            return false;
+
+        return true;
+    }
 }
 
 export const CircoloModel = getDiscriminatorModelForClass(UtenteModel, Circolo, TipoAccount.Circolo);

@@ -333,9 +333,10 @@ export async function inserisciDatiCircolo(req: Request, res: Response) {
 
 
     //Aggiorno il DB
+    let circolo = null;
     try {
         logger.info('Cerco di aggiornare i dati')
-        await CircoloModel.findOneAndUpdate({ email: req.utenteAttuale?.email }, objToSave, { new: true });
+        circolo = await CircoloModel.findOneAndUpdate({ email: req.utenteAttuale?.email }, objToSave, { new: true });
 
     } catch (error: any) {
 
@@ -361,6 +362,13 @@ export async function inserisciDatiCircolo(req: Request, res: Response) {
         sendHTTPResponse(res, 500, false, "Errore interno, impossibile aggiornare i dati del circolo")
         return;
 
+    }
+
+    if( circolo !== null && circolo.isCircoloValidato() ) {
+
+        circolo.validato = true;
+
+        await circolo.save();
     }
 
     logger.info(`Aggiornato il circolo: ${nome}`)
