@@ -36,6 +36,8 @@ paths:
                 type: boolean
               message:
                 type: string
+                
+                
   /circolo/registrazioneCircolo:
     x-summary: Registrazione circolo
     post: 
@@ -64,6 +66,8 @@ paths:
           description: Inserita email già esistente
           schema:
             $ref: '#/definitions/RegistrazioneCircoloEmailExist'
+            
+            
   /circolo/eliminaCircolo:
     x-summary: Eliminazione Circolo
     delete:
@@ -83,6 +87,8 @@ paths:
           description: Dati invalidi, errore
           schema:
             $ref: '#/definitions/EliminazioneCircoloImpossible'
+            
+            
   /datiCircolo:
     x-summary: Scarica dati Circolo
     get:
@@ -102,6 +108,8 @@ paths:
           description: Dati invalidi, errore
           schema:
             $ref: '#/definitions/EliminazioneCircoloImpossible'
+            
+            
   /inserimentoDatiCircolo:
     x-summary: Inserimento dati Circolo
     post:
@@ -114,13 +122,15 @@ paths:
             $ref: '#/definitions/InserimentoDatiCircolo'
       responses:
         200:
-          description: Dati validi, eliminazione corretta
+          description: Dati validi, inserimento corretto
           schema:
-            $ref: '#/definitions/EliminazioneCircoloApproved'
-        401:
+            $ref: '#/definitions/InserimentoDatiCircoloOK'
+        500:
           description: Dati invalidi, errore
           schema:
-            $ref: '#/definitions/EliminazioneCircoloImpossible'
+            $ref: '#/definitions/InserimentoDatiCircoloWrong'
+            
+            
   /circolo/prenotazioniSlot/{year}-{month}-{day}:
     x-summary: Richiesta lista prenotazioni Slot Circolo
     get: 
@@ -153,6 +163,8 @@ paths:
           description: Non sei autorizzato ad accedere alla risorsa. Token non valido
           schema:
            $ref: '#/definitions/Errore'
+           
+           
   /circolo/prenotazioneSlot/:
     x-summary: Richiesta Prenotazione Slot Circolo
     post:
@@ -179,6 +191,7 @@ paths:
           schema:
            $ref: '#/definitions/Errore'
            
+           
   /prenotazioneSlot/{id_prenotazione}:
     x-summary: Cancellazione Prenotazione Slot Circolo
     delete:
@@ -195,6 +208,7 @@ paths:
           description: Impossibile eliminare la prenotazione o impossibile trovare la prenotazione richiesta
           schema:
            $ref: '#/definitions/Errore'
+           
            
   /partite/:
     x-summary: Inserimento nuova partita
@@ -241,6 +255,7 @@ paths:
           description: Errore Interno
           schema: 
             $ref: '#/definitions/Errore'
+            
 
   /partite/{PartitaId}:
     x-summary: Ritrova partita specifica
@@ -319,6 +334,45 @@ paths:
           description: id partita invalido
           schema:
             $ref: '#/definitions/Errore'
+            
+  /giocatore/getSlot?idCircolo=idCircolo&data=data&campo=tipoCampo:
+    x-summary: Scarica dati slot circoli
+    get:
+      summary: Fornisce l'occupazione degli slot orari dei vari circoli, evidenziando la presenza di eventuali partite aperte 
+      parameters:
+        - name: idCircolo 
+          in: query
+          type: string
+          required: true
+        - in: query
+          name: data
+          type: string
+          required: true
+        - in: query
+          name: tipoCampo
+          type: string
+          enum: [Interno, Esterno]
+          required: true
+      responses:
+        200:
+          description: Ritorna i dati del circolo e quelli relativi ai vari slot temporali, in particolare di questi viene indicata la disponibilità e la presenza di partite aperte
+          schema:
+            allOf:
+              - $ref: '#/definitions/RispostaBasic'
+              - type: object
+                properties:
+                  payload:
+                    type: object
+        403:
+          description: Ritorna il messaggio esplicativo di errore
+          schema:
+            allOf:
+              - $ref: '#/definitions/RispostaBasic'
+              - type: object
+                properties:
+                  payload:
+                    type: object
+            
 definitions:
   LoginRequest:
     title: Login Request
@@ -462,111 +516,76 @@ definitions:
     properties:
       anagrafica:
         type: object
-        # nome:
-        #   type: string
-        # telefono:
-        #   type: string
-        # partitaIVA:
-        #   type: string
-        # indirizzo:
-        #   type: string
-      # struttura: 
-      #   type: object
-      #   orariStruttura:
-      #     type: array
-      #     giorno:
-      #       type: number
-      #       isAperto: 
-      #         type: boolean
-      #       orarioChiusura: 
-      #         type: string
-      #       orarioApertura:
-      #         type: string
-      #   durataSlot: 
-      #     type: number
-      #   quotaAffiliazione:
-      #     type: number
-      #   prezzoSlotOrario:
-      #     type: number
-      #   scontoAffiliazione: 
-      #     type: number
-      #   nCampiInterni: 
-      #     type: number
-      #   nCampiEsterni: 
-      #     type: number
-      # servizio: 
-      #   type: object
-      #   serviziAggiuntivi: 
-      #     type: array
-      #     items: 
-      #       type: string
+        properties:
+          nome:
+            type: string
+          telefono:
+            type: string
+          partitaIVA:
+            type: string
+          indirizzo:
+            type: string
+      struttura: 
+        type: object
+        properties:
+          orariStruttura:
+            type: array
+            items:
+              type: object
+              properties:
+                giorno:
+                  type: number
+                isAperto: 
+                  type: boolean
+                orarioChiusura: 
+                  type: string
+                orarioApertura:
+                  type: string
+          durataSlot: 
+            type: number
+          quotaAffiliazione:
+            type: number
+          prezzoSlotOrario:
+            type: number
+          scontoAffiliazione: 
+            type: number
+          nCampiInterni: 
+            type: number
+          nCampiEsterni: 
+            type: number
+      servizio: 
+        type: object
+        properties:
+          serviziAggiuntivi: 
+            type: array
+            items: 
+              type: string
+  
+  InserimentoDatiCircoloOK:
+    title: Inserimento dati Circolo corretto
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
     example:
-        anagrafica: {
-          nome: PadelLoro,
-          telefono: 3292877972,
-          partitaIVA: 3292877972,
-          indirizzo: Via Trento
-        }
-    #     struttura: {
-    #       orariStruttura: [
-    #           {
-    #               giorno: 0,
-    #               isAperto: true,
-    #               orarioApertura:  1899-12-31T08:00:00.000+00:00,
-    #               orarioChiusura: 1899-12-31T23:00:00.000+00:00
-    #           },
-    #           {
-    #               giorno: 1,
-    #               isAperto: true,
-    #               orarioApertura: 1899-12-31T09:00:00.000+00:00,
-    #               orarioChiusura: 1899-12-31T20:00:00.000+00:00
-    #           },
-    #           {
-    #               giorno: 2,
-    #               isAperto: true,
-    #               orarioApertura: 1899-12-31T09:00:00.000+00:00,
-    #               orarioChiusura: 1899-12-31T20:00:00.000+00:00
-    #           },
-    #           {
-    #               giorno: 3,
-    #               isAperto: false,
-    #               orarioApertura: 1899-12-31T09:00:00.000+00:00,
-    #               orarioChiusura: 1899-12-31T23:00:00.000+00:00
-    #           },
-    #           {
-    #               giorno: 4,
-    #               isAperto: true,
-    #               orarioApertura: 1899-12-31T09:00:00.000+00:00,
-    #               orarioChiusura: 1899-12-31T23:00:00.000+00:00
-    #           },
-    #           {
-    #               giorno: 5,
-    #               isAperto: false,
-    #               orarioApertura: 1899-12-31T09:00:00.000+00:00,
-    #               orarioChiusura: 1899-12-31T23:00:00.000+00:00
-    #           },
-    #           {
-    #               giorno: 6,
-    #               isAperto": false,
-    #               orarioApertura: 1899-12-31T09:00:00.000+00:00,
-    #               orarioChiusura: 1899-12-31T23:00:00.000+00:00
-    #           }
-    #       ]
-    #     }  
-    #     durataSlot: 60,
-    #     quotaAffiliazione: 20,
-    #     prezzoSlotOrario: 14,
-    #     scontoAffiliazione: 20,
-    #     nCampiInterni: 0,
-    #     nCampiEsterni: 0
-    # },
-    # servizio: {
-    #   serviziAggiuntivi: [
-    #         parcheggio,
-    #         bar,
-    #         piscina
-    #     ]
-    # }
+      success: true
+      message: Circolo aggiornato correttamente
+      
+  InserimentoDatiCircoloWrong:
+    title: Inserimento dati Circolo errato
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+    example:
+      success: true
+      message: messaggio esplicativo dei dati errati
+    
+      
   PrenotazioneCircolo:
     title: Oggetto prenotazione slot circolo
     type: object
