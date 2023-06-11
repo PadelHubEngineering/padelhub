@@ -12,7 +12,7 @@ import { sendHTTPResponse } from "../../utils/general.utils";
 
 import { DateTime } from  "luxon"
 import { GiocatoreModel } from "../../classes/Giocatore";
-import { PartiteAperteI, c_to_ret, map_to_display } from "../partite/partita.interface";
+import { CircoloRetI, PartiteAperteI, c_to_ret, map_to_display } from "../partite/partita.interface";
 
 import { controlloData, controlloDataExpanded } from "../../utils/parameters.utils";
 import { inserisciDatiCircolo, registrazioneCircolo } from "./registrazioneCircolo";
@@ -36,7 +36,21 @@ router.get('/:idCircolo', checkTokenGiocatoreOCircolo, async( req: Request, res:
         return;
     }
 
-    sendHTTPResponse( res, 200, true, c_to_ret( circolo_db ) );
+    let retObj: { circolo: CircoloRetI, isAffiliato?: boolean } = {
+        circolo: c_to_ret( circolo_db ),
+        isAffiliato: undefined
+    }
+
+    if( req.utenteAttuale?.tipoAccount === TipoAccount.Giocatore ){
+
+        const giocatore_db = await GiocatoreModel.findOne({ email: req.utenteAttuale.email }).exec();
+
+        if( giocatore_db ){
+            retObj.isAffiliato = circolo_db._id.toString() in giocatore_db.circoliAssociati
+        }
+    }
+
+    sendHTTPResponse( res, 200, true, retObj );
 })
 
 router.post('/prenotazioneSlot', checkTokenCircolo, async (req: Request, res: Response) => {

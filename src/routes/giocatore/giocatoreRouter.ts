@@ -9,6 +9,8 @@ import { inviaEmailConferma } from "../../utils/email.utils";
 import { Ref } from "@typegoose/typegoose";
 import { Utente } from "../../classes/Utente";
 import { CodiceConferma, CodiceConfermaModel } from "../../classes/CodiceConferma";
+import { checkTokenGiocatore } from "../../middleware/tokenChecker";
+import { g_to_ret } from "../partite/partita.interface";
 
 
 const router = Router();
@@ -124,6 +126,22 @@ router.post("/", async ( req: Request, res: Response ) => {
         sendHTTPResponse(res, 500, false, "Impossibile inviare email di conferma, prego riprovare")
 } )
 
+router.get("/datiGiocatore", checkTokenGiocatore ,async ( req: Request, res: Response ) => {
+
+    const giocatore_db = await GiocatoreModel.findOne({ email: req.utenteAttuale!.email }).exec();
+
+    if( !giocatore_db ) {
+        sendHTTPResponse( res, 401, false, "Giocatore non trovato" );
+        return;
+    }
+
+    let retObj = {
+        giocatore: g_to_ret(giocatore_db),
+        circoliAssociati: giocatore_db.circoliAssociati
+    }
+
+    sendHTTPResponse( res, 200, true, retObj );
+})
 
 
 export default router;
