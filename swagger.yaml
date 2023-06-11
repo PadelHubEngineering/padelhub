@@ -376,7 +376,38 @@ paths:
                 properties:
                   payload:
                     type: object
-            
+  /ricercaCircoli/getCircoli:
+    x-summary: Ritorna id e nome dei circoli
+    get:
+      summary: Ricerca
+      responses:
+        200:
+          description: Ritorna id e nome dei circoli (api usata dalla ricerca per le suggestion)
+          schema:
+            allOf:
+              - $ref: '#/definitions/RispostaBasic'
+              - type: object
+                properties:
+                  payload:
+                    type: object
+  /ricercaCircoli/:
+    x-summary: Ricerca dei circoli o per nome
+    get:
+      summary: Ricerca dei circoli più vicini o per nome
+      responses:
+        200:
+          description: Ritorna i circoli ordinati per distanza richiamando le Bing API per la ricerca con autosuggestione. L'ordinamento avviene in base alla distanza di guida in chilometri
+        400:
+          description: query param 'data' non impostato o data non valida
+  /pagamenti/webhook/:
+    x-summary: Webhook per Stripe per ricevere gli eventi
+    post:
+      summary: Webhook per ricevere i dati da stripe. Questo webhook è utilizzato per ricevere gli eventi da Stripe, in particolare per quanto riguarda gli avvenuti pagamenti delle prenotazioni dai giocatori. Questa api permette infatti di prentare i giocatori alle partite solo dopo che questi hanno completato il pagamento.
+      responses:
+        200:
+          description: Successo
+  
+          
 definitions:
   LoginRequest:
     title: Login Request
