@@ -7,6 +7,7 @@ import { MongoServerError } from "mongodb";
 import { inviaEmailConferma, inviaEmailOnboarding } from "../../utils/email.utils"
 import { createConnectedAccount, getOnboardingLink } from "../../utils/gestionePagamenti.utils"
 import Stripe from 'stripe';
+import { CodiceConferma, CodiceConfermaModel } from "../../classes/CodiceConferma"
 
 
 //CONTROLLA SE FUNZIONA SE NON VENGONO INSERITI I DATI NON OBBLIGATORI
@@ -69,7 +70,9 @@ export async function registrazioneCircolo(req: Request, res: Response) {
         if (circolo.paymentId)
             getOnboardingLink(circolo.paymentId, new URL(process.env.PAYMENT_REDIRECT_URL!)).then(async (link: Stripe.AccountLink | null) => {
                 //Posso inviare email di conferma all'utente
-                const invio = await inviaEmailConferma("abcabc", circolo._id.toString())
+                let codice_conferma_utente = new CodiceConferma(circolo._id);
+                codice_conferma_utente = await CodiceConfermaModel.create(codice_conferma_utente)
+                const invio = await inviaEmailConferma(codice_conferma_utente._id.toString(), circolo._id.toString())
                 if (link != null && link.url != undefined) {
                     const onboarding = await inviaEmailOnboarding(new URL(link?.url.toString()), circolo._id.toString())
                     sendHTTPResponse(res, 201, true, "Email di conferma inviata")
