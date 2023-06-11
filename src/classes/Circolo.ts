@@ -235,7 +235,7 @@ export class Circolo extends Utente {
         return this.prezzoSlotOrario
     }
 
-    isCircoloValid( this: DocumentType<Circolo> ) {
+    isCircoloValidato( this: DocumentType<Circolo> ) {
 
         if( this.campi.length === 0 )
             return false;
