@@ -32,15 +32,20 @@ export class Partita {
     @prop({ required: true, ref: () => Circolo })
     circolo: Ref<Circolo>;
 
+    @prop({ required: true, type: String })
+    tipocampo: TipoCampo;
+
+
     @prop({ required: false })
     public orario: Date = new Date(0, 0)
 
-    constructor(giocatore: Ref<Giocatore>, categoria_max: number, categoria_min: number, circolo: Ref<Circolo>, data: Date) {
+    constructor(giocatore: Ref<Giocatore>, categoria_max: number, categoria_min: number, circolo: Ref<Circolo>, data: Date, tipocampo: TipoCampo) {
         this.giocatori.push(giocatore);
         this.categoria_max = categoria_max;
         this.categoria_min = categoria_min;
         this.circolo = circolo;
         this.orario = data
+        this.tipocampo = tipocampo
     }
 
     //rivedere per salvataggio db
@@ -48,7 +53,7 @@ export class Partita {
 
     public async aggiungi_player(this: DocumentType<Partita>, gioc: Ref<Giocatore> | null) {
         if (gioc == null) {
-            return
+            return null
         }
 
         if (!this.checkChiusa()) {
@@ -57,7 +62,7 @@ export class Partita {
             console.log("new Giocatore Aggiunto da metodo")
             return await this.save()
         } else {
-            return
+            return null
         }
 
     }

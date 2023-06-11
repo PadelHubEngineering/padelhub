@@ -1,8 +1,15 @@
-import { getDiscriminatorModelForClass, getModelForClass, mongoose, prop, DocumentType, modelOptions } from "@typegoose/typegoose"
+import { getDiscriminatorModelForClass,mongoose, prop, DocumentType, modelOptions } from "@typegoose/typegoose"
 import { Utente, UtenteModel } from "./Utente"
 import { TipoAccount } from "./Utente"
 import { startSession } from "mongoose"
 import { checkOnboarding } from "../utils/gestionePagamenti.utils"
+import { PrenotazioneCampo, PrenotazioneCampoModel } from "./PrenotazioneCampo"
+import { DateTime } from "luxon";
+import { PrenotazioneGiocatore } from "./PrenotazionePartita"
+import { Giocatore, GiocatoreModel } from "./Giocatore"
+
+
+
 type DocumentoSocietario = { //TODO: meglio di così
     documento: string
 }
@@ -104,6 +111,67 @@ export class Circolo extends Utente {
     public serviziAggiuntivi: string[] = [];
     // @prop({ type: () => [IscrizioneCircolo] })
     // public affiliati?: IscrizioneCircolo[] 
+
+
+    public check_coerenza_dataInputSlot(this: DocumentType<Circolo>, date : Date){
+        console.log(date)
+        if(!date ){
+            return false
+        }
+        const data_input : DateTime = DateTime.fromJSDate(date).setZone('UTC+0')
+        console.log(`data input ${data_input}`)
+        if(!data_input){
+            return false
+        }else if( data_input< DateTime.now()){
+            return false
+        }
+        try{
+            var apertura = DateTime.fromJSDate(this.orarioSettimanale[data_input.weekday-1].orarioApertura).setZone('UTC+0')
+            console.log("apertura" + apertura.toISOTime())
+            var chiusura = DateTime.fromJSDate(this.orarioSettimanale[data_input.weekday-1].orarioChiusura).setZone('UTC+0')
+        }catch(err){
+            return false
+        }
+
+        console.log(data_input.weekday-1)
+
+        let i =0
+        while(apertura < chiusura.minus({minutes: this.durataSlot})&& i++<24){
+         
+            if(apertura.hour == data_input.hour && apertura.minute == data_input.minute){
+                return true
+            }
+            apertura= apertura.plus({minutes: this.durataSlot})
+        }
+
+        return false     
+    }
+
+
+
+    public isOpen(this: DocumentType<Circolo>, date : Date){
+        if(!date ){
+            return false
+        }
+        const data_input : DateTime = DateTime.fromJSDate(date).setZone("Europe/Rome")
+        console.log(data_input)
+        if(!data_input){
+            return false
+        }
+        
+        return this.orarioSettimanale[data_input.weekday-1].isAperto
+    }
+
+
+    public get_fineSlot(this: DocumentType<Circolo>, inizio_slot : Date){
+        var inizio = DateTime.fromJSDate(inizio_slot).setZone("Europe/Rome")
+        return inizio.plus({minute: this.durataSlot})
+
+    }
+
+
+
+
 
     public async setOrarioAperturaGiorno(this: DocumentType<Circolo>, giorno: GiornoSettimana, date: Date) {
         this.orarioSettimanale[giorno].orarioApertura = date

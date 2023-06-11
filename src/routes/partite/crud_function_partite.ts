@@ -3,7 +3,7 @@ import { Partita, PartitaModel } from "../../classes/Partita"
 import { isValidObjectId } from "mongoose"
 import { sendHTTPResponse } from "../../utils/general.utils"
 import { logger } from "../../utils/logging"
-import { Circolo, CircoloModel } from "../../classes/Circolo"
+import { Circolo, CircoloModel ,TipoCampo } from "../../classes/Circolo"
 import { TipoAccount } from "../../classes/Utente"
 import { Giocatore, GiocatoreModel } from "../../classes/Giocatore"
 import { PrenotazioneGiocatore, PrenotazioneModel } from "../../classes/PrenotazionePartita"
@@ -11,11 +11,14 @@ import { PartitaRetI, p_to_ret } from "./partita.interface"
 import { DocumentType } from "@typegoose/typegoose"
 import { handlePaymentPrenotazione } from "../../utils/gestionePagamenti.utils"
 import { SessionePagamentoModel } from "../../classes/SessionePagamento"
+import { DateTime } from "luxon"
+import { PrenotazioneCampoModel,PrenotazioneCampo } from "../../classes/PrenotazioneCampo"
+
 
 //creazione di una partita
 const createPartita = async (req: Request, res: Response, next: NextFunction) => {
 
-    const { circolo, categoria_min, categoria_max, orario } = req.body
+    const { circolo, categoria_min, categoria_max, orario, tipocampo } = req.body
     const email = req.utenteAttuale?.email
     var giocatore: DocumentType<Giocatore> | null
 
@@ -32,11 +35,116 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
 
 
     }
+    const date = new Date(orario)
+    if(!date){
+        sendHTTPResponse(res, 404, false, "formato data errata:(es :2023-03-12T00:00:00.000Z) ")
+        return
+
+    }
     if (!isValidObjectId(circolo)) {
         sendHTTPResponse(res, 400, false, "Id circolo formalmente errato")
         return
     }
 
+    //circolo:
+    const c = await CircoloModel.findById(circolo)
+    console.log(c)
+    if(!c){
+        sendHTTPResponse(res, 404, false, "circolo inesistente")
+        return
+    }
+
+    //check se vuoto o pieno
+    
+    //check date slots
+    if(!date){
+        sendHTTPResponse(res, 404, false, "formato data errata:(es :2023-03-12T00:00:00.000Z) ")
+        return
+
+    }
+    
+
+    if(!c.check_coerenza_dataInputSlot(date)){
+        sendHTTPResponse(res, 404, false, "Errore data: controllare le date di inizio e fine di uno slot ")
+        return
+    }
+    
+
+    //check aperto
+    if(!c.isOpen(date)){
+        sendHTTPResponse(res, 404 , false, "Errore data: circolo chiuso")
+        return
+    }
+    
+    
+    var campi_prenotati= await PrenotazioneCampoModel.find({"circolo": c._id,"inizioSlot" : date}, "idCampo")
+    console.log(campi_prenotati)
+    if(!campi_prenotati){
+        sendHTTPResponse(res, 500, false, "[server] Errore interno")
+        return
+        
+    }
+    if(campi_prenotati.length==c.campi.length){
+        sendHTTPResponse(res, 400, false, "Tutti i campi del circolo sono già prenotati, riprova con un altro orario")
+        return
+
+    }
+
+    //per prendere l'id del campo
+
+    
+    var id_campi_prenotati : number[] = []
+    campi_prenotati.forEach(campo => id_campi_prenotati.push(campo.idCampo))
+    console.log(campi_prenotati)
+    console.log(id_campi_prenotati)
+
+    var campi_liberi_esterni : number[] = []
+    var campi_liberi_interni  : number[] = []
+
+    /*
+    c.campi.forEach( (campo)=> {if(campo.tipologia==TipoCampo.Esterno){
+        campi_liberi_esterni.push(campo.id);
+        }else{campi_liberi_interni.push(campo.id)}
+    })
+    */
+   
+    c.campi.forEach(campo => {
+        let i =0
+        let free = true
+        for(let i =0 ;i< id_campi_prenotati.length;i++){
+            if(campo.id==id_campi_prenotati.at(i)){
+                free=false
+            }
+        }
+        if (free){
+            if(campo.tipologia==TipoCampo.Esterno){
+                console.log(campo.id)
+                console.log(campi_liberi_esterni.push(campo.id))
+            }else{
+                console.log(campo.id)
+                campi_liberi_interni.push(campo.id)
+
+            }
+        }
+    })
+    console.log(campi_liberi_interni)
+    console.log(campi_liberi_esterni)
+    
+
+    //check tipo campo
+    if(!tipocampo){
+        return sendHTTPResponse(res, 400, false, "Tipo campo non indicato")
+
+
+    }else if(tipocampo == TipoCampo.Esterno){
+        if(!campi_liberi_esterni.length){
+            return sendHTTPResponse(res, 400, false, "Nessun campo Esterno è disponibile in questo slot")
+        }
+    }else{
+        if(!campi_liberi_interni.length){
+            return sendHTTPResponse(res, 400, false, "Nessun campo Interno è disponibile in questo slot")
+        }
+    }
     if (categoria_max < categoria_min || (categoria_min < 1 || categoria_min > 5) || (categoria_max < 1 || categoria_max > 5)) {
         sendHTTPResponse(res, 400, false, "Categoria invalida")
         return
@@ -47,15 +155,15 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
         circolo: circolo,
         categoria_min: categoria_min,
         categoria_max: categoria_max,
-        orario: orario
-
+        orario: orario,
+        tipocampo: tipocampo.toString()
     })
-
 
     let flag = 0;
     return await PartitaModel.create(partita)
         .then(async function (partita) {
             flag = 1
+            
             let costo = await partita.getPrezzo(giocatore)
             const prenotazione = new PrenotazioneModel({
                 partita: partita.id,
@@ -65,6 +173,26 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
                 pagato: false
             })
             const p = await PrenotazioneModel.create(prenotazione)
+            // //creazione prenotazione_campo
+
+            // const prenotazione_campo= {
+            //     idCampo : 1, // calcolato da sopra
+            //     partita : partita._id,
+            //     circolo : circolo,
+            //     inizioSlot : date,
+            //     fineSlot : c.get_fineSlot(date).toJSDate(),
+            //     dataPrenotazione : DateTime.now().toJSDate()
+        
+            // }
+            
+            // const re = await PrenotazioneCampoModel.create(prenotazione_campo)
+            // if(!re){
+            //     sendHTTPResponse(res, 500, false, "[server] Errore interno")
+            //     return
+        
+            // }
+            // console.log(re)
+            // ///
 
             //Pagamento
             const circoloInfo = await partita.getCircolo()
@@ -187,7 +315,20 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
                         sendHTTPResponse(res, 401, false, "Non puoi partecipare a questa partita : Livello invalido")
                         return
                     }
-                    const p = await PartitaModel.findById(id).then((p) => p?.aggiungi_player(giocatore))
+                    //giocatore già presente
+                    if(giocatore!= null){
+                        if (partita.giocatori.includes(giocatore._id)){
+                            sendHTTPResponse(res, 400, false, "Giocatore già registrato alla partita")
+                            return 
+                        }
+                    }
+     
+                    const p = await PartitaModel.findById(id)//.then((p) => p?.aggiungi_player(giocatore))
+                    //check se la partita è chiusa così da creare la prenotazione del campo
+
+                    console.log(p)
+                    console.log(partita.orario)
+                    
 
                     //crea prenotazione
                     if (p) {
@@ -199,10 +340,12 @@ const updatePartita = async (req: Request, res: Response, next: NextFunction) =>
                             costo: costo,
                             pagato: false
                         })
+                        console.log("qui")
 
                         try {
                             await PrenotazioneModel.create(prenotazione)
                         } catch (err) {
+                            console.log(err)
                             sendHTTPResponse(res, 500, false, "[server] Errore interno1")
                             return
                         }
