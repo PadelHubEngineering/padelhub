@@ -137,11 +137,11 @@ const createPartita = async (req: Request, res: Response, next: NextFunction) =>
 
 
     }else if(tipocampo == TipoCampo.Esterno){
-        if(!campi_liberi_interni.length){
+        if(!campi_liberi_esterni.length){
             return sendHTTPResponse(res, 400, false, "Nessun campo Esterno è disponibile in questo slot")
         }
     }else{
-        if(!campi_liberi_interni){
+        if(!campi_liberi_interni.length){
             return sendHTTPResponse(res, 400, false, "Nessun campo Interno è disponibile in questo slot")
         }
     }
