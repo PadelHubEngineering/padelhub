@@ -93,21 +93,25 @@ paths:
     x-summary: Scarica dati Circolo
     get:
       summary: Fornisce tutti i dati relativi ad un Circolo
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/DatiCircolo'
       responses:
         200:
-          description: Dati validi, eliminazione corretta
+          description: Il payload contiene tutti i dati relativi al circolo
           schema:
-            $ref: '#/definitions/EliminazioneCircoloApproved'
-        401:
-          description: Dati invalidi, errore
+            allOf:
+              - $ref: '#/definitions/RispostaBasic'
+              - type: object
+                properties:
+                  payload:
+                    type: object
+        403:
+          description: Azione fallita, il payload contiene il messaggio di errore
           schema:
-            $ref: '#/definitions/EliminazioneCircoloImpossible'
+            allOf:
+              - $ref: '#/definitions/RispostaBasic'
+              - type: object
+                properties:
+                  payload:
+                    type: object
             
             
   /inserimentoDatiCircolo:
@@ -490,16 +494,6 @@ definitions:
     example:
       success: false
       message: Impossibile eliminare il circolo
-  DatiCircolo:
-    title: Dati Circolo
-    type: object
-    properties:
-      email:
-        type: string
-    required:
-      - email
-    example:
-      email: circolo@padel.com
   DatiCircoloOk: 
     title: Dati Circolo Ok
     type: object
