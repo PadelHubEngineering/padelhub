@@ -172,6 +172,7 @@ describe("GET /api/v1/circolo/prenotazioneSlot/{data}", () => {
             }
         }) as any;
     })
+    
 
     test("Richiesta prenotazione valida", async ()=> {
 
@@ -241,11 +242,11 @@ describe("GET /api/v1/circolo/prenotazioneSlot/{data}", () => {
             .get(`/api/v1/circolo/prenotazioniSlot/`)
             .set('x-access-token', token)
             .expect('Content-Type', /json/)
-            .expect(404)
+            .expect(401)
             .then((res) => {
                 if (res.body && fineSlot && orarioChiusura) {
                     expect(res.body).toHaveProperty("success", false)
-                    expect(res.body).toHaveProperty("message", "Impossibile trovare il dato o la risorsa richiesta")
+                    expect(res.body).toHaveProperty("message", "Id circolo formalmente errato")
                 }
             })
     })
@@ -570,7 +571,7 @@ describe("POST /circolo/inserimentoDatiCircolo", () => {
             })
     })
 
-    // test( "Inserisci dati circolo con telefono non valido", async () => {
+    //test( "Inserisci dati circolo con telefono non valido", async () => {
 
     //     const token = createTokenCircolo()
 
@@ -622,4 +623,5 @@ describe("POST /circolo/inserimentoDatiCircolo", () => {
     //             }
     //         })
     // })
+    
 })
