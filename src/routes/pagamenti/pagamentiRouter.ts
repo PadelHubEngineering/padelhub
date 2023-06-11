@@ -57,11 +57,10 @@ router.post('/webhook', async (req: Request, res: Response) => {
                             sendHTTPResponse(res, 500, false, "[server] Errore interno")
                             return  
                         }
-                        if(campi_prenotati.length==circolo.campi.length){
-                            sendHTTPResponse(res, 400, false, "Tutti i campi del circolo sono già prenotati, riprova con un altro orario")
-                            return
-                    
-                        }
+                        // if(campi_prenotati.length==circolo.campi.length){
+                        //     sendHTTPResponse(res, 400, false, "Tutti i campi del circolo sono già prenotati, riprova con un altro orario")
+                        //     return
+                        // }
                     
                         //per prendere l'id del campo
                     
