@@ -14,18 +14,14 @@ const router = Router();
 //get all matches
 router.get("/", checkTokenGiocatoreOCircolo, readAllPartite);
 
+//add partita
+router.post("/",checkTokenGiocatore ,createPartita);
 
 //get a single match
 router.get("/:PartitaId", checkTokenGiocatoreOCircolo, readPartita);
 
-//add partita
-router.post("/",checkTokenGiocatore ,createPartita);
-
-
-
 //delete partita
 router.delete("/:PartitaId", checkTokenCircolo, deletePartita);
-
 
 //
 router.patch("/:PartitaId", checkTokenGiocatore, updatePartita)

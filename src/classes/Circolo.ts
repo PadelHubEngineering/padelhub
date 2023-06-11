@@ -4,7 +4,7 @@ import { TipoAccount } from "./Utente"
 import { startSession } from "mongoose"
 import { checkOnboarding } from "../utils/gestionePagamenti.utils"
 import { PrenotazioneCampo, PrenotazioneCampoModel } from "./PrenotazioneCampo"
-import { DateTime } from "luxon";
+import { DateTime, Interval } from "luxon";
 import { PrenotazioneGiocatore } from "./PrenotazionePartita"
 import { Giocatore, GiocatoreModel } from "./Giocatore"
 
@@ -114,37 +114,38 @@ export class Circolo extends Utente {
 
 
     public check_coerenza_dataInputSlot(this: DocumentType<Circolo>, date : Date){
-        console.log(date)
         if(!date ){
             return false
         }
         const data_input : DateTime = DateTime.fromJSDate(date).setZone('UTC+0')
-        console.log(`data input ${data_input}`)
-        if(!data_input){
+        if(!data_input.isValid){
             return false
-        }else if( data_input< DateTime.now()){
+        }else if( data_input < DateTime.now().setZone("UTC+0")){
             return false
         }
         try{
             var apertura = DateTime.fromJSDate(this.orarioSettimanale[data_input.weekday-1].orarioApertura).setZone('UTC+0')
-            console.log("apertura" + apertura.toISOTime())
             var chiusura = DateTime.fromJSDate(this.orarioSettimanale[data_input.weekday-1].orarioChiusura).setZone('UTC+0')
         }catch(err){
             return false
         }
 
-        console.log(data_input.weekday-1)
+        const { day, month, year } = data_input;
 
-        let i =0
-        while(apertura < chiusura.minus({minutes: this.durataSlot})&& i++<24){
-         
-            if(apertura.hour == data_input.hour && apertura.minute == data_input.minute){
-                return true
-            }
-            apertura= apertura.plus({minutes: this.durataSlot})
+        apertura = apertura.set({ day, month, year })
+        chiusura = chiusura.set({ day, month, year })
+
+        const interval = Interval.fromDateTimes( apertura , chiusura );
+        const real_interval = interval.splitBy({ minutes: this.durataSlot })
+
+        let ret = false;
+        for( const inizio of real_interval ) {
+
+            if( inizio.start?.equals(data_input))
+                ret = true;
         }
 
-        return false     
+        return ret
     }
 
 
