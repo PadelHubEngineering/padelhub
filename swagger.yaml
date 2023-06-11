@@ -64,6 +64,63 @@ paths:
           description: Inserita email già esistente
           schema:
             $ref: '#/definitions/RegistrazioneCircoloEmailExist'
+  /circolo/eliminaCircolo:
+    x-summary: Eliminazione Circolo
+    delete:
+      summary: Consente di eliminare un circolo dalla piattaforma
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/EliminazioneCircolo'
+      responses:
+        200:
+          description: Dati validi, eliminazione corretta
+          schema:
+            $ref: '#/definitions/EliminazioneCircoloApproved'
+        401:
+          description: Dati invalidi, errore
+          schema:
+            $ref: '#/definitions/EliminazioneCircoloImpossible'
+  /datiCircolo:
+    x-summary: Scarica dati Circolo
+    get:
+      summary: Fornisce tutti i dati relativi ad un Circolo
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/DatiCircolo'
+      responses:
+        200:
+          description: Dati validi, eliminazione corretta
+          schema:
+            $ref: '#/definitions/EliminazioneCircoloApproved'
+        401:
+          description: Dati invalidi, errore
+          schema:
+            $ref: '#/definitions/EliminazioneCircoloImpossible'
+  /inserimentoDatiCircolo:
+    x-summary: Inserimento dati Circolo
+    post:
+      summary: Consente l'inserimento dei dati di un Circolo
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/InserimentoDatiCircolo'
+      responses:
+        200:
+          description: Dati validi, eliminazione corretta
+          schema:
+            $ref: '#/definitions/EliminazioneCircoloApproved'
+        401:
+          description: Dati invalidi, errore
+          schema:
+            $ref: '#/definitions/EliminazioneCircoloImpossible'
   /circolo/prenotazioniSlot/{year}-{month}-{day}:
     x-summary: Richiesta lista prenotazioni Slot Circolo
     get: 
@@ -347,6 +404,169 @@ definitions:
     example:
       success: true
       message: Esiste gia` un utente con email uguale a "circolo@padel.com"
+  EliminazioneCircolo: 
+    title: Eliminazione Circolo
+    type: object
+    properties:
+      email:
+        type: string
+    required:
+      - email
+    example:
+      email: circolo@padel.com
+  EliminazioneCircoloApproved:
+    title: Eliminazione Circolo Approved
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+    example:
+      success: true
+      message: Circolo eliminato con successo
+  EliminazioneCircoloImpossible:
+    title: Eliminazione Circolo Impossible
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+    example:
+      success: false
+      message: Impossibile eliminare il circolo
+  DatiCircolo:
+    title: Dati Circolo
+    type: object
+    properties:
+      email:
+        type: string
+    required:
+      - email
+    example:
+      email: circolo@padel.com
+  DatiCircoloOk: 
+    title: Dati Circolo Ok
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+    example:
+      success: true
+  InserimentoDatiCircolo:
+    title: Inserimento dati Circolo
+    type: object
+    properties:
+      anagrafica:
+        type: object
+        # nome:
+        #   type: string
+        # telefono:
+        #   type: string
+        # partitaIVA:
+        #   type: string
+        # indirizzo:
+        #   type: string
+      # struttura: 
+      #   type: object
+      #   orariStruttura:
+      #     type: array
+      #     giorno:
+      #       type: number
+      #       isAperto: 
+      #         type: boolean
+      #       orarioChiusura: 
+      #         type: string
+      #       orarioApertura:
+      #         type: string
+      #   durataSlot: 
+      #     type: number
+      #   quotaAffiliazione:
+      #     type: number
+      #   prezzoSlotOrario:
+      #     type: number
+      #   scontoAffiliazione: 
+      #     type: number
+      #   nCampiInterni: 
+      #     type: number
+      #   nCampiEsterni: 
+      #     type: number
+      # servizio: 
+      #   type: object
+      #   serviziAggiuntivi: 
+      #     type: array
+      #     items: 
+      #       type: string
+    example:
+        anagrafica: {
+          nome: PadelLoro,
+          telefono: 3292877972,
+          partitaIVA: 3292877972,
+          indirizzo: Via Trento
+        }
+    #     struttura: {
+    #       orariStruttura: [
+    #           {
+    #               giorno: 0,
+    #               isAperto: true,
+    #               orarioApertura:  1899-12-31T08:00:00.000+00:00,
+    #               orarioChiusura: 1899-12-31T23:00:00.000+00:00
+    #           },
+    #           {
+    #               giorno: 1,
+    #               isAperto: true,
+    #               orarioApertura: 1899-12-31T09:00:00.000+00:00,
+    #               orarioChiusura: 1899-12-31T20:00:00.000+00:00
+    #           },
+    #           {
+    #               giorno: 2,
+    #               isAperto: true,
+    #               orarioApertura: 1899-12-31T09:00:00.000+00:00,
+    #               orarioChiusura: 1899-12-31T20:00:00.000+00:00
+    #           },
+    #           {
+    #               giorno: 3,
+    #               isAperto: false,
+    #               orarioApertura: 1899-12-31T09:00:00.000+00:00,
+    #               orarioChiusura: 1899-12-31T23:00:00.000+00:00
+    #           },
+    #           {
+    #               giorno: 4,
+    #               isAperto: true,
+    #               orarioApertura: 1899-12-31T09:00:00.000+00:00,
+    #               orarioChiusura: 1899-12-31T23:00:00.000+00:00
+    #           },
+    #           {
+    #               giorno: 5,
+    #               isAperto: false,
+    #               orarioApertura: 1899-12-31T09:00:00.000+00:00,
+    #               orarioChiusura: 1899-12-31T23:00:00.000+00:00
+    #           },
+    #           {
+    #               giorno: 6,
+    #               isAperto": false,
+    #               orarioApertura: 1899-12-31T09:00:00.000+00:00,
+    #               orarioChiusura: 1899-12-31T23:00:00.000+00:00
+    #           }
+    #       ]
+    #     }  
+    #     durataSlot: 60,
+    #     quotaAffiliazione: 20,
+    #     prezzoSlotOrario: 14,
+    #     scontoAffiliazione: 20,
+    #     nCampiInterni: 0,
+    #     nCampiEsterni: 0
+    # },
+    # servizio: {
+    #   serviziAggiuntivi: [
+    #         parcheggio,
+    #         bar,
+    #         piscina
+    #     ]
+    # }
   PrenotazioneCircolo:
     title: Oggetto prenotazione slot circolo
     type: object
