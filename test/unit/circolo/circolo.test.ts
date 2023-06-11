@@ -437,3 +437,189 @@ describe("POST /api/v1/circolo/prenotazioneSlot", () => {
             })
     } )
 })
+
+describe("POST /api/v1/circolo/registrazioneCircolo", ()=>{
+
+    const email_circolo = "new@circolo.com"
+    const nome_circolo = "NomeCircolo"
+    const password_circolo = "Circolo!123"
+    const telefono_circolo = "3318976554"
+
+
+    test( "Registrazione circolo con nome mancante", async () => {
+
+        await request(app)
+            .post(`/api/v1/circolo/registrazioneCircolo`)
+            .send({ 
+                email: email_circolo, 
+                telefono: telefono_circolo,
+                password: password_circolo
+             })
+            .expect('Content-Type', /json/)
+            .expect(400)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", "Nome invalido")
+                }
+            })
+    })
+
+    test( "Registrazione circolo con telefono errato", async () => {
+
+        await request(app)
+            .post(`/api/v1/circolo/registrazioneCircolo`)
+            .send({ 
+                nome: nome_circolo,
+                email: email_circolo, 
+                telefono: "3",
+                password: password_circolo
+             })
+            .expect('Content-Type', /json/)
+            .expect(400)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", "Telefono invalido")
+                }
+            })
+    })
+
+    test( "Registrazione circolo con email errata", async () => {
+
+        await request(app)
+            .post(`/api/v1/circolo/registrazioneCircolo`)
+            .send({ 
+                nome: nome_circolo,
+                email: "email", 
+                telefono: telefono_circolo,
+                password: password_circolo
+             })
+            .expect('Content-Type', /json/)
+            .expect(400)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", "Email non valida")
+                }
+            })
+    })
+
+})
+
+describe("GET /api/v1/circolo/datiCircolo", () => {
+
+    test( "Scarica dati circolo senza fornire il token", async () => {
+
+        await request(app)
+            .get(`/api/v1/circolo/datiCircolo`)
+            .send()
+            .expect('Content-Type', /json/)
+            .expect(401)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", "Nessun token fornito")
+                }
+            })
+    })
+
+    test( "Scarica dati circolo con il token di un giocatore", async () => {
+
+        const tokenInvalido = createTokenGiocatore()
+
+        if ( !tokenInvalido )
+            throw new Error('Il token, per qualche motivo erano null. non va bene');
+
+        await request(app)
+            .get(`/api/v1/circolo/datiCircolo`)
+            .set('x-access-token', tokenInvalido)
+            .send()
+            .expect('Content-Type', /json/)
+            .expect(403)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", "Non sei autorizzato ad accedere a questa risorsa")
+                }
+            })
+    })
+
+})
+
+describe("POST /circolo/inserimentoDatiCircolo", () => {
+
+    test( "Inserisci dati circolo con il token di un giocatore", async () => {
+
+        const tokenInvalido = createTokenGiocatore()
+
+        if ( !tokenInvalido )
+            throw new Error('Il token, per qualche motivo erano null. non va bene');
+
+        await request(app)
+            .post(`/api/v1/circolo/inserimentoDatiCircolo`)
+            .set('x-access-token', tokenInvalido)
+            .send()
+            .expect('Content-Type', /json/)
+            .expect(403)
+            .then((res) => {
+                if (res.body) {
+                    expect(res.body).toHaveProperty("success", false)
+                    expect(res.body).toHaveProperty("message", "Non sei autorizzato ad accedere a questa risorsa")
+                }
+            })
+    })
+
+    // test( "Inserisci dati circolo con telefono non valido", async () => {
+
+    //     const token = createTokenCircolo()
+
+    //     CircoloModel.findOne = jest.fn().mockImplementation((criterias) => {
+    //         return {
+    //             exec: jest.fn().mockImplementation(() => {
+    //                 if((<any>criterias).email == email_circolo) {
+
+    //                     let orario_settimanale: any[] = []
+
+    //                     for(let i=0;i<=7;i++)
+    //                         orario_settimanale.push({ orarioApertura, orarioChiusura })
+
+    //                     return Promise.resolve({
+    //                         _id: circoloId,
+    //                         durataSlot,
+    //                         campi: [
+    //                             { id: 1, tipologia: TipoCampo.Interno} as Campo,
+    //                             { id: 2, tipologia: TipoCampo.Esterno} as Campo,
+    //                         ],
+    //                         orarioSettimanale: orario_settimanale
+    //                     })
+    //                 }
+    //                 return Promise.resolve(null)
+    //             })
+    //         }
+    //     }) as any;
+
+    //     if ( !token )
+    //         throw new Error('Il token, per qualche motivo erano null. non va bene');
+
+    //     await request(app)
+    //         .post(`/api/v1/circolo/inserimentoDatiCircolo`)
+    //         .set('x-access-token', token)
+    //         .send({
+    //             anagrafica: {
+    //                 nome: "PadelLoro",
+    //                 telefono: "32",
+    //                 partitaIVA: "3292877972",
+    //                 indirizzo: "Via Trento"
+    //             }
+    //         })
+    //         .expect('Content-Type', /json/)
+    //         .expect(400)
+    //         .then((res) => {
+    //             if (res.body) {
+    //                 expect(res.body).toHaveProperty("success", false)
+    //                 expect(res.body).toHaveProperty("message", "Telefono invalido")
+    //             }
+    //         })
+    // })
+})

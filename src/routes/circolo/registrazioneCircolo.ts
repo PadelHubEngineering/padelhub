@@ -19,11 +19,11 @@ export async function registrazioneCircolo(req: Request, res: Response) {
     logger.info(`Tentativo registrazione circolo: ${nome}, ${email}`)
 
     //Controllo i dati 
-    if (!controlloNomeCognome(res, nome, false, "Iscrizione fallita")) return
-    if (!controlloEmail(res, email, "Iscrizione fallita")) return
+    if (!controlloNomeCognome(res, nome, false, "Nome")) return
+    if (!controlloEmail(res, email, "Email")) return
     if (telefono != undefined)
-        if (!controlloTelefono(res, telefono, "Iscrizione fallita")) return
-    if (!controlloPassword(res, password, "Iscrizione fallita")) return
+        if (!controlloTelefono(res, telefono, "Telefono")) return
+    if (!controlloPassword(res, password, "Password")) return
 
     //Posso inviare i dati al db 
     // let circolo_db: Ref<Circolo>;
@@ -60,6 +60,8 @@ export async function registrazioneCircolo(req: Request, res: Response) {
         return;
 
     }
+
+    console.log("provaprovaprova", circolo)
 
     logger.info(`Creato nuovo circolo: ${nome}, ${email}`)
 
@@ -188,7 +190,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response) {
     //Controllo cosa è effettivamente cambiato e lo imposto
     //NOME
     if (nome != mioCircolo.nome && nome != undefined) {
-        if (!controlloNomeCognome(res, nome, false, "Aggiornamento dati fallito")) return
+        if (!controlloNomeCognome(res, nome, false, "Nome")) return
         objToSave.nome = nome;
     } else {
         objToSave.nome = mioCircolo.nome;
@@ -196,7 +198,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response) {
 
     //TELEFONO
     if (telefono != mioCircolo.telefono && telefono != undefined) {
-        if (!controlloTelefono(res, telefono, "Aggiornamento dati fallito")) return
+        if (!controlloTelefono(res, telefono, "Telefono")) return
         objToSave.telefono = telefono;
     } else {
         objToSave.telefono = mioCircolo.telefono;
@@ -204,7 +206,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response) {
 
     //PARTITA IVA - da sistemare il check
     if (partitaIVA != mioCircolo.partitaIVA && partitaIVA != undefined) {
-        if (!controlloStringa(res, partitaIVA, false, "Aggiornamento dati fallito")) return
+        if (!controlloStringa(res, partitaIVA, false, "PartitaIVA")) return
         objToSave.partitaIVA = partitaIVA;
     } else {
         objToSave.partitaIVA = mioCircolo.partitaIVA;
@@ -212,7 +214,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response) {
 
     //INDIRIZZO
     if (indirizzo != mioCircolo.indirizzo && indirizzo != undefined) {
-        if (!controlloStringa(res, indirizzo, false, "Aggiornamento dati fallito")) return
+        if (!controlloStringa(res, indirizzo, false, "Indirizzo")) return
         objToSave.indirizzo = indirizzo;
     } else {
         objToSave.indirizzo = mioCircolo.indirizzo;
@@ -220,7 +222,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response) {
 
     //DURATA SLOT
     if (durataSlot != mioCircolo.durataSlot && durataSlot != undefined) {
-        if (!controlloInt(res, durataSlot, 30, 180, true, "Aggiornamento dati fallito")) return
+        if (!controlloInt(res, durataSlot, 30, 180, true, "Durata slot")) return
         objToSave.durataSlot = durataSlot;
     } else {
         objToSave.durataSlot = mioCircolo.durataSlot;
@@ -244,7 +246,7 @@ export async function inserisciDatiCircolo(req: Request, res: Response) {
 
     //SCONTO AFFILIAZIONE
     if (scontoAffiliazione != mioCircolo.scontoAffiliazione && scontoAffiliazione != undefined) {
-        if (!controlloInt(res, scontoAffiliazione, 0, 100, true, "Aggiornamento dati fallito")) return
+        if (!controlloInt(res, scontoAffiliazione, 0, 100, true, "Scontro affiliazione")) return
         objToSave.scontoAffiliazione = scontoAffiliazione;
     } else {
         objToSave.scontoAffiliazione = mioCircolo.scontoAffiliazione;
