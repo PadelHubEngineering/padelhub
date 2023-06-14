@@ -18,5 +18,9 @@ In fase di pagamento inserire questi dati di pagamento: (per altre informazioni 
 - data di scadenza: qualsiasi data futura
 - Gli altri dati richiesti nel form non sono validati da Stripe.
 
+### Informazioni tecniche sul sistema di pagamento
+Alla registrazione di un circolo nella piattaforma viene inviato via mail un link per procedere all'onboarding su stripe. (i dati inseriti non sono validati). Nella fase di registrazione e di onboarding l'account registrato su padelhub e l'account "Connect" di Stripe vengono collegati tramite un id univoco mantenuto a database e utilizzato successivamente per le operazioni di pagamento (ed eventualmente di rendicontazione).
+Tutti i pagamenti effettuati verso un circolo dai giocatori vengono giornalemente trasferiti agli account Connect dei circoli corrispondenti.
 Sulla portale di Stripe è impostato i un link di backend di padelhub (https://padelhub-back.onrender.com/api/v1/pagamenti/webhook) che è preposto a ricevere gli eventi da Stripe per gestire gli avvenuti pagamenti e collegarli ai link generati.
-![https://ibb.co/dG3K2qG](https://ibb.co/dG3K2qG)
+E' possibile visualizzare foto di esempio della dashboard stripe dopo eventi e pagamenti al link (https://imgur.com/a/BxynM10)
+
